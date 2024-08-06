@@ -13,9 +13,13 @@ This repository contains a variety of custom widgets and utilities designed to e
 
 To use the ImGui Widget Collection in your project, install the NuGet package:
 
-(Not published yet)
+
 ```sh
 dotnet add package Hexa.NET.ImGui.Widgets
+```
+
+```sh
+dotnet add package Hexa.NET.ImGui.Widgets.Extras
 ```
 
 ## Widgets
