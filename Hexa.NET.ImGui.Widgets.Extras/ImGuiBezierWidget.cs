@@ -3,7 +3,7 @@
 //
 // Modified and ported by Juna Meinhold :3.
 
-namespace Kitty.UI
+namespace Hexa.NET.ImGui.Widgets.Extras
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.Mathematics;

@@ -26,6 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Hexa.NET.ImGui.Widgets.Extras\Hexa.NET.ImGui.Widgets.Extras.csproj" />
 	  <ProjectReference Include="..\Hexa.NET.ImGui.Widgets\Hexa.NET.ImGui.Widgets.csproj" />
 	</ItemGroup>
 
