@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Silk.NET.Direct3D.Compilers" Version="2.21.0" />
+		<PackageReference Include="Silk.NET.Direct3D11" Version="2.21.0" />
+		<PackageReference Include="Silk.NET.DXGI" Version="2.21.0" />
+		<PackageReference Include="Silk.NET.OpenAL" Version="2.21.0" />
+		<PackageReference Include="Silk.NET.OpenAL.Extensions.Enumeration" Version="2.21.0" />
+		<PackageReference Include="Silk.NET.OpenAL.Extensions.Soft" Version="2.21.0" />
+		<PackageReference Include="Silk.NET.OpenAL.Soft.Native" Version="1.23.1" />
+		<PackageReference Include="Silk.NET.OpenGL" Version="2.21.0" />
+		<PackageReference Include="Silk.NET.SDL" Version="2.21.0" />
+		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
+		<PackageReference Include="System.Text.Json" Version="8.0.4" />
+		<PackageReference Include="Hexa.NET.Math" Version="2.0.1" />
+		<PackageReference Include="Hexa.NET.Utilities" Version="2.0.1" />
+		<PackageReference Include="Hexa.NET.DirectXTex" Version="1.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Hexa.NET.ImGui.Widgets\Hexa.NET.ImGui.Widgets.csproj" />
+	</ItemGroup>
+
+</Project>
