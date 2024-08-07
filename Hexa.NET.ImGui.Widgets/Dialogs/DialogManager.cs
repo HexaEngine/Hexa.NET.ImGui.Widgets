@@ -25,7 +25,7 @@
             }
         }
 
-        internal static void Draw()
+        public static void Draw()
         {
             lock (_lock)
             {

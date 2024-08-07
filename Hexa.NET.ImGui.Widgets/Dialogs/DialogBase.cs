@@ -25,6 +25,8 @@
         private DialogFlags flags;
         private bool firstFrame = true;
 
+        public Vector2 InitialSize { get; set; } = new(900, 600);
+
         public DialogResult Result { get; protected set; }
 
         public abstract string Name { get; }
@@ -55,6 +57,7 @@
 
             if (firstFrame)
             {
+                ImGui.SetWindowSize(InitialSize);
                 firstFrame = false;
             }
             else

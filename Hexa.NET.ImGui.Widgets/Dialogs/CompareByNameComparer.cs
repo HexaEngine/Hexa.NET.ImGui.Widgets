@@ -1,6 +1,4 @@
-﻿using Kitty.UI.Dialogs;
-
-namespace Hexa.NET.ImGui.Widgets.Dialogs
+﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     public readonly struct CompareByNameComparer : IComparer<FileSystemItem>
     {

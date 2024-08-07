@@ -1,7 +1,6 @@
-﻿namespace Kitty.UI.Dialogs
+﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     using Hexa.NET.ImGui.Widgets.Extensions;
-    using HexaEngine.Editor;
     using System;
     using System.Collections.Generic;
     using System.IO;

@@ -1,28 +1,105 @@
 ﻿namespace Hexa.NET.ImGui.Widgets
 {
     using Hexa.NET.ImGui;
+    using Hexa.NET.ImGuizmo;
     using System;
     using System.Numerics;
 
     public unsafe class ImGuiButton
     {
-        public static bool ToggleButton(string label, bool selected = false)
+        public static bool ToggleSwitch(string label, ref bool selected)
         {
+            ImGuiWindow* window = ImGui.GetCurrentWindow();
+            if (window->SkipItems != 0)
+                return false;
+
+            uint id = ImGui.GetID(label);
+
+            float height = ImGui.GetFrameHeight();
+            float width = height * 2f;
+            float radius = height * 0.50f;
+
+            Vector2 pos = ImGui.GetCursorScreenPos();
+            Vector2 size = new(width, height);
+
+            ImRect bb = new() { Min = pos, Max = pos + size };
+
+            ImGui.ItemSizeRect(bb, 0.0f);
+            if (!ImGui.ItemAdd(bb, id, &bb, ImGuiItemFlags.None))
+                return false;
+
+            uint hoverColor = ImGui.GetColorU32(ImGuiCol.ButtonHovered);
+            uint backgroundColor = ImGui.GetColorU32(ImGuiCol.Button);
+            uint activeColor = ImGui.GetColorU32(ImGuiCol.ButtonActive);
+            uint selectedColor = ImGui.GetColorU32(ImGuiCol.TabSelectedOverline);
+            uint selectedBgColor = ImGui.GetColorU32(ImGuiCol.TabSelected);
+
+            ImDrawList* draw = ImGui.GetWindowDrawList();
+
+            bool isHovered;
+            bool isActive;
+            bool isClicked = ImGui.ButtonBehavior(bb, id, &isHovered, &isActive, 0);
+
+            float t = selected ? 1 : 0;
+
+            if (isClicked)
+            {
+                selected = !selected;
+                AnimationHelper.AddAnimation(id, .35f, 1, AnimationType.EaseOutCubic);
+            }
+
+            float animationValue = AnimationHelper.GetAnimationValue(id);
+            if (animationValue != -1)
+            {
+                t = selected ? animationValue : (1 - animationValue);
+            }
+
+            var g = ImGui.GetCurrentContext();
+
+            uint col_bg;
+            if (isHovered)
+                col_bg = ImGui.GetColorU32(ImGui.ImLerpVec4(new Vector4(0.78f, 0.78f, 0.78f, 1.0f), new Vector4(0.64f, 0.83f, 0.34f, 1.0f), t));
+            else
+                col_bg = ImGui.GetColorU32(ImGui.ImLerpVec4(new Vector4(0.85f, 0.85f, 0.85f, 1.0f), new Vector4(0.56f, 0.83f, 0.26f, 1.0f), t));
+
+            draw->AddRectFilled(pos, new Vector2(pos.X + width, pos.Y + height), col_bg, height * 0.5f);
+            draw->AddCircleFilled(new(pos.X + radius + t * (width - radius * 2.0f), pos.Y + radius), radius - 1.5f, 0xFFFFFFFF);
+
+            return isClicked;
+        }
+
+        public static bool ToggleButton(string label, ref bool selected)
+        {
+            return ToggleButton(label, ref selected, default, ImGuiButtonFlags.None);
+        }
+
+        public static bool ToggleButton(string label, ref bool selected, Vector2 sizeArg)
+        {
+            return ToggleButton(label, ref selected, sizeArg, ImGuiButtonFlags.None);
+        }
+
+        public static bool ToggleButton(string label, ref bool selected, Vector2 sizeArg, ImGuiButtonFlags flags)
+        {
+            ImGuiWindow* window = ImGui.GetCurrentWindow();
+            if (window->SkipItems != 0)
+                return false;
+
             uint id = ImGui.GetID(label);
 
             ImGuiStylePtr style = ImGui.GetStyle();
 
             Vector2 pos = ImGui.GetCursorScreenPos();
-            Vector2 size = ImGui.CalcTextSize(label);
-            Vector2 padding = style.FramePadding - new Vector2(style.FrameBorderSize * 2);
-            ImRect bb = new() { Min = pos + new Vector2(padding.X, 0), Max = new(pos.X + size.X, pos.Y + size.Y) };
-            ImRect bbFull = new(pos, new Vector2(pos.X + size.X, pos.Y + size.Y) + padding * 2);
+            Vector2 labelSize = ImGui.CalcTextSize(label, (byte*)null, true);
+            if ((flags & (ImGuiButtonFlags)ImGuiButtonFlagsPrivate.AlignTextBaseLine) != 0 && style.FramePadding.Y < window->DC.CurrLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
+                pos.Y += window->DC.CurrLineTextBaseOffset - style.FramePadding.Y;
+            Vector2 size = ImGui.CalcItemSize(sizeArg, labelSize.X + style.FramePadding.X * 2.0f, labelSize.Y + style.FramePadding.Y * 2.0f);
 
-            ImGui.ItemSizeRect(bbFull, 0.0f);
-            if (!ImGui.ItemAdd(bbFull, id, &bbFull, ImGuiItemFlags.None))
+            ImRect bb = new() { Min = pos, Max = pos + size };
+
+            ImGui.ItemSizeRect(bb, 0.0f);
+            if (!ImGui.ItemAdd(bb, id, &bb, ImGuiItemFlags.None))
                 return false;
 
-            uint textColor = ImGui.GetColorU32(ImGuiCol.Text);
             uint hoverColor = ImGui.GetColorU32(ImGuiCol.ButtonHovered);
             uint activeColor = ImGui.GetColorU32(ImGuiCol.ButtonActive);
             uint selectedColor = ImGui.GetColorU32(ImGuiCol.TabSelectedOverline);
@@ -30,23 +107,28 @@
 
             ImDrawList* draw = ImGui.GetWindowDrawList();
 
-            bool isHovered = false;
-            bool isClicked = ImGui.ButtonBehavior(bbFull, id, &isHovered, null, 0);
-            bool isActive = isHovered && ImGui.IsMouseDown(0);
+            bool isHovered;
+            bool isActive;
+            bool isClicked = ImGui.ButtonBehavior(bb, id, &isHovered, &isActive, 0);
 
             uint color = isActive ? activeColor : isHovered ? hoverColor : selected ? selectedBgColor : default;
 
             if (isActive || isHovered || selected)
             {
-                draw->AddRectFilled(bbFull.Min, bbFull.Max, color, style.FrameRounding);
+                draw->AddRectFilled(bb.Min, bb.Max, color, style.FrameRounding);
             }
 
             if (selected)
             {
-                draw->AddRect(bbFull.Min, bbFull.Max, selectedColor, style.FrameRounding, 2);
+                draw->AddRect(bb.Min, bb.Max, selectedColor, style.FrameRounding, 2);
             }
 
-            draw->AddText(bb.Min, textColor, label);
+            ImGui.RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, (byte*)null, &labelSize, style.ButtonTextAlign, &bb);
+
+            if (isClicked)
+            {
+                selected = !selected;
+            }
 
             return isClicked;
         }

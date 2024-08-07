@@ -1,14 +1,13 @@
-﻿using Kitty.UI.Dialogs;
-
-namespace Hexa.NET.ImGui.Widgets.Dialogs
+﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.ImGui.Widgets.Text;
-    using HexaEngine.Editor;
     using System.IO;
     using System.Numerics;
     using System.Text;
+
+    // TODO: Search function
 
     public abstract class FileDialogBase : DialogBase
     {
@@ -144,6 +143,7 @@ namespace Hexa.NET.ImGui.Widgets.Dialogs
         public override void Show()
         {
             base.Show();
+
             Refresh();
         }
 
@@ -345,7 +345,7 @@ namespace Hexa.NET.ImGui.Widgets.Dialogs
                     ImGuiTableFlags.SizingFixedFit |
                     ImGuiTableFlags.ScrollX |
                     ImGuiTableFlags.ScrollY |
-                    ImGuiTableFlags.PadOuterX | ImGuiTableFlags.ContextMenuInBody;
+                    ImGuiTableFlags.PadOuterX | ImGuiTableFlags.ContextMenuInBody | ImGuiTableFlags.NoSavedSettings;
                 var avail = ImGui.GetContentRegionAvail();
 
                 bool visible = ImGui.BeginTable("0", 4, flags, new Vector2(avail.X + ImGui.GetStyle().WindowPadding.X, -footerHeightToReserve));
@@ -355,7 +355,7 @@ namespace Hexa.NET.ImGui.Widgets.Dialogs
                     return false;
                 }
 
-                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.DefaultSort);
+                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.PreferSortDescending);
                 ImGui.TableSetupColumn("Date Modified", ImGuiTableColumnFlags.None);
                 ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.None);
                 ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.None);
@@ -428,6 +428,7 @@ namespace Hexa.NET.ImGui.Widgets.Dialogs
 
                         if (ImGui.BeginPopupContextItem(entry.Name, ImGuiPopupFlags.MouseButtonRight))
                         {
+                            // TODO: Implement context menu, but first figure out the bug with the popup
                             ImGui.Text("Test"u8);
                             ImGui.EndPopup();
                         }

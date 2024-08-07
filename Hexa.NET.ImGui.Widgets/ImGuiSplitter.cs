@@ -1,5 +1,4 @@
-﻿using Hexa.NET.ImGui;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace Hexa.NET.ImGui.Widgets
 {
@@ -32,23 +31,23 @@ namespace Hexa.NET.ImGui.Widgets
 
         public static bool VerticalSplitter(string strId, ref float width, float minWidth, float maxWidth, float height, float thickness, float tolerance, bool alwaysVisible)
         {
-            var io = ImGui.GetIO();
+            ImGuiWindow* window = ImGui.GetCurrentWindow();
+            if (window->SkipItems == 1)
+            {
+                return false;
+            }
 
             ImGui.SameLine();
 
             var origin = ImGui.GetCursorScreenPos();
             var avail = ImGui.GetContentRegionAvail();
-            if (height == 0)
+            if (height <= 0)
             {
-                avail.Y = height;
-            }
-            else if (height < 0)
-            {
-                avail.Y += height;
+                height += avail.Y;
             }
 
             Vector2 min = origin;
-            Vector2 max = origin + new Vector2(thickness, avail.Y);
+            Vector2 max = origin + new Vector2(thickness, height);
             ImRect bb = new() { Max = max, Min = min };
             ImRect bbTolerance = new() { Max = max + new Vector2(tolerance, 0), Min = min + new Vector2(-tolerance, 0) };
 
@@ -59,6 +58,8 @@ namespace Hexa.NET.ImGui.Widgets
             {
                 return false;
             }
+
+            var io = ImGui.GetIO();
 
             var drawList = ImGui.GetWindowDrawList();
             bool hovered;
@@ -113,23 +114,23 @@ namespace Hexa.NET.ImGui.Widgets
 
         public static bool HorizontalSplitter(string strId, ref float height, float minHeight, float maxHeight, float width, float thickness, float tolerance, bool alwaysVisible)
         {
-            var io = ImGui.GetIO();
+            ImGuiWindow* window = ImGui.GetCurrentWindow();
+            if (window->SkipItems == 1)
+            {
+                return false;
+            }
 
             var origin = ImGui.GetCursorScreenPos();
             var avail = ImGui.GetContentRegionAvail();
-            if (width == 0)
+            if (width <= 0)
             {
-                avail.X = width;
-            }
-            else if (width < 0)
-            {
-                avail.X += width;
+                width += avail.X;
             }
 
             Vector2 min = origin;
-            Vector2 max = origin + new Vector2(thickness, avail.Y);
+            Vector2 max = origin + new Vector2(width, thickness);
             ImRect bb = new() { Max = max, Min = min };
-            ImRect bbTolerance = new() { Max = max + new Vector2(tolerance, 0), Min = min + new Vector2(-tolerance, 0) };
+            ImRect bbTolerance = new() { Max = max + new Vector2(0, tolerance), Min = min + new Vector2(0, -tolerance) };
 
             uint id = ImGui.GetID(strId);
 
@@ -139,6 +140,7 @@ namespace Hexa.NET.ImGui.Widgets
                 return false;
             }
 
+            var io = ImGui.GetIO();
             var drawList = ImGui.GetWindowDrawList();
             bool hovered;
             bool held;
@@ -157,7 +159,7 @@ namespace Hexa.NET.ImGui.Widgets
             {
                 ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNs);
                 drawList.AddRectFilled(min, max, ImGui.GetColorU32(ImGuiCol.ButtonActive));
-                height += io.MouseDelta.Y;
+                height -= io.MouseDelta.Y;
                 if (height < minHeight) height = minHeight;
                 if (height > maxHeight) height = maxHeight;
             }

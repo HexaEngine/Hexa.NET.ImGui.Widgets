@@ -19,16 +19,11 @@
             var style = ImGui.GetStyle();
             uint id = ImGui.GetID(label);
 
-            var cursorPos = ImGui.GetCursorPos();
+            var pos = ImGui.GetCursorScreenPos();
 
-            Vector2 pos = window->DC.CursorPos;
             Vector2 size = new(radius * 2, (radius + style.FramePadding.Y) * 2);
 
-            ImRect bb = new()
-            {
-                Min = window->DC.CursorPos + cursorPos,
-                Max = window->DC.CursorPos + cursorPos + size
-            };
+            ImRect bb = new(pos, pos + size);
 
             ImGui.ItemSizeRect(bb, -1);
             if (!ImGui.ItemAdd(bb, id, null, ImGuiItemFlags.None))
@@ -40,6 +35,7 @@
             ImGui.PathClear(drawList);
 
             const int num_segments = 24;
+
             int start = (int)Math.Abs(MathF.Sin((float)(g.Time * 1.8f)) * (num_segments - 5));
 
             float a_min = float.Pi * 2.0f * start / num_segments;

@@ -45,7 +45,7 @@
 		<PackageReference Include="Hexa.NET.ImNodes" Version="2.1.0" />
 		<PackageReference Include="Hexa.NET.ImPlot" Version="2.1.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="Hexa.NET.Utilities" Version="2.0.1" />
+		<PackageReference Include="Hexa.NET.Utilities" Version="2.1.1" />
 	</ItemGroup>
 
 
