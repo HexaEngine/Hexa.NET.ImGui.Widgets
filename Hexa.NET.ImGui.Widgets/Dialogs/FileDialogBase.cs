@@ -9,7 +9,7 @@
 
     // TODO: Search function
 
-    public abstract class FileDialogBase : DialogBase
+    public abstract class FileDialogBase : Dialog
     {
         private DirectoryInfo currentDir;
         private readonly List<FileSystemItem> entries = new();
@@ -147,7 +147,7 @@
             Refresh();
         }
 
-        public void DrawMenuBar()
+        protected virtual void DrawMenuBar()
         {
             if (ImGuiButton.TransparentButton($"{MaterialIcons.Home}"))
             {
@@ -190,7 +190,7 @@
             Close(DialogResult.Cancel);
         }
 
-        protected void DrawExplorer()
+        protected virtual void DrawExplorer()
         {
             Vector2 itemSpacing = ImGui.GetStyle().ItemSpacing;
             DrawMenuBar();
@@ -205,7 +205,7 @@
             }
             ImGui.EndChild();
 
-            ImGuiSplitter.VerticalSplitter("", ref widthDrives, 50, avail.X, -footerHeightToReserve, true);
+            ImGuiSplitter.VerticalSplitter("Vertical Splitter", ref widthDrives, 50, avail.X, -footerHeightToReserve, true);
 
             ImGui.SameLine();
 
@@ -215,7 +215,7 @@
             HandleInput();
         }
 
-        protected unsafe void DrawBreadcrumb()
+        protected virtual unsafe void DrawBreadcrumb()
         {
             Vector2 pos = ImGui.GetCursorScreenPos();
             Vector2 cursor = ImGui.GetCursorPos();
@@ -271,8 +271,17 @@
                     idxBase += index + 1;
 
                     var partBase = part[..index];
-                    int idx = Encoding.UTF8.GetBytes(partBase, partBuffer);
-                    partBuffer[idx] = 0;
+
+                    if (partBase.IsEmpty) // fix for linux machines.
+                    {
+                        partBuffer[0] = (byte)'/';
+                        partBuffer[1] = 0;
+                    }
+                    else
+                    {
+                        int idx = Encoding.UTF8.GetBytes(partBase, partBuffer);
+                        partBuffer[idx] = 0;
+                    }
 
                     if (!first)
                     {
@@ -333,7 +342,7 @@
             }
         }
 
-        protected unsafe bool MainPanel(float footerHeightToReserve)
+        protected virtual unsafe bool MainPanel(float footerHeightToReserve)
         {
             if (currentDir.Exists)
             {
@@ -351,7 +360,6 @@
                 bool visible = ImGui.BeginTable("0", 4, flags, new Vector2(avail.X + ImGui.GetStyle().WindowPadding.X, -footerHeightToReserve));
                 if (!visible)
                 {
-                    ImGui.EndTable();
                     return false;
                 }
 
@@ -466,7 +474,7 @@
             return false;
         }
 
-        protected void SidePanel()
+        protected virtual void SidePanel()
         {
             void Display(FileSystemItem item, bool first = true)
             {
@@ -659,7 +667,7 @@
             FileSystemHelper.ClearCache();
         }
 
-        private static string IconSelector(string path)
+        protected virtual string IconSelector(string path)
         {
             ReadOnlySpan<char> extension = Path.GetExtension(path.AsSpan());
 

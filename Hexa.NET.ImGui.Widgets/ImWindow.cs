@@ -17,7 +17,7 @@
         {
         }
 
-        public virtual unsafe void DrawWindow()
+        public virtual unsafe void DrawWindow(ImGuiWindowFlags overwriteFlags)
         {
             if (!IsShown) return;
 
@@ -29,7 +29,9 @@
                 ImGui.SetNextWindowDockID(WidgetManager.DockSpaceId);
             }
 
-            if (!ImGui.Begin(Name, ref IsShown, Flags))
+            var windowFlags = Flags | overwriteFlags;
+
+            if (!ImGui.Begin(Name, ref IsShown, windowFlags))
             {
                 ImGui.End();
                 return;

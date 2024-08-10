@@ -86,8 +86,9 @@
             }
         }
 
-        public static void Tick(float deltaTime)
+        public static void Tick()
         {
+            var deltaTime = ImGui.GetIO().DeltaTime;
             foreach (var state in states)
             {
                 var value = state.Value;

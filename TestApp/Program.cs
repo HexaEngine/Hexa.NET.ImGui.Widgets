@@ -103,9 +103,6 @@
             imGuiManager.NewFrame();
 
             WidgetManager.Draw();
-            DialogManager.Draw();
-            MessageBoxes.Draw();
-            AnimationHelper.Tick(Time.Delta);
 
             context.MakeCurrent();
             gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);

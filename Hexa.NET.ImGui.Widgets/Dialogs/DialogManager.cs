@@ -34,13 +34,17 @@
                     bool isNotLast = i != dialogs.Count - 1;
 
                     ImGui.BeginDisabled(isNotLast);
-
+                    ImGuiWindowFlags overwriteFlags = ImGuiWindowFlags.None;
                     if (!isNotLast)
                     {
                         ImGui.SetNextWindowFocus();
                     }
+                    else
+                    {
+                        overwriteFlags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoNavInputs | ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoBringToFrontOnFocus;
+                    }
 
-                    dialogs[i].Draw();
+                    dialogs[i].Draw(overwriteFlags);
 
                     ImGui.EndDisabled();
                 }

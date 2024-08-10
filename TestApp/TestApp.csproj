@@ -8,6 +8,14 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="assets\fileTypes.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="assets\fileTypes.json" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Silk.NET.Direct3D.Compilers" Version="2.21.0" />
 		<PackageReference Include="Silk.NET.Direct3D11" Version="2.21.0" />
@@ -28,6 +36,12 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\Hexa.NET.ImGui.Widgets.Extras\Hexa.NET.ImGui.Widgets.Extras.csproj" />
 	  <ProjectReference Include="..\Hexa.NET.ImGui.Widgets\Hexa.NET.ImGui.Widgets.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="assets\fonts\MaterialSymbolsRounded.ttf">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 
 </Project>

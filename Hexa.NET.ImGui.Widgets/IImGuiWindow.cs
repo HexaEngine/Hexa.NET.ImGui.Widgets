@@ -10,7 +10,7 @@
 
         void DrawMenu();
 
-        void DrawWindow();
+        void DrawWindow(ImGuiWindowFlags overwriteFlags);
 
         void Init();
 

@@ -928,13 +928,13 @@
             sdl.ShowWindow(vd->Window);
         }
 
-        private static unsafe Vector2* GetWindowPos(Vector2* size, ImGuiViewport* viewport)
+        private static unsafe Vector2* GetWindowPos(Vector2* s, ImGuiViewport* viewport)
         {
             ViewportData* vd = (ViewportData*)viewport->PlatformUserData;
             int x = 0, y = 0;
             sdl.GetWindowPosition(vd->Window, &x, &y);
-            *size = new Vector2(x, y);
-            return size;
+            *s = new Vector2(x, y);
+            return s;
         }
 
         private static unsafe void SetWindowPos(ImGuiViewport* viewport, Vector2 pos)
@@ -1013,6 +1013,9 @@
             SdlBool ret = sdl.VulkanCreateSurface(vd->Window, *(VkHandle*)&vk_instance, (VkNonDispatchableHandle*)out_vk_surface);
             return ret == SdlBool.True ? 0 : 1; // ret ? VK_SUCCESS : VK_NOT_READY
         }
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public unsafe delegate Vector2* PlatformGetWindowPos(Vector2* s, ImGuiViewport* viewport);
 
         private static unsafe void InitPlatformInterface(Window* window, void* sdl_gl_context)
         {

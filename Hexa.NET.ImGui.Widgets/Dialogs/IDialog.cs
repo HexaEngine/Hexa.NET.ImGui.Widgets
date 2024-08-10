@@ -10,7 +10,7 @@
 
         Vector2 WindowSize { get; }
 
-        void Draw();
+        void Draw(ImGuiWindowFlags overwriteFlags);
 
         void Close();
 

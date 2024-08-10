@@ -1,6 +1,7 @@
 ﻿namespace Hexa.NET.ImGui.Widgets
 {
     using Hexa.NET.ImGui;
+    using Hexa.NET.ImGui.Widgets.Dialogs;
     using System.Numerics;
 
     public static class WidgetManager
@@ -70,12 +71,25 @@
             ImGui.PushStyleColor(ImGuiCol.WindowBg, Vector4.Zero);
             DockSpaceId = ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode, null); // passing null as first argument will use the main viewport
             ImGui.PopStyleColor(1);
+
             ImGui.BeginDisabled(BlockInput);
+
+            ImGuiWindowFlags overwriteFlags = ImGuiWindowFlags.None;
+            if (BlockInput)
+            {
+                overwriteFlags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoNavInputs | ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoBringToFrontOnFocus;
+            }
+
             for (int i = 0; i < widgets.Count; i++)
             {
-                widgets[i].DrawWindow();
+                widgets[i].DrawWindow(overwriteFlags);
             }
+
             ImGui.EndDisabled();
+
+            DialogManager.Draw();
+            MessageBoxes.Draw();
+            AnimationHelper.Tick();
         }
 
         public static unsafe void DrawMenu()

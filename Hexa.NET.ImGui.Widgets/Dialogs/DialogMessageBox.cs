@@ -10,7 +10,7 @@
         YesNoCancel
     }
 
-    public class DialogMessageBox : DialogBase
+    public class DialogMessageBox : Dialog
     {
         private readonly string title;
         private readonly string message;

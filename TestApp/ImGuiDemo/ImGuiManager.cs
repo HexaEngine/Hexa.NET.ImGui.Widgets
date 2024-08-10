@@ -56,16 +56,16 @@
             // setup fonts.
             var config = ImGui.ImFontConfig();
             io.Fonts.AddFontDefault(config);
-            /*
+
             // load custom font
             config.FontDataOwnedByAtlas = false; // Set this option to false to avoid ImGui to delete the data, used with fixed statement.
             config.MergeMode = true;
             config.GlyphMinAdvanceX = 18;
             config.GlyphOffset = new(0, 4);
-            var range = new char[] { (char)0xE700, (char)0xF800, (char)0 };
+            var range = new char[] { (char)0xe003, (char)0xF8FF, (char)0 };
             fixed (char* buffer = range)
             {
-                var bytes = File.ReadAllBytes("assets/fonts/SEGMDL2.TTF");
+                var bytes = File.ReadAllBytes("assets/fonts/MaterialSymbolsRounded.TTF");
                 fixed (byte* buffer2 = bytes)
                 {
                     // IMPORTANT: AddFontFromMemoryTTF() by default transfer ownership of the data buffer to the font atlas, which will attempt to free it on destruction.
@@ -74,7 +74,9 @@
                     io.Fonts.AddFontFromMemoryTTF(buffer2, bytes.Length, 14, config, buffer);
                 }
             }
-            */
+
+            io.Fonts.Build();
+
             // setup ImGui style
             var style = ImGui.GetStyle();
             var colors = style.Colors;
@@ -113,14 +115,7 @@
             ImGuiSDL2Platform.NewFrame();
             ImGui.NewFrame();
             ImGuizmo.BeginFrame(); // mandatory for ImGuizmo
-
-            // Example for getting the central dockspace id of a window/viewport.
-            ImGui.PushStyleColor(ImGuiCol.WindowBg, Vector4.Zero);
-            DockSpaceId = ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode, null); // passing null as first argument will use the main viewport
-            ImGui.PopStyleColor(1);
         }
-
-        public static uint DockSpaceId { get; private set; }
 
         public unsafe void EndFrame()
         {
