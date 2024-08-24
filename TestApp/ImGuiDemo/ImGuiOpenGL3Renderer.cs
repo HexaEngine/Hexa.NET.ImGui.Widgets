@@ -631,7 +631,7 @@ namespace TestApp.ImGuiDemo
             if (log_length > 1)
             {
                 UnsafeList<byte> buf = default;
-                buf.Resize((uint)log_length + 1);
+                buf.Resize(log_length + 1);
                 GL.GetShaderInfoLog(handle, (uint)log_length, null, buf.Data);
                 Debug.WriteLine(ToStringFromUTF8(buf.Data));
                 buf.Release();
@@ -654,7 +654,7 @@ namespace TestApp.ImGuiDemo
             if (log_length > 1)
             {
                 UnsafeList<byte> buf = default;
-                buf.Resize((uint)log_length + 1);
+                buf.Resize(log_length + 1);
                 GL.GetShaderInfoLog(handle, (uint)log_length, null, buf.Data);
                 Debug.WriteLine(ToStringFromUTF8(buf.Data));
                 buf.Release();

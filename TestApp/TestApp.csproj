@@ -29,7 +29,7 @@
 		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
 		<PackageReference Include="System.Text.Json" Version="8.0.4" />
 		<PackageReference Include="Hexa.NET.Math" Version="2.0.1" />
-		<PackageReference Include="Hexa.NET.Utilities" Version="2.1.1" />
+		<PackageReference Include="Hexa.NET.Utilities" Version="2.1.4" />
 		<PackageReference Include="Hexa.NET.DirectXTex" Version="1.0.1" />
 	</ItemGroup>
 
@@ -39,7 +39,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Update="assets\fonts\arialuni.TTF">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	  <None Update="assets\fonts\MaterialSymbolsRounded.ttf">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="cimgui.dll">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="cimgui.pdb">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>

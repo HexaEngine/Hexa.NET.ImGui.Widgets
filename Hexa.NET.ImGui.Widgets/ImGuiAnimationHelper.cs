@@ -25,10 +25,14 @@
         EaseInOutCubic
     }
 
-    public static class AnimationHelper
+    public static class AnimationManager
     {
         private static UnsafeDictionary<uint, AnimationState> states = new();
         private static UnsafeQueue<uint> removeQueue = new();
+
+        public static bool AnyActive => states.Count != 0;
+
+        public static int ActiveCount => states.Count;
 
         public static void Clear()
         {

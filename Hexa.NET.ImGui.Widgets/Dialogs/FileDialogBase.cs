@@ -149,6 +149,7 @@
 
         protected virtual void DrawMenuBar()
         {
+            var style = WidgetManager.Style;
             if (ImGuiButton.TransparentButton($"{MaterialIcons.Home}"))
             {
                 CurrentFolder = RootFolder;
@@ -181,7 +182,13 @@
 
         protected abstract void OnClicked(FileSystemItem entry, bool shift, bool ctrl);
 
-        protected abstract void OnDoubleClicked(FileSystemItem entry, bool shift, bool ctrl);
+        protected virtual void OnDoubleClicked(FileSystemItem entry, bool shift, bool ctrl)
+        {
+            if (entry.IsFolder)
+            {
+                CurrentFolder = entry.Path;
+            }
+        }
 
         protected abstract void OnEnterPressed();
 
@@ -217,128 +224,10 @@
 
         protected virtual unsafe void DrawBreadcrumb()
         {
-            Vector2 pos = ImGui.GetCursorScreenPos();
-            Vector2 cursor = ImGui.GetCursorPos();
-            Vector2 avail = ImGui.GetContentRegionAvail();
-            Vector2 spacing = ImGui.GetStyle().FramePadding;
-            ImDrawListPtr draw = ImGui.GetWindowDrawList();
-
-            float lineHeight = ImGui.GetTextLineHeight();
-            float width = avail.X - 200 - spacing.X;
-            bool handled = false;
-
-            ImGuiStylePtr style = ImGui.GetStyle();
-
-            uint id = ImGui.GetID("Breadcrumb"u8);
-
-            if (breadcrumbs)
+            var currentFolder = this.currentFolder;
+            if (ImGuiBreadcrumb.Breadcrumb("Breadcrumb", ref currentFolder))
             {
-                Vector2 size = new(width, 0);
-                Vector2 label_size = new(0, lineHeight);
-                Vector2 frame_size = ImGui.CalcItemSize(size, ImGui.CalcItemWidth(), label_size.Y + style.FramePadding.Y * 2.0f); // Arbitrary default of 8 lines high for multi-line
-                Vector2 total_size = new(frame_size.X + (label_size.X > 0.0f ? style.ItemInnerSpacing.X + label_size.X : 0.0f), frame_size.Y);
-
-                ImRect frame_bb = new() { Min = pos, Max = pos + frame_size };
-                ImRect total_bb = new() { Min = frame_bb.Min, Max = frame_bb.Min + total_size };
-                ImGui.ItemSizeRect(total_bb, style.FramePadding.Y);
-                if (!ImGui.ItemAdd(total_bb, id, &frame_bb, ImGuiItemFlags.None))
-                {
-                    return;
-                }
-
-                ImGui.RenderNavHighlight(frame_bb, id, ImGuiNavHighlightFlags.None);
-                ImGui.RenderFrame(frame_bb.Min, frame_bb.Max, ImGui.GetColorU32(ImGuiCol.FrameBg), true, ImGui.GetStyle().FrameRounding);
-
-                ImGui.SameLine();
-                var cursorEnd = ImGui.GetCursorPos();
-                ImGui.SetCursorPos(cursor);
-
-                ImGui.PushClipRect(total_bb.Min, total_bb.Max, true);
-
-                ReadOnlySpan<char> part = currentFolder.AsSpan();
-                bool first = true;
-                Span<byte> partBuffer = stackalloc byte[1024];
-                int idxBase = 0;
-
-                while (part.Length > 0)
-                {
-                    int index = part.IndexOf(Path.DirectorySeparatorChar);
-                    if (index == -1)
-                    {
-                        index = part.Length;
-                    }
-
-                    idxBase += index + 1;
-
-                    var partBase = part[..index];
-
-                    if (partBase.IsEmpty) // fix for linux machines.
-                    {
-                        partBuffer[0] = (byte)'/';
-                        partBuffer[1] = 0;
-                    }
-                    else
-                    {
-                        int idx = Encoding.UTF8.GetBytes(partBase, partBuffer);
-                        partBuffer[idx] = 0;
-                    }
-
-                    if (!first)
-                    {
-                        ImGui.SameLine();
-
-                        ImGui.TextEx(">"u8, (byte*)null, ImGuiTextFlags.None);
-                        ImGui.SameLine();
-                    }
-
-                    if (ImGuiButton.TransparentButton(partBuffer))
-                    {
-                        handled = true;
-                        if (idxBase < currentFolder.Length)
-                        {
-                            CurrentFolder = currentFolder[..idxBase];
-                        }
-                    }
-                    if (ImGui.IsItemHovered())
-                    {
-                        handled = true;
-                    }
-
-                    first = false;
-
-                    if (index + 1 >= part.Length)
-                    {
-                        break;
-                    }
-                    part = part[(index + 1)..];
-                }
-
-                ImGui.PopClipRect();
-
-                ImGui.SetCursorPos(cursorEnd);
-            }
-
-            if (!handled && ImGui.IsMouseHoveringRect(pos, pos + new Vector2(width, lineHeight)))
-            {
-                ImGui.SetMouseCursor(ImGuiMouseCursor.TextInput);
-                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
-                {
-                    breadcrumbs = !breadcrumbs;
-                }
-            }
-
-            if (!breadcrumbs)
-            {
-                ImGui.SetCursorPos(cursor);
-                ImGui.PushItemWidth(width);
-                ImGui.InputText("##Path", ref currentFolder, 1024);
-                ImGui.PopItemWidth();
-                if (!ImGui.IsItemFocused())
-                {
-                    breadcrumbs = true;
-                }
-                ImGui.SameLine();
-                return;
+                CurrentFolder = currentFolder;
             }
         }
 
@@ -346,197 +235,24 @@
         {
             if (currentDir.Exists)
             {
-                ImGuiTableFlags flags =
-                    ImGuiTableFlags.Reorderable |
-                    ImGuiTableFlags.Resizable |
-                    ImGuiTableFlags.Hideable |
-                    ImGuiTableFlags.Sortable |
-                    ImGuiTableFlags.SizingFixedFit |
-                    ImGuiTableFlags.ScrollX |
-                    ImGuiTableFlags.ScrollY |
-                    ImGuiTableFlags.PadOuterX | ImGuiTableFlags.ContextMenuInBody | ImGuiTableFlags.NoSavedSettings;
                 var avail = ImGui.GetContentRegionAvail();
-
-                bool visible = ImGui.BeginTable("0", 4, flags, new Vector2(avail.X + ImGui.GetStyle().WindowPadding.X, -footerHeightToReserve));
-                if (!visible)
-                {
-                    return false;
-                }
-
-                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.PreferSortDescending);
-                ImGui.TableSetupColumn("Date Modified", ImGuiTableColumnFlags.None);
-                ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.None);
-                ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.None);
-
-                ImGui.TableSetupScrollFreeze(0, 1);
-
-                ImGui.TableHeadersRow();
-
-                ImGuiTableSortSpecsPtr sortSpecs = ImGui.TableGetSortSpecs();
-
-                if (!sortSpecs.IsNull)
-                {
-                    int sortColumnIndex = sortSpecs.Specs.ColumnIndex;
-                    bool ascending = sortSpecs.Specs.SortDirection == ImGuiSortDirection.Ascending;
-                    IComparer<FileSystemItem> comparer;
-                    if (ascending)
-                    {
-                        comparer = sortColumnIndex switch
-                        {
-                            0 => new AscendingComparer<FileSystemItem, CompareByNameComparer>(),
-                            1 => new AscendingComparer<FileSystemItem, CompareByDateModifiedComparer>(),
-                            2 => new AscendingComparer<FileSystemItem, CompareByTypeComparer>(),
-                            3 => new AscendingComparer<FileSystemItem, CompareBySizeComparer>(),
-                            _ => new AscendingComparer<FileSystemItem, CompareByNameComparer>(),
-                        };
-                    }
-                    else
-                    {
-                        comparer = sortColumnIndex switch
-                        {
-                            0 => new CompareByNameComparer(),
-                            1 => new CompareByDateModifiedComparer(),
-                            2 => new CompareByTypeComparer(),
-                            3 => new CompareBySizeComparer(),
-                            _ => new CompareByNameComparer(),
-                        };
-                    }
-
-                    entries.Sort(comparer);
-                }
-
-                bool shift = ImGui.GetIO().KeyShift;
-                bool ctrl = ImGui.GetIO().KeyCtrl;
-
-                for (int i = 0; i < entries.Count; i++)
-                {
-                    var entry = entries[i];
-
-                    ImGui.TableNextRow();
-                    if (ImGui.TableSetColumnIndex(0))
-                    {
-                        bool selected = IsSelected(entry);
-                        if (entry.IsFolder)
-                        {
-                            ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1.0f, 0.87f, 0.37f, 1.0f));
-                        }
-
-                        ImGui.Text(entry.Icon);
-                        ImGui.SameLine();
-
-                        if (entry.IsFolder)
-                        {
-                            ImGui.PopStyleColor();
-                        }
-
-                        if (ImGui.Selectable(entry.Name, selected, ImGuiSelectableFlags.NoAutoClosePopups | ImGuiSelectableFlags.SpanAllColumns))
-                        {
-                            OnClicked(entry, shift, ctrl);
-                        }
-
-                        if (ImGui.BeginPopupContextItem(entry.Name, ImGuiPopupFlags.MouseButtonRight))
-                        {
-                            // TODO: Implement context menu, but first figure out the bug with the popup
-                            ImGui.Text("Test"u8);
-                            ImGui.EndPopup();
-                        }
-
-                        if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
-                        {
-                            if (entry.IsFolder)
-                            {
-                                CurrentFolder = entry.Path;
-                            }
-
-                            OnDoubleClicked(entry, shift, ctrl);
-                        }
-                    }
-
-                    if (ImGui.TableSetColumnIndex(1))
-                    {
-                        ImGui.TextDisabled($"{entry.DateModified:dd/mm/yyyy HH:mm}");
-                    }
-
-                    if (ImGui.TableSetColumnIndex(2))
-                    {
-                        ImGui.TextDisabled(entry.Type);
-                    }
-
-                    if (entry.IsFile && ImGui.TableSetColumnIndex(3))
-                    {
-                        DisplaySize(entry.Size);
-                    }
-                }
-
-                ImGui.EndTable();
+                ImGuiFileView<FileSystemItem>.FileView("0", new Vector2(avail.X + ImGui.GetStyle().WindowPadding.X, -footerHeightToReserve), entries, IsSelected, OnClicked, OnDoubleClicked, ContextMenu);
             }
 
             return false;
         }
 
+        protected virtual void ContextMenu(FileSystemItem entry)
+        {
+        }
+
         protected virtual void SidePanel()
         {
-            void Display(FileSystemItem item, bool first = true)
+            var currentFolder = this.currentFolder;
+            if (ImGuiFileTreeView.FileTreeView("FileTreeView", default, ref currentFolder, rootFolder))
             {
-                if ((item.Flags & FileSystemItemFlags.Folder) == 0)
-                {
-                    return;
-                }
-
-                Vector4 color = item.IsFolder && !first ? new(1.0f, 0.87f, 0.37f, 1.0f) : new(1.0f, 1.0f, 1.0f, 1.0f);
-                bool isOpen = ImGuiTreeNode.IconTreeNode(item.Name, item.Icon, color, ImGuiTreeNodeFlags.OpenOnArrow);
-
-                if (ImGui.IsItemHovered() && ImGui.IsItemClicked(ImGuiMouseButton.Left))
-                {
-                    CurrentFolder = item.Path;
-                }
-
-                if (isOpen)
-                {
-                    foreach (var subFolder in FileSystemHelper.GetFileSystemEntries(item.Path, RefreshFlags.Folders | RefreshFlags.IgnoreHidden, null))
-                    {
-                        Display(subFolder, false);
-                    }
-
-                    ImGui.TreePop();
-                }
+                CurrentFolder = currentFolder;
             }
-
-            ImGui.Indent();
-
-            ImGui.Text($"{MaterialIcons.Home}");
-            ImGui.SameLine();
-            if (ImGui.Selectable("Home"u8, false, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.NoAutoClosePopups))
-            {
-                CurrentFolder = rootFolder;
-            }
-            ImGui.Unindent();
-
-            ImGui.Separator();
-
-            ImGui.Indent();
-            foreach (var dir in FileSystemHelper.SpecialDirs)
-            {
-                ImGui.Text(dir.Icon);
-                ImGui.SameLine();
-                if (ImGui.Selectable(dir.Name, false, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.NoAutoClosePopups))
-                {
-                    CurrentFolder = dir.Path;
-                }
-            }
-            ImGui.Unindent();
-            ImGui.Separator();
-
-            ImGui.PushStyleVar(ImGuiStyleVar.IndentSpacing, 5f);
-            if (ImGui.TreeNodeEx($"{MaterialIcons.Computer} Computer", ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.DefaultOpen))
-            {
-                foreach (var dir in FileSystemHelper.LogicalDrives)
-                {
-                    Display(dir);
-                }
-                ImGui.TreePop();
-            }
-            ImGui.PopStyleVar();
         }
 
         protected virtual void HandleInput()

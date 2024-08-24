@@ -88,7 +88,7 @@
                 Time.FrameUpdate();
             }
 
-            AnimationHelper.Release();
+            AnimationManager.Release();
             imGuiManager.Dispose();
 
             context.Dispose();
@@ -126,6 +126,8 @@
             imGuiManager = new(mainWindow, gl, context);
 
             WidgetManager.Register<WidgetDemo>(show: true);
+
+            WidgetManager.Init();
         }
 
         private static void Resize(int width, int height, int oldWidth, int oldHeight)

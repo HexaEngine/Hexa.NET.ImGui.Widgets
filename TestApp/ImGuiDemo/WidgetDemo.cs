@@ -15,8 +15,15 @@
 
         protected override string Name { get; } = "Demo";
 
+        public override void DrawWindow(ImGuiWindowFlags overwriteFlags)
+        {
+            base.DrawWindow(overwriteFlags);
+            ImGui.ShowStyleEditor();
+        }
+
         public override void DrawContent()
         {
+            DrawBreadcrumb();
             DrawSpinner();
             DrawProgressBar();
             DrawButtons();
@@ -25,9 +32,25 @@
             DrawDialogs();
         }
 
+        private string path1 = "/home/user/Desktop";
+        private string path2 = "C:\\users\\user\\Desktop\\";
+        private string path3 = "C:\\users\\user\\Desktop\\very\\long\\long\\long\\path";
+
+        private void DrawBreadcrumb()
+        {
+            if (ImGui.CollapsingHeader("Breadcrumbs"))
+            {
+                //ImGuiBreadcrumb.Breadcrumb("##Breadcrumb1", ref path1);
+                //ImGui.SameLine();
+                //ImGui.Text("Hello world");
+                //ImGuiBreadcrumb.Breadcrumb("##Breadcrumb2", ref path2);
+                ImGuiBreadcrumb.Breadcrumb("##Breadcrumb3", ref path3);
+            }
+        }
+
         private void DrawDialogs()
         {
-            if (ImGui.CollapsingHeader("Dialogs"))
+            if (ImGui.CollapsingHeader("Dialogs 对话框"))
             {
                 ImGui.Text("Material Icon Font has to be loaded!");
                 if (ImGui.Button("Open File Dialog"))
@@ -86,8 +109,6 @@
 
                 ImGuiSplitter.VerticalSplitter("Vertical Splitter", ref splitterVPosition, 0, float.MaxValue, -splitterHPosition, 4, 8, true);
 
-                ImGui.SameLine();
-
                 ImGui.BeginChild("C2", new Vector2(0, -splitterHPosition));
                 ImGui.Text("Child 2");
                 ImGui.EndChild();
@@ -133,13 +154,13 @@
                 ImGui.ColorEdit4("Color##ProgressBar", ref progressBarColor);
                 if (ComboEnumHelper<AnimationType>.Combo("Animation Type", ref progressBarAnimationType))
                 {
-                    AnimationHelper.StopAnimation(id);
+                    AnimationManager.StopAnimation(id);
                 }
 
-                float value = AnimationHelper.GetAnimationValue(id);
+                float value = AnimationManager.GetAnimationValue(id);
                 if (value == -1)
                 {
-                    AnimationHelper.AddAnimation(id, 3, 1, progressBarAnimationType);
+                    AnimationManager.AddAnimation(id, 3, 1, progressBarAnimationType);
                 }
                 ImGuiProgressBar.ProgressBar("Progress Bar", value, new(400, 20), ImGui.GetColorU32(ImGuiCol.Button), ImGui.ColorConvertFloat4ToU32(progressBarColor));
             }

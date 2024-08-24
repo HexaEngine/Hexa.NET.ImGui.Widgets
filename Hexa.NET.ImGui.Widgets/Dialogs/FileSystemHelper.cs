@@ -44,30 +44,30 @@
         OtherFullControl = OtherRead | OtherWrite | OtherExecute
     }
 
-    public struct FileSystemItem : IEquatable<FileSystemItem>
+    public struct FileSystemItem : IEquatable<FileSystemItem>, IFileSystemItem
     {
-        public string Path;
-        public string Icon;
-        public string Name;
-        public FileSystemItemFlags Flags;
-        public DateTime DateModified;
-        public string Type;
-        public long Size;
-        public CommonFilePermissions Permissions;
+        private string path;
+        private string icon;
+        private string name;
+        private FileSystemItemFlags flags;
+        private DateTime dateModified;
+        private string type;
+        private long size;
+        private CommonFilePermissions permissions;
 
         public FileSystemItem(string path, string icon, string name, string type, FileSystemItemFlags flags)
         {
-            Path = path;
-            Icon = icon;
-            Name = name;
-            Flags = flags;
-            Type = type;
+            this.path = path;
+            this.icon = icon;
+            this.name = name;
+            this.flags = flags;
+            this.type = type;
 
-            DateModified = File.GetLastWriteTime(path);
+            this.dateModified = File.GetLastWriteTime(path);
 
             if (IsFile)
             {
-                Size = new FileInfo(path).Length;
+                size = new FileInfo(path).Length;
             }
             /*
             if (!OperatingSystem.IsWindows())
@@ -162,43 +162,65 @@
 
         public FileSystemItem(string path, string icon, string name, FileSystemItemFlags flags)
         {
-            Path = path;
-            Icon = icon;
-            Name = name;
-            Flags = flags;
-            DateModified = File.GetLastWriteTime(path);
+            this.path = path;
+            this.icon = icon;
+            this.name = name;
+            this.flags = flags;
+            this.dateModified = File.GetLastWriteTime(path);
 
             if (IsFile)
             {
-                Size = new FileInfo(path).Length;
-                Type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
+                this.size = new FileInfo(path).Length;
+                this.type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
             }
             else
             {
-                Type = "File Folder";
+                this.type = "File Folder";
             }
         }
 
         public FileSystemItem(string path, string icon, FileSystemItemFlags flags)
         {
-            Path = path;
-            Icon = icon;
-            Name = System.IO.Path.GetFileName(path);
-            Flags = flags;
+            this.path = path;
+            this.icon = icon;
+            this.name = System.IO.Path.GetFileName(path);
+            this.flags = flags;
 
             var mode = File.GetAttributes(path);
 
-            DateModified = File.GetLastWriteTime(path);
+            dateModified = File.GetLastWriteTime(path);
             if (IsFile)
             {
-                Size = new FileInfo(path).Length;
-                Type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
+                size = new FileInfo(path).Length;
+                type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
             }
             else
             {
-                Type = "File Folder";
+                type = "File Folder";
             }
         }
+
+        public readonly bool IsFile => (flags & FileSystemItemFlags.Folder) == 0;
+
+        public readonly bool IsFolder => (flags & FileSystemItemFlags.Folder) != 0;
+
+        public readonly bool IsHidden => (flags & FileSystemItemFlags.Hidden) != 0;
+
+        public string Path { readonly get => path; set => path = value; }
+
+        public string Icon { readonly get => icon; set => icon = value; }
+
+        public string Name { readonly get => name; set => name = value; }
+
+        public FileSystemItemFlags Flags { readonly get => flags; set => flags = value; }
+
+        public DateTime DateModified { readonly get => dateModified; set => dateModified = value; }
+
+        public string Type { readonly get => type; set => type = value; }
+
+        public long Size { readonly get => size; set => size = value; }
+
+        public CommonFilePermissions Permissions { readonly get => permissions; set => permissions = value; }
 
         static FileSystemItem()
         {
@@ -271,12 +293,6 @@
             return hash;
         }
 
-        public readonly bool IsFile => (Flags & FileSystemItemFlags.Folder) == 0;
-
-        public readonly bool IsFolder => (Flags & FileSystemItemFlags.Folder) != 0;
-
-        public readonly bool IsHidden => (Flags & FileSystemItemFlags.Hidden) != 0;
-
         public static int CompareByBase(FileSystemItem a, FileSystemItem b)
         {
             if (a.IsFolder && !b.IsFolder)
@@ -335,25 +351,11 @@
     public class FileSystemHelper
     {
         private static FileSystemItem[] specialDirs;
-        private static FileSystemItem[] logicalDrives = Directory.GetLogicalDrives().Select(x => new FileSystemItem(x, string.Empty, x, FileSystemItemFlags.Folder)).ToArray();
+        private static FileSystemItem[] logicalDrives;
 
         static FileSystemHelper()
         {
-            try
-            {
-                specialDirs = new string[]
-                {
-                    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyMusic),
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
-                }.Select(x => new FileSystemItem(x, string.Empty, FileSystemItemFlags.Folder)).ToArray();
-            }
-            catch
-            {
-                specialDirs = [];
-            }
+            ClearCache();
         }
 
         public static FileSystemItem[] SpecialDirs => specialDirs;
@@ -385,49 +387,55 @@
             List<FileSystemItem> drives = new();
             foreach (var drive in DriveInfo.GetDrives())
             {
-                if (drive.IsReady && drive.RootDirectory != null)
+                try
                 {
-                    string driveIcon = string.Empty;
-                    switch (drive.DriveType)
+                    if (drive.IsReady && drive.RootDirectory != null)
                     {
-                        case DriveType.NoRootDirectory:
-                            continue;
+                        string driveIcon = string.Empty;
+                        switch (drive.DriveType)
+                        {
+                            case DriveType.NoRootDirectory:
+                                continue;
 
-                        case DriveType.Removable:
-                            driveIcon = $"{MaterialIcons.HardDrive}";
-                            break;
+                            case DriveType.Removable:
+                                driveIcon = $"{MaterialIcons.HardDrive}";
+                                break;
 
-                        case DriveType.Fixed:
-                            driveIcon = $"{MaterialIcons.HardDrive}";
-                            break;
+                            case DriveType.Fixed:
+                                driveIcon = $"{MaterialIcons.HardDrive}";
+                                break;
 
-                        case DriveType.Network:
-                            driveIcon = $"{MaterialIcons.SmbShare}";
-                            break;
+                            case DriveType.Network:
+                                driveIcon = $"{MaterialIcons.SmbShare}";
+                                break;
 
-                        case DriveType.CDRom:
-                            driveIcon = $"{MaterialIcons.Album}";
-                            break;
+                            case DriveType.CDRom:
+                                driveIcon = $"{MaterialIcons.Album}";
+                                break;
 
-                        case DriveType.Ram:
-                            driveIcon = $"{MaterialIcons.Database}";
-                            break;
+                            case DriveType.Ram:
+                                driveIcon = $"{MaterialIcons.Database}";
+                                break;
 
-                        default:
-                        case DriveType.Unknown:
-                            driveIcon = $"{MaterialIcons.DeviceUnknown}";
-                            break;
+                            default:
+                            case DriveType.Unknown:
+                                driveIcon = $"{MaterialIcons.DeviceUnknown}";
+                                break;
+                        }
+
+                        string name = drive.VolumeLabel;
+                        if (string.IsNullOrEmpty(name))
+                        {
+                            name = "Local Disk";
+                        }
+
+                        name += $" ({drive.Name})";
+
+                        drives.Add(new FileSystemItem(drive.RootDirectory.FullName, driveIcon, name, FileSystemItemFlags.Folder));
                     }
-
-                    string name = drive.VolumeLabel;
-                    if (string.IsNullOrEmpty(name))
-                    {
-                        name = "Local Disk";
-                    }
-
-                    name += $" ({drive.Name})";
-
-                    drives.Add(new FileSystemItem(drive.RootDirectory.FullName, driveIcon, name, FileSystemItemFlags.Folder));
+                }
+                catch (Exception)
+                {
                 }
             }
 

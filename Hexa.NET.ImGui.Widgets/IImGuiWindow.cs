@@ -2,6 +2,8 @@
 {
     public interface IImGuiWindow
     {
+        bool IsEmbedded { get; internal set; }
+
         void Close();
 
         void Dispose();

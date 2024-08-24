@@ -1,17 +1,52 @@
 ﻿namespace Hexa.NET.ImGui.Widgets
 {
     using Hexa.NET.ImGui;
+    using System.Numerics;
+
+    public delegate void SizeChangedEventHandler(object? sender, Vector2 oldSize, Vector2 size);
+
+    public delegate void PositionChangedEventHandler(object? sender, Vector2 oldPosition, Vector2 position);
 
     public abstract class ImWindow : IImGuiWindow
     {
+        private bool isEmbedded;
         protected bool IsShown;
         protected bool IsDocked;
         protected bool windowEnded;
+        private Vector2 size;
+        private Vector2 position;
 
         protected abstract string Name { get; }
+
         protected ImGuiWindowFlags Flags;
 
-        protected bool IsEmbedded;
+        public bool IsEmbedded { get => isEmbedded; protected set => isEmbedded = value; }
+
+        bool IImGuiWindow.IsEmbedded { get => isEmbedded; set => isEmbedded = value; }
+
+        public Vector2 Size
+        {
+            get => size;
+            set
+            {
+                size = value;
+                ImGui.SetWindowSize(Name, size);
+            }
+        }
+
+        public Vector2 Position
+        {
+            get => position;
+            set
+            {
+                position = value;
+                ImGui.SetWindowPos(Name, position);
+            }
+        }
+
+        public event SizeChangedEventHandler? SizeChanged;
+
+        public event PositionChangedEventHandler? PositionChanged;
 
         public virtual void Init()
         {
@@ -21,7 +56,7 @@
         {
             if (!IsShown) return;
 
-            if (IsEmbedded)
+            if (isEmbedded)
             {
                 ImGuiWindowClass windowClass;
                 windowClass.DockNodeFlagsOverrideSet = (ImGuiDockNodeFlags)ImGuiDockNodeFlagsPrivate.NoTabBar;
@@ -33,8 +68,27 @@
 
             if (!ImGui.Begin(Name, ref IsShown, windowFlags))
             {
+                size = Vector2.Zero; // window is closed.
                 ImGui.End();
                 return;
+            }
+
+            var currentSize = ImGui.GetWindowSize();
+
+            if (size != currentSize)
+            {
+                var oldSize = size;
+                size = currentSize;
+                OnSizeChangedInternal(oldSize, size);
+            }
+
+            var currentPosition = ImGui.GetWindowPos();
+
+            if (position != currentPosition)
+            {
+                var oldPosition = position;
+                position = currentPosition;
+                OnPositionChangedInternal(oldPosition, position);
             }
 
             windowEnded = false;
@@ -43,6 +97,26 @@
 
             if (!windowEnded)
                 ImGui.End();
+        }
+
+        private void OnPositionChangedInternal(Vector2 oldPosition, Vector2 position)
+        {
+            OnPositionChanged(oldPosition, position);
+            PositionChanged?.Invoke(this, oldPosition, position);
+        }
+
+        protected virtual void OnPositionChanged(Vector2 oldPosition, Vector2 position)
+        {
+        }
+
+        private void OnSizeChangedInternal(Vector2 oldSize, Vector2 size)
+        {
+            OnSizeChanged(oldSize, size);
+            SizeChanged?.Invoke(this, oldSize, size);
+        }
+
+        protected virtual void OnSizeChanged(Vector2 oldSize, Vector2 size)
+        {
         }
 
         public abstract void DrawContent();

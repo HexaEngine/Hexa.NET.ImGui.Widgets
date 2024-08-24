@@ -138,6 +138,7 @@
 
         protected override void OnDoubleClicked(FileSystemItem entry, bool shift, bool ctrl)
         {
+            base.OnDoubleClicked(entry, shift, ctrl);
             if (OnlyAllowFolders ^ entry.IsFile)
             {
                 ValidateAndClose();

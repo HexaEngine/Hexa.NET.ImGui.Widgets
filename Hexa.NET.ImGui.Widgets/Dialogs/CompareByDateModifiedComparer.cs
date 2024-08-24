@@ -1,10 +1,10 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
-    public readonly struct CompareByDateModifiedComparer : IComparer<FileSystemItem>
+    public readonly struct CompareByDateModifiedComparer<T> : IComparer<T> where T : struct, IFileSystemItem
     {
-        public int Compare(FileSystemItem a, FileSystemItem b)
+        public int Compare(T a, T b)
         {
-            int cmp = FileSystemItem.CompareByBase(a, b);
+            int cmp = IFileSystemItem.CompareByBase(a, b);
             if (cmp != 0)
             {
                 return cmp;

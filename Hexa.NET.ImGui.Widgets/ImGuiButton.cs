@@ -1,7 +1,6 @@
 ﻿namespace Hexa.NET.ImGui.Widgets
 {
     using Hexa.NET.ImGui;
-    using Hexa.NET.ImGuizmo;
     using System;
     using System.Numerics;
 
@@ -45,10 +44,10 @@
             if (isClicked)
             {
                 selected = !selected;
-                AnimationHelper.AddAnimation(id, .35f, 1, AnimationType.EaseOutCubic);
+                AnimationManager.AddAnimation(id, .35f, 1, AnimationType.EaseOutCubic);
             }
 
-            float animationValue = AnimationHelper.GetAnimationValue(id);
+            float animationValue = AnimationManager.GetAnimationValue(id);
             if (animationValue != -1)
             {
                 t = selected ? animationValue : (1 - animationValue);
@@ -131,6 +130,11 @@
             }
 
             return isClicked;
+        }
+
+        public static bool TransparentButton(byte* label)
+        {
+            return TransparentButton(label, default, ImGuiButtonFlags.None);
         }
 
         public static bool TransparentButton(ReadOnlySpan<byte> label)

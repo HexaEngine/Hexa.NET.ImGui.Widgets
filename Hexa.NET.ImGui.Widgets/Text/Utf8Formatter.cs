@@ -1008,5 +1008,77 @@
         {
             return Encoding.UTF8.GetBytes(&c, 1, buf, bufSize);
         }
+
+        public static unsafe int ConvertUtf16ToUtf8(char* utf16Chars, int utf16Length, byte* utf8Bytes, int utf8Length)
+        {
+            int utf8Index = 0;
+
+            for (int i = 0; i < utf16Length; i++)
+            {
+                if (utf8Index >= utf8Length)
+                    return utf8Index; // Soft exception: buffer too small, return the number of bytes written so far
+
+                // Read the UTF-16 character (char is 2 bytes)
+                char utf16Char = utf16Chars[i];
+
+                // Determine the UTF-16 code point
+                int codePoint = utf16Char;
+
+                switch (codePoint)
+                {
+                    case <= 0x7F:
+                        // 1-byte UTF-8 (ASCII)
+                        utf8Bytes[utf8Index++] = (byte)codePoint;
+                        break;
+
+                    case <= 0x7FF:
+                        // 2-byte UTF-8
+                        if (utf8Index + 1 >= utf8Length)
+                            return utf8Index; // Soft exception: buffer too small, return the number of bytes written so far
+
+                        utf8Bytes[utf8Index++] = (byte)(0xC0 | (codePoint >> 6));
+                        utf8Bytes[utf8Index++] = (byte)(0x80 | (codePoint & 0x3F));
+                        break;
+
+                    case >= 0xD800 and <= 0xDFFF:
+                        if (i + 1 < utf16Length)
+                        {
+                            char lowSurrogate = utf16Chars[i + 1];
+                            if (lowSurrogate >= 0xDC00 && lowSurrogate <= 0xDFFF) // Low surrogate
+                            {
+                                // Combine the high surrogate and low surrogate to form the full code point
+                                int codePointSurrogate = 0x10000 + ((utf16Char - 0xD800) << 10) + (lowSurrogate - 0xDC00);
+
+                                // This results in a 4-byte UTF-8 sequence
+                                if (utf8Index + 3 >= utf8Length)
+                                    return utf8Index; // Soft exception: buffer too small, return the number of bytes written so far
+
+                                utf8Bytes[utf8Index++] = (byte)(0xF0 | (codePointSurrogate >> 18));
+                                utf8Bytes[utf8Index++] = (byte)(0x80 | ((codePointSurrogate >> 12) & 0x3F));
+                                utf8Bytes[utf8Index++] = (byte)(0x80 | ((codePointSurrogate >> 6) & 0x3F));
+                                utf8Bytes[utf8Index++] = (byte)(0x80 | (codePointSurrogate & 0x3F));
+
+                                // Skip the low surrogate as it has already been processed
+                                i++;
+                                continue;
+                            }
+                        }
+
+                        return utf8Index; // Soft exception: missing low surrogate
+
+                    default:
+                        // 3-byte UTF-8
+                        if (utf8Index + 2 >= utf8Length)
+                            return utf8Index; // Soft exception: buffer too small, return the number of bytes written so far
+
+                        utf8Bytes[utf8Index++] = (byte)(0xE0 | (codePoint >> 12));
+                        utf8Bytes[utf8Index++] = (byte)(0x80 | ((codePoint >> 6) & 0x3F));
+                        utf8Bytes[utf8Index++] = (byte)(0x80 | (codePoint & 0x3F));
+                        break;
+                }
+            }
+
+            return utf8Index; // Return the number of bytes written to the utf8Bytes buffer
+        }
     }
 }

@@ -47,10 +47,20 @@ namespace Hexa.NET.ImGui.Widgets.Dialogs
 
             var windowFlags = Flags | overwriteFlags;
 
+            bool wasOpen = shown;
             if (!ImGui.Begin(Name, ref shown, windowFlags))
             {
+                if (wasOpen && wasOpen != shown)
+                {
+                    Close();
+                }
                 ImGui.End();
                 return;
+            }
+
+            if (wasOpen && wasOpen != shown)
+            {
+                Close();
             }
 
             windowPos = ImGui.GetWindowPos();

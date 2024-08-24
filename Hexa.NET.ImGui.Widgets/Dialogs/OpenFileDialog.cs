@@ -192,6 +192,7 @@
 
         protected override void OnDoubleClicked(FileSystemItem entry, bool shift, bool ctrl)
         {
+            base.OnDoubleClicked(entry, shift, ctrl);
             selection.Validate(GetValidationOptions());
             if (selection.Count == 0)
             {

@@ -17,9 +17,13 @@
 
         public static uint DockSpaceId { get; private set; }
 
-        public static bool Register<T>(bool show = false) where T : IImGuiWindow, new()
+        public static WidgetStyle Style { get; set; } = new();
+
+        public static IReadOnlyList<IImGuiWindow> Widgets => widgets;
+
+        public static bool Register<T>(bool show = false, bool mainWindow = false) where T : IImGuiWindow, new()
         {
-            return Register(new T(), show);
+            return Register(new T(), show, mainWindow);
         }
 
         public static void Unregister<T>() where T : IImGuiWindow, new()
@@ -36,11 +40,25 @@
             }
         }
 
-        public static bool Register(IImGuiWindow widget, bool show = false)
+        public static bool Register(IImGuiWindow widget, bool show = false, bool mainWindow = false)
         {
             if (show)
             {
                 widget.Show();
+            }
+
+            if (widgets.Count == 0)
+            {
+                widget.IsEmbedded = true;
+            }
+
+            if (mainWindow)
+            {
+                widget.IsEmbedded = true;
+                for (int i = 0; i < widgets.Count; i++)
+                {
+                    widgets[i].IsEmbedded = false;
+                }
             }
 
             if (!initialized)
@@ -63,6 +81,7 @@
                 var widget = widgets[i];
                 widget.Init();
             }
+            ImGuiGC.Init();
             initialized = true;
         }
 
@@ -89,7 +108,7 @@
 
             DialogManager.Draw();
             MessageBoxes.Draw();
-            AnimationHelper.Tick();
+            AnimationManager.Tick();
         }
 
         public static unsafe void DrawMenu()
@@ -107,6 +126,7 @@
                 widgets[i].Dispose();
             }
             widgets.Clear();
+            ImGuiGC.Shutdown();
             initialized = false;
         }
     }
