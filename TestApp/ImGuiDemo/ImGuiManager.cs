@@ -26,12 +26,17 @@
             io.ConfigViewportsNoAutoMerge = false;
             io.ConfigViewportsNoTaskBarIcon = false;
 
+            // Setup Platform
+            ImGuiSDL2Platform.InitForOpenGL(window, (void*)context.Handle);
+
             // setup fonts.
             var config = ImGui.ImFontConfig();
             //io.Fonts.AddFontDefault(config);
             config.PixelSnapH = true;
-            config.OversampleH = 1;
-            io.Fonts.AddFontFromFileTTF("assets/fonts/arialuni.TTF", 16, config, io.Fonts.GetGlyphRangesChineseFull());
+            config.OversampleH = 2;
+            config.OversampleV = 2;
+
+            io.Fonts.AddFontFromFileTTF("assets/fonts/arialuni.TTF", 20, config, io.Fonts.GetGlyphRangesChineseFull());
 
             // load custom font
 
@@ -57,9 +62,6 @@
                 style.WindowRounding = 0.0f;
                 style.Colors[(int)ImGuiCol.WindowBg].W = 1.0f;
             }
-
-            // Setup Platform
-            ImGuiSDL2Platform.InitForOpenGL(window, (void*)context.Handle);
 
             // Setup Renderer
             ImGuiOpenGL3Renderer.Init(gl, null);

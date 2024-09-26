@@ -121,6 +121,7 @@
 
         public static void Dispose()
         {
+            AnimationManager.Release();
             for (int i = 0; i < widgets.Count; i++)
             {
                 widgets[i].Dispose();

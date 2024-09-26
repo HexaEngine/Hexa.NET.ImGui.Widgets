@@ -50,7 +50,7 @@
 
         private void DrawDialogs()
         {
-            if (ImGui.CollapsingHeader("Dialogs 对话框"))
+            if (ImGui.CollapsingHeader("Dialogs"))
             {
                 ImGui.Text("Material Icon Font has to be loaded!");
                 if (ImGui.Button("Open File Dialog"))

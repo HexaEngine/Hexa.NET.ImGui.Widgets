@@ -88,7 +88,7 @@
                 Time.FrameUpdate();
             }
 
-            AnimationManager.Release();
+            WidgetManager.Dispose();
             imGuiManager.Dispose();
 
             context.Dispose();
