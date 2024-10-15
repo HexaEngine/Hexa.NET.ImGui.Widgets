@@ -1,8 +1,11 @@
 ﻿namespace TestApp.ImGuiDemo
 {
     using Hexa.NET.ImGui;
+    using Hexa.NET.ImGui.Backends.OpenGL3;
+    using Hexa.NET.ImGui.Backends.SDL2;
     using Silk.NET.OpenGL;
     using Silk.NET.SDL;
+    using System;
     using TestApp;
 
     public class ImGuiManager
@@ -27,7 +30,9 @@
             io.ConfigViewportsNoTaskBarIcon = false;
 
             // Setup Platform
-            ImGuiSDL2Platform.InitForOpenGL(window, (void*)context.Handle);
+            ImGuiImplSDL2.SetCurrentContext(guiContext);
+            ImGuiImplSDL2.InitForOpenGL((SDLWindow*)window, (void*)context.Handle);
+            TestApp.Program.RegisterHook(HookCallback);
 
             // setup fonts.
             var config = ImGui.ImFontConfig();
@@ -36,7 +41,7 @@
             config.OversampleH = 2;
             config.OversampleV = 2;
 
-            io.Fonts.AddFontFromFileTTF("assets/fonts/arialuni.TTF", 20, config, io.Fonts.GetGlyphRangesChineseFull());
+            io.Fonts.AddFontFromFileTTF("assets/fonts/arialuni.TTF", 18, config, io.Fonts.GetGlyphRangesChineseFull());
 
             // load custom font
 
@@ -64,7 +69,13 @@
             }
 
             // Setup Renderer
-            ImGuiOpenGL3Renderer.Init(gl, null);
+            ImGuiImplOpenGL3.SetCurrentContext(guiContext);
+            ImGuiImplOpenGL3.Init((byte*)null);
+        }
+
+        private static unsafe bool HookCallback(Event @event)
+        {
+            return ImGuiImplSDL2.ProcessEvent((SDLEvent*)&@event);
         }
 
         public unsafe void NewFrame()
@@ -73,17 +84,18 @@
             ImGui.SetCurrentContext(guiContext);
 
             // Start new frame, call order matters.
-            ImGuiSDL2Platform.NewFrame();
+            ImGuiImplOpenGL3.NewFrame();
+            ImGuiImplSDL2.NewFrame();
             ImGui.NewFrame();
         }
 
-        public unsafe void EndFrame()
+        public static unsafe void EndFrame()
         {
             // Renders ImGui Data
             var io = ImGui.GetIO();
             ImGui.Render();
             ImGui.EndFrame();
-            ImGuiOpenGL3Renderer.RenderDrawData(ImGui.GetDrawData());
+            ImGuiImplOpenGL3.RenderDrawData(ImGui.GetDrawData());
 
             // Update and Render additional Platform Windows
             if ((io.ConfigFlags & ImGuiConfigFlags.ViewportsEnable) != 0)
@@ -95,8 +107,8 @@
 
         public void Dispose()
         {
-            ImGuiOpenGL3Renderer.Shutdown();
-            ImGuiSDL2Platform.Shutdown();
+            ImGuiImplOpenGL3.Shutdown();
+            ImGuiImplSDL2.Shutdown();
         }
     }
 }

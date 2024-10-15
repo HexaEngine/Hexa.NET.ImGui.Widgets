@@ -97,7 +97,7 @@
             if (ImGui.InputText("Selected", ref selectionString, 1024, ImGuiInputTextFlags.EnterReturnsTrue))
             {
                 selection.SetSelectionString(selectionString, GetValidationOptions());
-                if (ImGui.IsKeyPressed(ImGuiKey.Enter))
+                if (ImGuiP.IsKeyPressed(ImGuiKey.Enter))
                 {
                     selection.Validate(GetValidationOptions());
                 }

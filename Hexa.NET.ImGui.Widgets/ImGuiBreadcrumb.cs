@@ -28,7 +28,7 @@
 
         public static bool Breadcrumb(string strId, ref string path)
         {
-            ImGuiWindow* window = ImGui.GetCurrentWindow();
+            ImGuiWindow* window = ImGuiP.GetCurrentWindow();
 
             if (window->SkipItems != 0)
             {
@@ -58,20 +58,20 @@
             {
                 Vector2 size = new(width, 0);
                 Vector2 label_size = new(0, lineHeight);
-                Vector2 frame_size = ImGui.CalcItemSize(size, ImGui.CalcItemWidth(), label_size.Y + style.FramePadding.Y * 2.0f); // Arbitrary default of 8 lines high for multi-line
+                Vector2 frame_size = ImGuiP.CalcItemSize(size, ImGui.CalcItemWidth(), label_size.Y + style.FramePadding.Y * 2.0f); // Arbitrary default of 8 lines high for multi-line
                 Vector2 total_size = new(frame_size.X, frame_size.Y);
 
                 ImRect frame_bb = new(pos, pos + frame_size);
                 ImRect total_bb = new(frame_bb.Min, frame_bb.Min + total_size);
 
-                if (!ImGui.ItemAdd(total_bb, id, &frame_bb, ImGuiItemFlags.None))
+                if (!ImGuiP.ItemAdd(total_bb, id, &frame_bb, ImGuiItemFlags.None))
                 {
-                    ImGui.ItemSizeRect(total_bb, style.FramePadding.Y);
+                    ImGuiP.ItemSize(total_bb, style.FramePadding.Y);
                     return false;
                 }
 
-                ImGui.RenderNavHighlight(frame_bb, id, ImGuiNavHighlightFlags.None);
-                ImGui.RenderFrame(frame_bb.Min, frame_bb.Max, ImGui.GetColorU32(ImGuiCol.FrameBg), true, ImGui.GetStyle().FrameRounding);
+                ImGuiP.RenderNavHighlight(frame_bb, id, ImGuiNavHighlightFlags.None);
+                ImGuiP.RenderFrame(frame_bb.Min, frame_bb.Max, ImGui.GetColorU32(ImGuiCol.FrameBg), true, ImGui.GetStyle().FrameRounding);
                 ImGui.PushClipRect(total_bb.Min, total_bb.Max, true);
 
                 ushort separator = (byte)'>' << 0 | 0 << 8; // A very cheap string.
@@ -80,7 +80,8 @@
                 ulong dotdotdot = (byte)'.' << 0 | (byte)'.' << 8 | (byte)'.' << 16 | 0 << 24;
                 float dotdotdotWidth = ImGui.CalcTextSize((byte*)&dotdotdot).X + style.FramePadding.X * 2f + style.ItemSpacing.X; // doooooooooooooooooooooooooot
 
-                Span<byte> partBuffer = stackalloc byte[1024]; // 1024 is enough for most path parts + id + null terminator
+                const int MaxCharacters = 1024;
+                Span<byte> partBuffer = stackalloc byte[MaxCharacters]; // 1024 is enough for most path parts + id + null terminator
 
                 ReadOnlySpan<char> part = path;
 
@@ -170,6 +171,7 @@
                         ImGui.SameLine();
                     }
 
+                    int partId = 0;
                     while (part.Length > 0)
                     {
                         int index = part.IndexOfAny(Separators);
@@ -191,7 +193,11 @@
                         else
                         {
                             idx = Encoding.UTF8.GetBytes(partBase, partBuffer);
-                            partBuffer[idx] = 0;
+                            idx = Math.Min(idx, MaxCharacters - 4);
+                            partBuffer[idx] = (byte)'#';
+                            partBuffer[idx + 1] = (byte)'#';
+                            partBuffer[idx + 2] = (byte)partId;
+                            partBuffer[idx + 3] = 0;
                         }
 
                         if (ImGuiButton.TransparentButton(partBuffer))
@@ -218,19 +224,20 @@
                         ImGui.SameLine();
                         ImGui.Text(">"u8);
                         ImGui.SameLine();
+                        partId++;
                     }
                 }
                 ImGui.PopClipRect();
 
                 ImGui.SetCursorPos(cursor);
-                ImGui.ItemSizeRect(total_bb, style.FramePadding.Y);
+                ImGuiP.ItemSize(total_bb, style.FramePadding.Y);
             }
 
             bool switched = false;
             if (!handled && ImGui.IsMouseHoveringRect(pos, pos + new Vector2(width, lineHeight)))
             {
                 ImGui.SetMouseCursor(ImGuiMouseCursor.TextInput);
-                if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                if (ImGuiP.IsMouseClicked(ImGuiMouseButton.Left))
                 {
                     *breadcrumbs = !*breadcrumbs;
                     switched = true;
@@ -244,7 +251,7 @@
                 ImGui.PushItemWidth(width);
                 changed |= ImGui.InputText($"##{strId}", ref path, 1024);
                 ImGui.PopItemWidth();
-                if (!ImGui.IsItemFocused())
+                if (!ImGui.IsItemActive())
                 {
                     *breadcrumbs = true;
                 }

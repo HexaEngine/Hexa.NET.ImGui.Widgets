@@ -8,7 +8,7 @@
     {
         public static unsafe void ProgressBar(string label, float value, Vector2 size, uint backgroundColor, uint foregroundColor)
         {
-            ImGuiWindow* window = ImGui.GetCurrentWindow();
+            ImGuiWindow* window = ImGuiP.GetCurrentWindow();
             if (window->SkipItems == 1)
             {
                 return;
@@ -36,8 +36,8 @@
             size += style.FramePadding * 2;
 
             ImRect bb = new(pos, pos + size);
-            ImGui.ItemSizeRect(bb, style.FramePadding.Y);
-            if (!ImGui.ItemAdd(bb, id, null, ImGuiItemFlags.None))
+            ImGuiP.ItemSize(bb, style.FramePadding.Y);
+            if (!ImGuiP.ItemAdd(bb, id, null, ImGuiItemFlags.None))
             {
                 return;
             }

@@ -116,7 +116,7 @@ namespace Hexa.NET.ImGui.Widgets
 
         public static bool VerticalSplitter(byte* strId, ref float width, float minWidth, float maxWidth, float height, float thickness, float tolerance, bool alwaysVisible)
         {
-            ImGuiWindow* window = ImGui.GetCurrentWindow();
+            ImGuiWindow* window = ImGuiP.GetCurrentWindow();
             if (window->SkipItems == 1)
             {
                 return false;
@@ -138,8 +138,8 @@ namespace Hexa.NET.ImGui.Widgets
 
             uint id = ImGui.GetID(strId);
 
-            ImGui.ItemSizeRect(bb, 0);
-            if (!ImGui.ItemAdd(bb, id, &bbTolerance, ImGuiItemFlags.None))
+            ImGuiP.ItemSize(bb, 0);
+            if (!ImGuiP.ItemAdd(bb, id, &bbTolerance, ImGuiItemFlags.None))
             {
                 return false;
             }
@@ -149,7 +149,7 @@ namespace Hexa.NET.ImGui.Widgets
             var drawList = ImGui.GetWindowDrawList();
             bool hovered;
             bool held;
-            ImGui.ButtonBehavior(bbTolerance, id, &hovered, &held, ImGuiButtonFlags.None);
+            ImGuiP.ButtonBehavior(bbTolerance, id, &hovered, &held, ImGuiButtonFlags.None);
 
             if (alwaysVisible || hovered)
             {
@@ -285,7 +285,7 @@ namespace Hexa.NET.ImGui.Widgets
 
         public static bool HorizontalSplitter(byte* strId, ref float height, float minHeight, float maxHeight, float width, float thickness, float tolerance, bool alwaysVisible)
         {
-            ImGuiWindow* window = ImGui.GetCurrentWindow();
+            ImGuiWindow* window = ImGuiP.GetCurrentWindow();
             if (window->SkipItems == 1)
             {
                 return false;
@@ -305,8 +305,8 @@ namespace Hexa.NET.ImGui.Widgets
 
             uint id = ImGui.GetID(strId);
 
-            ImGui.ItemSizeRect(bb, 0);
-            if (!ImGui.ItemAdd(bb, id, &bbTolerance, ImGuiItemFlags.None))
+            ImGuiP.ItemSize(bb, 0);
+            if (!ImGuiP.ItemAdd(bb, id, &bbTolerance, ImGuiItemFlags.None))
             {
                 return false;
             }
@@ -315,7 +315,7 @@ namespace Hexa.NET.ImGui.Widgets
             var drawList = ImGui.GetWindowDrawList();
             bool hovered;
             bool held;
-            ImGui.ButtonBehavior(bbTolerance, id, &hovered, &held, ImGuiButtonFlags.None);
+            ImGuiP.ButtonBehavior(bbTolerance, id, &hovered, &held, ImGuiButtonFlags.None);
 
             if (alwaysVisible || hovered)
             {

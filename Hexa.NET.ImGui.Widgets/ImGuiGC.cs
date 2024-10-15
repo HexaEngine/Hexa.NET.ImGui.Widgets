@@ -30,7 +30,7 @@
             hook.Callback = (void*)Marshal.GetFunctionPointerForDelegate<ImGuiContextHookCallback>(HookCallback);
             hook.Type = ImGuiContextHookType.EndFramePost;
 
-            ImGui.AddContextHook(ImGui.GetCurrentContext(), &hook);
+            ImGuiP.AddContextHook(ImGui.GetCurrentContext(), &hook);
         }
 
         public static bool KeepAlive<T>(uint id, out T* ptr) where T : unmanaged

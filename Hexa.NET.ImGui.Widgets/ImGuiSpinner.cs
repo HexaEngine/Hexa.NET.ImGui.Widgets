@@ -8,7 +8,7 @@
     {
         public static unsafe void Spinner(string label, float radius, float thickness, uint color)
         {
-            ImGuiWindow* window = ImGui.GetCurrentWindow();
+            ImGuiWindow* window = ImGuiP.GetCurrentWindow();
             if (window->SkipItems == 1)
             {
                 return;
@@ -25,8 +25,8 @@
 
             ImRect bb = new(pos, pos + size);
 
-            ImGui.ItemSizeRect(bb, -1);
-            if (!ImGui.ItemAdd(bb, id, null, ImGuiItemFlags.None))
+            ImGuiP.ItemSize(bb, -1);
+            if (!ImGuiP.ItemAdd(bb, id, null, ImGuiItemFlags.None))
             {
                 return;
             }

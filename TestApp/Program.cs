@@ -108,7 +108,7 @@
             gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             gl.Clear((uint)ClearBufferMask.ColorBufferBit | (uint)ClearBufferMask.DepthBufferBit);
 
-            imGuiManager.EndFrame();
+            ImGuiManager.EndFrame();
 
             context.MakeCurrent();
             context.SwapBuffers();

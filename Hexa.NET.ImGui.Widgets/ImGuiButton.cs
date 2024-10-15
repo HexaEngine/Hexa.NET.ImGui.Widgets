@@ -8,7 +8,7 @@
     {
         public static bool ToggleSwitch(string label, ref bool selected)
         {
-            ImGuiWindow* window = ImGui.GetCurrentWindow();
+            ImGuiWindow* window = ImGuiP.GetCurrentWindow();
             if (window->SkipItems != 0)
                 return false;
 
@@ -23,8 +23,8 @@
 
             ImRect bb = new() { Min = pos, Max = pos + size };
 
-            ImGui.ItemSizeRect(bb, 0.0f);
-            if (!ImGui.ItemAdd(bb, id, &bb, ImGuiItemFlags.None))
+            ImGuiP.ItemSize(bb, 0.0f);
+            if (!ImGuiP.ItemAdd(bb, id, &bb, ImGuiItemFlags.None))
                 return false;
 
             uint hoverColor = ImGui.GetColorU32(ImGuiCol.ButtonHovered);
@@ -37,7 +37,7 @@
 
             bool isHovered;
             bool isActive;
-            bool isClicked = ImGui.ButtonBehavior(bb, id, &isHovered, &isActive, 0);
+            bool isClicked = ImGuiP.ButtonBehavior(bb, id, &isHovered, &isActive, 0);
 
             float t = selected ? 1 : 0;
 
@@ -57,9 +57,9 @@
 
             uint col_bg;
             if (isHovered)
-                col_bg = ImGui.GetColorU32(ImGui.ImLerpVec4(new Vector4(0.78f, 0.78f, 0.78f, 1.0f), new Vector4(0.64f, 0.83f, 0.34f, 1.0f), t));
+                col_bg = ImGui.GetColorU32(ImGuiP.ImLerp(new Vector4(0.78f, 0.78f, 0.78f, 1.0f), new Vector4(0.64f, 0.83f, 0.34f, 1.0f), t));
             else
-                col_bg = ImGui.GetColorU32(ImGui.ImLerpVec4(new Vector4(0.85f, 0.85f, 0.85f, 1.0f), new Vector4(0.56f, 0.83f, 0.26f, 1.0f), t));
+                col_bg = ImGui.GetColorU32(ImGuiP.ImLerp(new Vector4(0.85f, 0.85f, 0.85f, 1.0f), new Vector4(0.56f, 0.83f, 0.26f, 1.0f), t));
 
             draw->AddRectFilled(pos, new Vector2(pos.X + width, pos.Y + height), col_bg, height * 0.5f);
             draw->AddCircleFilled(new(pos.X + radius + t * (width - radius * 2.0f), pos.Y + radius), radius - 1.5f, 0xFFFFFFFF);
@@ -79,7 +79,7 @@
 
         public static bool ToggleButton(string label, ref bool selected, Vector2 sizeArg, ImGuiButtonFlags flags)
         {
-            ImGuiWindow* window = ImGui.GetCurrentWindow();
+            ImGuiWindow* window = ImGuiP.GetCurrentWindow();
             if (window->SkipItems != 0)
                 return false;
 
@@ -91,12 +91,12 @@
             Vector2 labelSize = ImGui.CalcTextSize(label, (byte*)null, true);
             if ((flags & (ImGuiButtonFlags)ImGuiButtonFlagsPrivate.AlignTextBaseLine) != 0 && style.FramePadding.Y < window->DC.CurrLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
                 pos.Y += window->DC.CurrLineTextBaseOffset - style.FramePadding.Y;
-            Vector2 size = ImGui.CalcItemSize(sizeArg, labelSize.X + style.FramePadding.X * 2.0f, labelSize.Y + style.FramePadding.Y * 2.0f);
+            Vector2 size = ImGuiP.CalcItemSize(sizeArg, labelSize.X + style.FramePadding.X * 2.0f, labelSize.Y + style.FramePadding.Y * 2.0f);
 
             ImRect bb = new() { Min = pos, Max = pos + size };
 
-            ImGui.ItemSizeRect(bb, 0.0f);
-            if (!ImGui.ItemAdd(bb, id, &bb, ImGuiItemFlags.None))
+            ImGuiP.ItemSize(bb, 0.0f);
+            if (!ImGuiP.ItemAdd(bb, id, &bb, ImGuiItemFlags.None))
                 return false;
 
             uint hoverColor = ImGui.GetColorU32(ImGuiCol.ButtonHovered);
@@ -108,7 +108,7 @@
 
             bool isHovered;
             bool isActive;
-            bool isClicked = ImGui.ButtonBehavior(bb, id, &isHovered, &isActive, 0);
+            bool isClicked = ImGuiP.ButtonBehavior(bb, id, &isHovered, &isActive, 0);
 
             uint color = isActive ? activeColor : isHovered ? hoverColor : selected ? selectedBgColor : default;
 
@@ -122,7 +122,7 @@
                 draw->AddRect(bb.Min, bb.Max, selectedColor, style.FrameRounding, 2);
             }
 
-            ImGui.RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, (byte*)null, &labelSize, style.ButtonTextAlign, &bb);
+            ImGuiP.RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, (byte*)null, &labelSize, style.ButtonTextAlign, &bb);
 
             if (isClicked)
             {
@@ -170,7 +170,7 @@
 
         public static bool TransparentButton(byte* label, Vector2 sizeArg, ImGuiButtonFlags flags)
         {
-            ImGuiWindow* window = ImGui.GetCurrentWindow();
+            ImGuiWindow* window = ImGuiP.GetCurrentWindow();
             if (window->SkipItems != 0)
                 return false;
 
@@ -182,11 +182,11 @@
             Vector2 labelSize = ImGui.CalcTextSize(label, (byte*)null, true);
             if ((flags & (ImGuiButtonFlags)ImGuiButtonFlagsPrivate.AlignTextBaseLine) != 0 && style.FramePadding.Y < window->DC.CurrLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
                 pos.Y += window->DC.CurrLineTextBaseOffset - style.FramePadding.Y;
-            Vector2 size = ImGui.CalcItemSize(sizeArg, labelSize.X + style.FramePadding.X * 2.0f, labelSize.Y + style.FramePadding.Y * 2.0f);
+            Vector2 size = ImGuiP.CalcItemSize(sizeArg, labelSize.X + style.FramePadding.X * 2.0f, labelSize.Y + style.FramePadding.Y * 2.0f);
 
             ImRect bb = new() { Min = pos, Max = pos + size };
-            ImGui.ItemSizeVec2(size, style.FramePadding.Y);
-            if (!ImGui.ItemAdd(bb, id, &bb, ImGuiItemFlags.None))
+            ImGuiP.ItemSize(size, style.FramePadding.Y);
+            if (!ImGuiP.ItemAdd(bb, id, &bb, ImGuiItemFlags.None))
                 return false;
 
             uint hoverColor = ImGui.GetColorU32(ImGuiCol.ButtonHovered);
@@ -195,16 +195,16 @@
             ImDrawList* draw = ImGui.GetWindowDrawList();
 
             bool hovered, held;
-            bool pressed = ImGui.ButtonBehavior(bb, id, &hovered, &held, flags);
+            bool pressed = ImGuiP.ButtonBehavior(bb, id, &hovered, &held, flags);
 
-            ImGui.RenderNavHighlight(bb, id, default);
+            ImGuiP.RenderNavHighlight(bb, id, default);
             if (pressed || hovered || held)
             {
                 uint col = ImGui.GetColorU32(held && hovered ? ImGuiCol.ButtonActive : hovered ? ImGuiCol.ButtonHovered : ImGuiCol.Button);
-                ImGui.RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
+                ImGuiP.RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
             }
 
-            ImGui.RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, (byte*)null, &labelSize, style.ButtonTextAlign, &bb);
+            ImGuiP.RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, (byte*)null, &labelSize, style.ButtonTextAlign, &bb);
 
             return pressed;
         }

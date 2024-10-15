@@ -72,14 +72,14 @@ namespace Hexa.NET.ImGui.Widgets.Dialogs
 
             if (firstFrame)
             {
-                ImGui.SetWindowSize(InitialSize);
+                ImGuiP.SetWindowSize(InitialSize);
                 firstFrame = false;
             }
             else
             {
                 if ((flags & DialogFlags.CenterOnParent) != 0 && parent != null)
                 {
-                    ImGui.SetWindowPos(parent.WindowPos + (parent.WindowSize - windowSize) / 2);
+                    ImGuiP.SetWindowPos(parent.WindowPos + (parent.WindowSize - windowSize) / 2);
                     if ((flags & DialogFlags.AlwaysCenter) == 0)
                     {
                         flags &= ~DialogFlags.CenterOnParent;

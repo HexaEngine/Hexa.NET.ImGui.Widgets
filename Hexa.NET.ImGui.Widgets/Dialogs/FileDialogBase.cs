@@ -266,24 +266,24 @@
                 return;
             }
 
-            if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+            if (ImGuiP.IsKeyPressed(ImGuiKey.Escape))
             {
                 OnEscapePressed();
             }
-            if (ImGui.IsKeyPressed(ImGuiKey.Enter))
+            if (ImGuiP.IsKeyPressed(ImGuiKey.Enter))
             {
                 OnEnterPressed();
             }
-            if (ImGui.IsKeyPressed(ImGuiKey.F5))
+            if (ImGuiP.IsKeyPressed(ImGuiKey.F5))
             {
                 Refresh();
             }
 
-            if (ImGui.IsMouseClicked((ImGuiMouseButton)3))
+            if (ImGuiP.IsMouseClicked((ImGuiMouseButton)3))
             {
                 TryGoBack();
             }
-            if (ImGui.IsMouseClicked((ImGuiMouseButton)4))
+            if (ImGuiP.IsMouseClicked((ImGuiMouseButton)4))
             {
                 TryGoForward();
             }

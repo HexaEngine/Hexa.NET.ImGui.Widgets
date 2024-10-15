@@ -53,7 +53,7 @@
 
         public static bool IconTreeNode(byte* label, byte* labelEnd, byte* icon, Vector4 iconColor, ImGuiTreeNodeFlags flags)
         {
-            ImGuiWindow* window = ImGui.GetCurrentWindow();
+            ImGuiWindow* window = ImGuiP.GetCurrentWindow();
             if (window->SkipItems != 0)
                 return false;
 
@@ -69,7 +69,7 @@
             Vector2 pos = ImGui.GetCursorScreenPos();
 
             if (labelEnd == null)
-                labelEnd = ImGui.FindRenderedTextEnd(label, (byte*)null);
+                labelEnd = ImGuiP.FindRenderedTextEnd(label, (byte*)null);
             Vector2 labelSize = ImGui.CalcTextSize(label, labelEnd, false);
 
             float text_offset_x = fontSize * 2 + (display_frame ? padding.X * 3 : padding.X * 2);   // Collapsing arrow width + Spacing
@@ -94,14 +94,14 @@
 
             Vector2 text_pos = new(pos.X + text_offset_x, pos.Y + text_offset_y);
             Vector2 icon_pos = new(pos.X + text_offset_x - fontSize - padding.X, pos.Y + text_offset_y);
-            ImGui.ItemSizeVec2(new Vector2(text_width, frame_height), padding.Y);
+            ImGuiP.ItemSize(new Vector2(text_width, frame_height), padding.Y);
 
             ImRect interact_bb = frame_bb;
             if ((flags & (ImGuiTreeNodeFlags.Framed | ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.SpanTextWidth | ImGuiTreeNodeFlags.SpanAllColumns)) == 0)
                 interact_bb.Max.X = frame_bb.Min.X + text_width + (labelSize.X > 0.0f ? style.ItemSpacing.X * 2.0f : 0.0f);
 
             uint storage_id = (g.NextItemData.Flags & ImGuiNextItemDataFlags.HasStorageId) != 0 ? g.NextItemData.StorageId : id;
-            bool is_open = ImGui.TreeNodeUpdateNextOpen(storage_id, flags);
+            bool is_open = ImGuiP.TreeNodeUpdateNextOpen(storage_id, flags);
 
             bool is_visible;
             if (span_all_columns)
@@ -111,13 +111,13 @@
                 float backup_clip_rect_max_x = window->ClipRect.Max.X;
                 window->ClipRect.Min.X = window->ParentWorkRect.Min.X;
                 window->ClipRect.Max.X = window->ParentWorkRect.Max.X;
-                is_visible = ImGui.ItemAdd(interact_bb, id, &interact_bb, ImGuiItemFlags.None);
+                is_visible = ImGuiP.ItemAdd(interact_bb, id, &interact_bb, ImGuiItemFlags.None);
                 window->ClipRect.Min.X = backup_clip_rect_min_x;
                 window->ClipRect.Max.X = backup_clip_rect_max_x;
             }
             else
             {
-                is_visible = ImGui.ItemAdd(interact_bb, id, &interact_bb, ImGuiItemFlags.None);
+                is_visible = ImGuiP.ItemAdd(interact_bb, id, &interact_bb, ImGuiItemFlags.None);
             }
             g.LastItemData.StatusFlags |= ImGuiItemStatusFlags.HasDisplayRect;
             g.LastItemData.DisplayRect = frame_bb;
@@ -130,7 +130,7 @@
             if ((flags & ImGuiTreeNodeFlags.NoTreePushOnOpen) == 0)
             {
                 if ((flags & ImGuiTreeNodeFlags.NavLeftJumpsBackHere) != 0 && is_open && !g.NavIdIsAlive)
-                    if (g.NavMoveDir == ImGuiDir.Left && g.NavWindow == window && ImGui.NavMoveRequestButNoResultYet())
+                    if (g.NavMoveDir == ImGuiDir.Left && g.NavWindow == window && ImGuiP.NavMoveRequestButNoResultYet())
                         store_tree_node_stack_data = true;
             }
 
@@ -140,14 +140,14 @@
                 if (store_tree_node_stack_data && is_open)
                     TreeNodeStoreStackData(flags); // Call before TreePushOverrideID()
                 if (is_open && (flags & ImGuiTreeNodeFlags.NoTreePushOnOpen) != 0)
-                    ImGui.TreePushOverrideID(id);
+                    ImGuiP.TreePushOverrideID(id);
 
                 return is_open;
             }
 
             if (span_all_columns)
             {
-                ImGui.TablePushBackgroundChannel();
+                ImGuiP.TablePushBackgroundChannel();
                 g.LastItemData.StatusFlags |= ImGuiItemStatusFlags.HasClipRect;
                 g.LastItemData.ClipRect = window->ClipRect;
             }
@@ -189,7 +189,7 @@
             if (is_multi_select)
             {
                 // Handle multi-select + alter button flags for it
-                ImGui.MultiSelectItemHeader(id, &selected, &button_flags);
+                ImGuiP.MultiSelectItemHeader(id, &selected, &button_flags);
                 if (is_mouse_x_over_arrow)
                     button_flags = (ImGuiButtonFlags)(((ImGuiButtonFlagsPrivate)button_flags | ImGuiButtonFlagsPrivate.PressedOnClick) & ~ImGuiButtonFlagsPrivate.PressedOnClickRelease);
 
@@ -203,7 +203,7 @@
             }
 
             bool hovered, held;
-            bool pressed = ImGui.ButtonBehavior(interact_bb, id, &hovered, &held, button_flags);
+            bool pressed = ImGuiP.ButtonBehavior(interact_bb, id, &hovered, &held, button_flags);
             bool toggled = false;
             if (!is_leaf)
             {
@@ -226,14 +226,14 @@
                 if (g.NavId == id && g.NavMoveDir == ImGuiDir.Left && is_open)
                 {
                     toggled = true;
-                    ImGui.NavClearPreferredPosForAxis(ImGuiAxis.X);
-                    ImGui.NavMoveRequestCancel();
+                    ImGuiP.NavClearPreferredPosForAxis(ImGuiAxis.X);
+                    ImGuiP.NavMoveRequestCancel();
                 }
                 if (g.NavId == id && g.NavMoveDir == ImGuiDir.Right && !is_open) // If there's something upcoming on the line we may want to give it the priority?
                 {
                     toggled = true;
-                    ImGui.NavClearPreferredPosForAxis(ImGuiAxis.X);
-                    ImGui.NavMoveRequestCancel();
+                    ImGuiP.NavClearPreferredPosForAxis(ImGuiAxis.X);
+                    ImGuiP.NavMoveRequestCancel();
                 }
 
                 if (toggled)
@@ -251,9 +251,9 @@
             if (is_multi_select)
             {
                 bool pressed_copy = pressed && !toggled;
-                ImGui.MultiSelectItemFooter(id, &selected, &pressed_copy);
+                ImGuiP.MultiSelectItemFooter(id, &selected, &pressed_copy);
                 if (pressed)
-                    ImGui.SetNavID(id, window->DC.NavLayerCurrent, g.CurrentFocusScopeId, interact_bb);
+                    ImGuiP.SetNavID(id, window->DC.NavLayerCurrent, g.CurrentFocusScopeId, interact_bb);
             }
 
             if (selected != was_selected)
@@ -269,18 +269,18 @@
                 {
                     // Framed type
                     uint bg_col = ImGui.GetColorU32(held && hovered ? ImGuiCol.HeaderActive : hovered ? ImGuiCol.HeaderHovered : ImGuiCol.Header);
-                    ImGui.RenderFrame(frame_bb.Min, frame_bb.Max, bg_col, true, style.FrameRounding);
-                    ImGui.RenderNavHighlight(frame_bb, id, nav_highlight_flags);
+                    ImGuiP.RenderFrame(frame_bb.Min, frame_bb.Max, bg_col, true, style.FrameRounding);
+                    ImGuiP.RenderNavHighlight(frame_bb, id, nav_highlight_flags);
                     if ((flags & ImGuiTreeNodeFlags.Bullet) != 0)
-                        ImGui.RenderBullet(draw, new(text_pos.X - text_offset_x * 0.60f, text_pos.Y + g.FontSize * 0.5f), text_col);
+                        ImGuiP.RenderBullet(draw, new(text_pos.X - text_offset_x * 0.60f, text_pos.Y + g.FontSize * 0.5f), text_col);
                     else if (!is_leaf)
-                        ImGui.RenderArrow(draw, new Vector2(text_pos.X - text_offset_x + padding.X, text_pos.Y), text_col, is_open ? (flags & (ImGuiTreeNodeFlags)ImGuiTreeNodeFlagsPrivate.UpsideDownArrow) != 0 ? ImGuiDir.Up : ImGuiDir.Down : ImGuiDir.Right, 1.0f);
+                        ImGuiP.RenderArrow(draw, new Vector2(text_pos.X - text_offset_x + padding.X, text_pos.Y), text_col, is_open ? (flags & (ImGuiTreeNodeFlags)ImGuiTreeNodeFlagsPrivate.UpsideDownArrow) != 0 ? ImGuiDir.Up : ImGuiDir.Down : ImGuiDir.Right, 1.0f);
                     else // Leaf without bullet, left-adjusted text
                         text_pos.X -= text_offset_x - padding.X;
                     if ((flags & (ImGuiTreeNodeFlags)ImGuiTreeNodeFlagsPrivate.ClipLabelForTrailingButton) != 0)
                         frame_bb.Max.X -= g.FontSize + style.FramePadding.X;
                     if (g.LogEnabled)
-                        ImGui.LogSetNextTextDecoration("###", "###");
+                        ImGuiP.LogSetNextTextDecoration("###", "###");
                 }
                 else
                 {
@@ -288,39 +288,39 @@
                     if (hovered || selected)
                     {
                         uint bg_col = ImGui.GetColorU32(held && hovered ? ImGuiCol.HeaderActive : hovered ? ImGuiCol.HeaderHovered : ImGuiCol.Header);
-                        ImGui.RenderFrame(frame_bb.Min, frame_bb.Max, bg_col, false, style.FrameRounding);
+                        ImGuiP.RenderFrame(frame_bb.Min, frame_bb.Max, bg_col, false, style.FrameRounding);
                     }
-                    ImGui.RenderNavHighlight(frame_bb, id, nav_highlight_flags);
+                    ImGuiP.RenderNavHighlight(frame_bb, id, nav_highlight_flags);
                     if ((flags & ImGuiTreeNodeFlags.Bullet) != 0)
-                        ImGui.RenderBullet(draw, new(text_pos.X - text_offset_x * 0.5f, text_pos.Y + g.FontSize * 0.5f), text_col);
+                        ImGuiP.RenderBullet(draw, new(text_pos.X - text_offset_x * 0.5f, text_pos.Y + g.FontSize * 0.5f), text_col);
                     else if (!is_leaf)
-                        ImGui.RenderArrow(draw, new Vector2(text_pos.X - text_offset_x + padding.X, text_pos.Y + g.FontSize * 0.15f), text_col, is_open ? (flags & (ImGuiTreeNodeFlags)ImGuiTreeNodeFlagsPrivate.UpsideDownArrow) != 0 ? ImGuiDir.Up : ImGuiDir.Down : ImGuiDir.Right, 0.70f);
+                        ImGuiP.RenderArrow(draw, new Vector2(text_pos.X - text_offset_x + padding.X, text_pos.Y + g.FontSize * 0.15f), text_col, is_open ? (flags & (ImGuiTreeNodeFlags)ImGuiTreeNodeFlagsPrivate.UpsideDownArrow) != 0 ? ImGuiDir.Up : ImGuiDir.Down : ImGuiDir.Right, 0.70f);
                     if (g.LogEnabled)
-                        ImGui.LogSetNextTextDecoration(">", (byte*)null);
+                        ImGuiP.LogSetNextTextDecoration(">", (byte*)null);
                 }
 
                 if (span_all_columns)
-                    ImGui.TablePopBackgroundChannel();
+                    ImGuiP.TablePopBackgroundChannel();
 
                 ImGui.PushStyleColor(ImGuiCol.Text, iconColor);
-                ImGui.RenderTextClipped(icon_pos, new Vector2(text_pos.X, frame_bb.Max.Y), icon, (byte*)null, default, default, default);
+                ImGuiP.RenderTextClipped(icon_pos, new Vector2(text_pos.X, frame_bb.Max.Y), icon, (byte*)null, default, default, default);
                 ImGui.PopStyleColor();
 
                 // Label
                 if (display_frame)
                 {
-                    ImGui.RenderTextClipped(text_pos, frame_bb.Max, label, labelEnd, &labelSize, default, default);
+                    ImGuiP.RenderTextClipped(text_pos, frame_bb.Max, label, labelEnd, &labelSize, default, default);
                 }
                 else
                 {
-                    ImGui.RenderText(text_pos, label, labelEnd, false);
+                    ImGuiP.RenderText(text_pos, label, labelEnd, false);
                 }
             }
 
             if (store_tree_node_stack_data && is_open)
                 TreeNodeStoreStackData(flags); // Call before TreePushOverrideID()
             if (is_open && (flags & ImGuiTreeNodeFlags.NoTreePushOnOpen) == 0)
-                ImGui.TreePushOverrideID(id); // Could use TreePush(label) but this avoid computing twice
+                ImGuiP.TreePushOverrideID(id); // Could use TreePush(label) but this avoid computing twice
 
             return is_open;
         }
