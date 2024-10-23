@@ -41,7 +41,7 @@
             config.OversampleH = 2;
             config.OversampleV = 2;
 
-            io.Fonts.AddFontFromFileTTF("assets/fonts/arialuni.TTF", 18, config, io.Fonts.GetGlyphRangesChineseFull());
+            io.Fonts.AddFontFromFileTTF("assets/fonts/arialuni.ttf", 18, config, io.Fonts.GetGlyphRangesChineseFull());
 
             // load custom font
 
@@ -53,7 +53,7 @@
             // IMPORTANT: AddFontFromMemoryTTF() by default transfer ownership of the data buffer to the font atlas, which will attempt to free it on destruction.
             // This was to avoid an unnecessary copy, and is perhaps not a good API (a future version will redesign it).
             // Set config.FontDataOwnedByAtlas to false to keep ownership of the data (so you need to free the data yourself).
-            io.Fonts.AddFontFromFileTTF("assets/fonts/MaterialSymbolsRounded.TTF", 18, config, range);
+            io.Fonts.AddFontFromFileTTF("assets/fonts/MaterialSymbolsRounded.ttf", 18, config, range);
 
             io.Fonts.Build();
 

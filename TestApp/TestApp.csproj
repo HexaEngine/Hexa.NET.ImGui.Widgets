@@ -36,7 +36,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="assets\fonts\arialuni.TTF">
+	  <None Update="assets\fonts\arialuni.ttf">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	  <None Update="assets\fonts\MaterialSymbolsRounded.ttf">

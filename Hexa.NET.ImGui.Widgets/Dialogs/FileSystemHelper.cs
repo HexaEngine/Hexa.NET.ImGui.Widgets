@@ -546,6 +546,7 @@
             int length = NET.Utilities.Utils.StrLen(entry.d_name);
             StdWString str = new(path.Size + length);
             str.Append(path);
+            str.Append('/');
             str.Append(entry.d_name);
             FileMetadata meta = new();
             meta.Path = str;
