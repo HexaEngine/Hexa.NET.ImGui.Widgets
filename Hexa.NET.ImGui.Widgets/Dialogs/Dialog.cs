@@ -41,6 +41,8 @@ namespace Hexa.NET.ImGui.Widgets.Dialogs
 
         public bool Shown => shown;
 
+        public object? Userdata { get; set; }
+
         public unsafe void Draw(ImGuiWindowFlags overwriteFlags)
         {
             if (!shown) return;

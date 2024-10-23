@@ -7,63 +7,43 @@ namespace Hexa.NET.ImGui.Widgets
     {
         public static bool VerticalSplitter(ReadOnlySpan<byte> strId, ref float width)
         {
-            return VerticalSplitter(strId, ref width, float.MinValue, float.MaxValue, 0, 2, 8, false);
+            return VerticalSplitter(strId, ref width, float.MinValue, float.MaxValue, 0, 2, 8);
         }
 
         public static bool VerticalSplitter(ReadOnlySpan<byte> strId, ref float width, float minWidth, float maxWidth)
         {
-            return VerticalSplitter(strId, ref width, minWidth, maxWidth, 0, 2, 8, false);
+            return VerticalSplitter(strId, ref width, minWidth, maxWidth, 0, 2, 8);
         }
 
         public static bool VerticalSplitter(ReadOnlySpan<byte> strId, ref float width, float minWidth, float maxWidth, float height)
         {
-            return VerticalSplitter(strId, ref width, minWidth, maxWidth, height, 2, 8, false);
-        }
-
-        public static bool VerticalSplitter(ReadOnlySpan<byte> strId, ref float width, float minWidth, float maxWidth, float height, bool alwaysVisible)
-        {
-            return VerticalSplitter(strId, ref width, minWidth, maxWidth, height, 2, 8, alwaysVisible);
+            return VerticalSplitter(strId, ref width, minWidth, maxWidth, height, 2, 8);
         }
 
         public static bool VerticalSplitter(ReadOnlySpan<byte> strId, ref float width, float minWidth, float maxWidth, float height, float thickness, float tolerance)
         {
-            return VerticalSplitter(strId, ref width, minWidth, maxWidth, height, thickness, tolerance, false);
-        }
-
-        public static bool VerticalSplitter(ReadOnlySpan<byte> strId, ref float width, float minWidth, float maxWidth, float height, float thickness, float tolerance, bool alwaysVisible)
-        {
             fixed (byte* pStrId0 = strId)
             {
-                return VerticalSplitter(pStrId0, ref width, minWidth, maxWidth, height, thickness, tolerance, alwaysVisible);
+                return VerticalSplitter(pStrId0, ref width, minWidth, maxWidth, height, thickness, tolerance);
             }
         }
 
         public static bool VerticalSplitter(string strId, ref float width)
         {
-            return VerticalSplitter(strId, ref width, float.MinValue, float.MaxValue, 0, 2, 8, false);
+            return VerticalSplitter(strId, ref width, float.MinValue, float.MaxValue, 0, 2, 8);
         }
 
         public static bool VerticalSplitter(string strId, ref float width, float minWidth, float maxWidth)
         {
-            return VerticalSplitter(strId, ref width, minWidth, maxWidth, 0, 2, 8, false);
+            return VerticalSplitter(strId, ref width, minWidth, maxWidth, 0, 2, 8);
         }
 
         public static bool VerticalSplitter(string strId, ref float width, float minWidth, float maxWidth, float height)
         {
-            return VerticalSplitter(strId, ref width, minWidth, maxWidth, height, 2, 8, false);
-        }
-
-        public static bool VerticalSplitter(string strId, ref float width, float minWidth, float maxWidth, float height, bool alwaysVisible)
-        {
-            return VerticalSplitter(strId, ref width, minWidth, maxWidth, height, 2, 8, alwaysVisible);
+            return VerticalSplitter(strId, ref width, minWidth, maxWidth, height, 2, 8);
         }
 
         public static bool VerticalSplitter(string strId, ref float width, float minWidth, float maxWidth, float height, float thickness, float tolerance)
-        {
-            return VerticalSplitter(strId, ref width, minWidth, maxWidth, height, thickness, tolerance, false);
-        }
-
-        public static bool VerticalSplitter(string strId, ref float width, float minWidth, float maxWidth, float height, float thickness, float tolerance, bool alwaysVisible)
         {
             int sizeInBytes0 = System.Text.Encoding.UTF8.GetByteCount(strId);
             byte* pStrId0;
@@ -79,7 +59,7 @@ namespace Hexa.NET.ImGui.Widgets
             System.Text.Encoding.UTF8.GetBytes(strId, new Span<byte>(pStrId0, sizeInBytes0));
             pStrId0[sizeInBytes0] = 0;
 
-            bool result = VerticalSplitter(pStrId0, ref width, minWidth, maxWidth, height, thickness, tolerance, alwaysVisible);
+            bool result = VerticalSplitter(pStrId0, ref width, minWidth, maxWidth, height, thickness, tolerance);
 
             if (sizeInBytes0 + 1 >= 2048)
             {
@@ -91,30 +71,20 @@ namespace Hexa.NET.ImGui.Widgets
 
         public static bool VerticalSplitter(byte* strId, ref float width)
         {
-            return VerticalSplitter(strId, ref width, float.MinValue, float.MaxValue, 0, 2, 8, false);
+            return VerticalSplitter(strId, ref width, float.MinValue, float.MaxValue, 0, 2, 8);
         }
 
         public static bool VerticalSplitter(byte* strId, ref float width, float minWidth, float maxWidth)
         {
-            return VerticalSplitter(strId, ref width, minWidth, maxWidth, 0, 2, 8, false);
+            return VerticalSplitter(strId, ref width, minWidth, maxWidth, 0, 2, 8);
         }
 
         public static bool VerticalSplitter(byte* strId, ref float width, float minWidth, float maxWidth, float height)
         {
-            return VerticalSplitter(strId, ref width, minWidth, maxWidth, height, 2, 8, false);
-        }
-
-        public static bool VerticalSplitter(byte* strId, ref float width, float minWidth, float maxWidth, float height, bool alwaysVisible)
-        {
-            return VerticalSplitter(strId, ref width, minWidth, maxWidth, height, 2, 8, alwaysVisible);
+            return VerticalSplitter(strId, ref width, minWidth, maxWidth, height, 2, 8);
         }
 
         public static bool VerticalSplitter(byte* strId, ref float width, float minWidth, float maxWidth, float height, float thickness, float tolerance)
-        {
-            return VerticalSplitter(strId, ref width, minWidth, maxWidth, height, thickness, tolerance, false);
-        }
-
-        public static bool VerticalSplitter(byte* strId, ref float width, float minWidth, float maxWidth, float height, float thickness, float tolerance, bool alwaysVisible)
         {
             ImGuiWindow* window = ImGuiP.GetCurrentWindow();
             if (window->SkipItems == 1)
@@ -138,8 +108,8 @@ namespace Hexa.NET.ImGui.Widgets
 
             uint id = ImGui.GetID(strId);
 
-            ImGuiP.ItemSize(bb, 0);
-            if (!ImGuiP.ItemAdd(bb, id, &bbTolerance, ImGuiItemFlags.None))
+            ImGuiP.ItemSize(bb);
+            if (!ImGuiP.ItemAdd(bb, id, &bbTolerance))
             {
                 return false;
             }
@@ -151,9 +121,11 @@ namespace Hexa.NET.ImGui.Widgets
             bool held;
             ImGuiP.ButtonBehavior(bbTolerance, id, &hovered, &held, ImGuiButtonFlags.None);
 
-            if (alwaysVisible || hovered)
+            uint color = ImGui.GetColorU32(ImGuiCol.Separator);
+            if (hovered)
             {
-                drawList.AddRectFilled(min, max, ImGui.GetColorU32(ImGuiCol.ButtonHovered));
+                color = ImGui.GetColorU32(ImGuiCol.SeparatorHovered);
+
                 if (hovered)
                 {
                     ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeEw);
@@ -163,11 +135,13 @@ namespace Hexa.NET.ImGui.Widgets
             if (held)
             {
                 ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeEw);
-                drawList.AddRectFilled(min, max, ImGui.GetColorU32(ImGuiCol.ButtonActive));
+                color = ImGui.GetColorU32(ImGuiCol.SeparatorActive);
                 width += io.MouseDelta.X;
                 if (width < minWidth) width = minWidth;
                 if (width > maxWidth) width = maxWidth;
             }
+
+            drawList.AddRectFilled(min, max, color);
 
             ImGui.SameLine(); // Do it automatically for the user, reduces boilerplate.
 
@@ -176,63 +150,40 @@ namespace Hexa.NET.ImGui.Widgets
 
         public static bool HorizontalSplitter(ReadOnlySpan<byte> strId, ref float height)
         {
-            return HorizontalSplitter(strId, ref height, float.MinValue, float.MaxValue, 0, 2, 8, false);
+            return HorizontalSplitter(strId, ref height, float.MinValue, float.MaxValue, 0, 2, 8);
         }
 
         public static bool HorizontalSplitter(ReadOnlySpan<byte> strId, ref float height, float minHeight, float maxHeight)
         {
-            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, 0, 2, 8, false);
+            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, 0, 2, 8);
         }
 
         public static bool HorizontalSplitter(ReadOnlySpan<byte> strId, ref float height, float minHeight, float maxHeight, float width)
         {
-            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, width, 2, 8, false);
-        }
-
-        public static bool HorizontalSplitter(ReadOnlySpan<byte> strId, ref float height, float minHeight, float maxHeight, float width, bool alwaysVisible)
-        {
-            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, width, 2, 8, alwaysVisible);
+            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, width, 2, 8);
         }
 
         public static bool HorizontalSplitter(ReadOnlySpan<byte> strId, ref float height, float minHeight, float maxHeight, float width, float thickness, float tolerance)
         {
-            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, width, thickness, tolerance, false);
-        }
-
-        public static bool HorizontalSplitter(ReadOnlySpan<byte> strId, ref float height, float minHeight, float maxHeight, float width, float thickness, float tolerance, bool alwaysVisible)
-        {
-            fixed (byte* pStrId0 = strId)
-            {
-                return HorizontalSplitter(pStrId0, ref height, minHeight, maxHeight, width, thickness, tolerance, alwaysVisible);
-            }
+            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, width, thickness, tolerance);
         }
 
         public static bool HorizontalSplitter(string strId, ref float height)
         {
-            return HorizontalSplitter(strId, ref height, float.MinValue, float.MaxValue, 0, 2, 8, false);
+            return HorizontalSplitter(strId, ref height, float.MinValue, float.MaxValue, 0, 2, 8);
         }
 
         public static bool HorizontalSplitter(string strId, ref float height, float minHeight, float maxHeight)
         {
-            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, 0, 2, 8, false);
+            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, 0, 2, 8);
         }
 
         public static bool HorizontalSplitter(string strId, ref float height, float minHeight, float maxHeight, float width)
         {
-            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, width, 2, 8, false);
-        }
-
-        public static bool HorizontalSplitter(string strId, ref float height, float minHeight, float maxHeight, float width, bool alwaysVisible)
-        {
-            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, width, 2, 8, alwaysVisible);
+            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, width, 2, 8);
         }
 
         public static bool HorizontalSplitter(string strId, ref float height, float minHeight, float maxHeight, float width, float thickness, float tolerance)
-        {
-            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, width, thickness, tolerance, false);
-        }
-
-        public static bool HorizontalSplitter(string strId, ref float height, float minHeight, float maxHeight, float width, float thickness, float tolerance, bool alwaysVisible)
         {
             int sizeInBytes0 = System.Text.Encoding.UTF8.GetByteCount(strId);
             byte* pStrId0;
@@ -248,7 +199,7 @@ namespace Hexa.NET.ImGui.Widgets
             System.Text.Encoding.UTF8.GetBytes(strId, new Span<byte>(pStrId0, sizeInBytes0));
             pStrId0[sizeInBytes0] = 0;
 
-            bool result = HorizontalSplitter(pStrId0, ref height, minHeight, maxHeight, width, thickness, tolerance, alwaysVisible);
+            bool result = HorizontalSplitter(pStrId0, ref height, minHeight, maxHeight, width, thickness, tolerance);
 
             if (sizeInBytes0 + 1 >= 2048)
             {
@@ -260,30 +211,20 @@ namespace Hexa.NET.ImGui.Widgets
 
         public static bool HorizontalSplitter(byte* strId, ref float height)
         {
-            return HorizontalSplitter(strId, ref height, float.MinValue, float.MaxValue, 0, 2, 8, false);
+            return HorizontalSplitter(strId, ref height, float.MinValue, float.MaxValue, 0, 2, 8);
         }
 
         public static bool HorizontalSplitter(byte* strId, ref float height, float minHeight, float maxHeight)
         {
-            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, 0, 2, 8, false);
+            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, 0, 2, 8);
         }
 
         public static bool HorizontalSplitter(byte* strId, ref float height, float minHeight, float maxHeight, float width)
         {
-            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, width, 2, 8, false);
-        }
-
-        public static bool HorizontalSplitter(byte* strId, ref float height, float minHeight, float maxHeight, float width, bool alwaysVisible)
-        {
-            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, width, 2, 8, alwaysVisible);
+            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, width, 2, 8);
         }
 
         public static bool HorizontalSplitter(byte* strId, ref float height, float minHeight, float maxHeight, float width, float thickness, float tolerance)
-        {
-            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, width, thickness, tolerance, false);
-        }
-
-        public static bool HorizontalSplitter(byte* strId, ref float height, float minHeight, float maxHeight, float width, float thickness, float tolerance, bool alwaysVisible)
         {
             ImGuiWindow* window = ImGuiP.GetCurrentWindow();
             if (window->SkipItems == 1)
@@ -317,9 +258,10 @@ namespace Hexa.NET.ImGui.Widgets
             bool held;
             ImGuiP.ButtonBehavior(bbTolerance, id, &hovered, &held, ImGuiButtonFlags.None);
 
-            if (alwaysVisible || hovered)
+            uint color = ImGui.GetColorU32(ImGuiCol.Separator);
+            if (hovered)
             {
-                drawList.AddRectFilled(min, max, ImGui.GetColorU32(ImGuiCol.ButtonHovered));
+                color = ImGui.GetColorU32(ImGuiCol.SeparatorHovered);
                 if (hovered)
                 {
                     ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNs);
@@ -329,11 +271,13 @@ namespace Hexa.NET.ImGui.Widgets
             if (held)
             {
                 ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNs);
-                drawList.AddRectFilled(min, max, ImGui.GetColorU32(ImGuiCol.ButtonActive));
+                color = ImGui.GetColorU32(ImGuiCol.SeparatorActive);
                 height -= io.MouseDelta.Y;
                 if (height < minHeight) height = minHeight;
                 if (height > maxHeight) height = maxHeight;
             }
+
+            drawList.AddRectFilled(min, max, color);
 
             return held;
         }

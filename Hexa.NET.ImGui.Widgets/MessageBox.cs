@@ -96,6 +96,7 @@
             if (!shown)
             {
                 ImGui.OpenPopup(Title);
+                ImGui.SetNextWindowPos(ImGui.GetIO().DisplaySize * 0.5f, ImGuiCond.Appearing, new(0.5f));
                 shown = true;
             }
 
@@ -104,8 +105,6 @@
             {
                 return shown;
             }
-
-            ImGuiP.SetWindowPos(ImGui.GetIO().DisplaySize * 0.5f, ImGuiCond.Appearing);
 
             ImGui.Text(Message);
 

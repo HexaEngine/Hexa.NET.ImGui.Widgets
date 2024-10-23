@@ -39,6 +39,12 @@
             int index = Array.IndexOf(values, value);
             ImGui.Text(names[index]);
         }
+
+        public static string GetName(T value)
+        {
+            int index = Array.IndexOf(values, value);
+            return names[index];
+        }
     }
 
     /// <summary>

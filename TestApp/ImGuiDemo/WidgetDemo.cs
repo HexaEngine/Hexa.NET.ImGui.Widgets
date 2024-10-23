@@ -3,7 +3,6 @@
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.ImGui.Widgets.Dialogs;
-    using System;
     using System.Numerics;
 
     public unsafe class WidgetDemo : ImWindow
@@ -18,7 +17,6 @@
         public override void DrawWindow(ImGuiWindowFlags overwriteFlags)
         {
             base.DrawWindow(overwriteFlags);
-            ImGui.ShowStyleEditor();
         }
 
         public override void DrawContent()
@@ -48,7 +46,7 @@
             }
         }
 
-        private void DrawDialogs()
+        private static void DrawDialogs()
         {
             if (ImGui.CollapsingHeader("Dialogs"))
             {
@@ -62,6 +60,13 @@
                 {
                     OpenFileDialog openFileDialog = new();
                     openFileDialog.AllowMultipleSelection = true;
+                    openFileDialog.Show();
+                }
+                if (ImGui.Button("Open File Dialog (Filtered)"))
+                {
+                    OpenFileDialog openFileDialog = new();
+                    openFileDialog.AllowedExtensions.Add(".txt");
+                    openFileDialog.OnlyAllowFilteredExtensions = true;
                     openFileDialog.Show();
                 }
                 if (ImGui.Button("Open File Dialog (Folders Only)"))
@@ -107,13 +112,13 @@
                 ImGui.Text("Child 1");
                 ImGui.EndChild();
 
-                ImGuiSplitter.VerticalSplitter("Vertical Splitter", ref splitterVPosition, 0, float.MaxValue, -splitterHPosition, 4, 8, true);
+                ImGuiSplitter.VerticalSplitter("Vertical Splitter", ref splitterVPosition, 0, float.MaxValue, -splitterHPosition, 4, 8);
 
                 ImGui.BeginChild("C2", new Vector2(0, -splitterHPosition));
                 ImGui.Text("Child 2");
                 ImGui.EndChild();
 
-                ImGuiSplitter.HorizontalSplitter("Horizontal Splitter", ref splitterHPosition, 0, float.MaxValue, 0, 4, 8, true);
+                ImGuiSplitter.HorizontalSplitter("Horizontal Splitter", ref splitterHPosition, 0, float.MaxValue, 0, 4, 8);
 
                 ImGui.BeginChild("C3");
                 ImGui.Text("Child 3");

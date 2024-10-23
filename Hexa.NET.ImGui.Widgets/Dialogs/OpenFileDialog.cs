@@ -72,7 +72,7 @@
             }
         }
 
-        protected override ImGuiWindowFlags Flags { get; }
+        protected override ImGuiWindowFlags Flags { get; } = ImGuiWindowFlags.NoDocking;
 
         public override string Name => "File Picker";
 

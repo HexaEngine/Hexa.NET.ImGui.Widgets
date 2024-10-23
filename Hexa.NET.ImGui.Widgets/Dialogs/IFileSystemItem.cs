@@ -7,6 +7,7 @@
         string Icon { get; }
 
         string Name { get; }
+
         FileSystemItemFlags Flags { get; }
 
         DateTime DateModified { get; }

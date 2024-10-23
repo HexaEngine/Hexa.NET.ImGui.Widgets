@@ -100,7 +100,7 @@
             if ((flags & (ImGuiTreeNodeFlags.Framed | ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.SpanTextWidth | ImGuiTreeNodeFlags.SpanAllColumns)) == 0)
                 interact_bb.Max.X = frame_bb.Min.X + text_width + (labelSize.X > 0.0f ? style.ItemSpacing.X * 2.0f : 0.0f);
 
-            uint storage_id = (g.NextItemData.Flags & ImGuiNextItemDataFlags.HasStorageId) != 0 ? g.NextItemData.StorageId : id;
+            uint storage_id = (g.NextItemData.HasFlags & ImGuiNextItemDataFlags.HasStorageId) != 0 ? g.NextItemData.StorageId : id;
             bool is_open = ImGuiP.TreeNodeUpdateNextOpen(storage_id, flags);
 
             bool is_visible;
@@ -153,7 +153,7 @@
             }
 
             ImGuiButtonFlags button_flags = (ImGuiButtonFlags)ImGuiTreeNodeFlags.None;
-            if ((flags & ImGuiTreeNodeFlags.AllowOverlap) != 0 || (g.LastItemData.InFlags & (ImGuiItemFlags)ImGuiItemFlagsPrivate.AllowOverlap) != 0)
+            if ((flags & ImGuiTreeNodeFlags.AllowOverlap) != 0 || (g.LastItemData.ItemFlags & (ImGuiItemFlags)ImGuiItemFlagsPrivate.AllowOverlap) != 0)
                 button_flags |= (ImGuiButtonFlags)ImGuiButtonFlagsPrivate.AllowOverlap;
             if (!is_leaf)
                 button_flags |= (ImGuiButtonFlags)ImGuiButtonFlagsPrivate.PressedOnDragDropHold;
@@ -185,7 +185,7 @@
             bool was_selected = selected;
 
             // Multi-selection support (header)
-            bool is_multi_select = (g.LastItemData.InFlags & (ImGuiItemFlags)ImGuiItemFlagsPrivate.IsMultiSelect) != 0;
+            bool is_multi_select = (g.LastItemData.ItemFlags & (ImGuiItemFlags)ImGuiItemFlagsPrivate.IsMultiSelect) != 0;
             if (is_multi_select)
             {
                 // Handle multi-select + alter button flags for it
@@ -199,7 +199,7 @@
             else
             {
                 if (window != g.HoveredWindow || !is_mouse_x_over_arrow)
-                    button_flags |= (ImGuiButtonFlags)ImGuiButtonFlagsPrivate.NoKeyModifiers;
+                    button_flags |= (ImGuiButtonFlags)ImGuiButtonFlagsPrivate.NoKeyModsAllowed;
             }
 
             bool hovered, held;
@@ -212,7 +212,7 @@
                     if ((flags & (ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick)) == 0 || g.NavActivateId == id && !is_multi_select)
                         toggled = true;
                     if ((flags & ImGuiTreeNodeFlags.OpenOnArrow) != 0)
-                        toggled |= is_mouse_x_over_arrow && !g.NavDisableMouseHover; // Lightweight equivalent of IsMouseHoveringRect() since ButtonBehavior() already did the job
+                        toggled |= is_mouse_x_over_arrow; // Lightweight equivalent of IsMouseHoveringRect() since ButtonBehavior() already did the job
                     if ((flags & ImGuiTreeNodeFlags.OpenOnDoubleClick) != 0 && g.IO.MouseClickedCount_0 == 2)
                         toggled = true;
                 }
@@ -262,15 +262,15 @@
             // Render
             {
                 uint text_col = ImGui.GetColorU32(ImGuiCol.Text);
-                ImGuiNavHighlightFlags nav_highlight_flags = ImGuiNavHighlightFlags.Compact;
+                ImGuiNavRenderCursorFlags nav_highlight_flags = ImGuiNavRenderCursorFlags.Compact;
                 if (is_multi_select)
-                    nav_highlight_flags |= ImGuiNavHighlightFlags.AlwaysDraw; // Always show the nav rectangle
+                    nav_highlight_flags |= ImGuiNavRenderCursorFlags.AlwaysDraw; // Always show the nav rectangle
                 if (display_frame)
                 {
                     // Framed type
                     uint bg_col = ImGui.GetColorU32(held && hovered ? ImGuiCol.HeaderActive : hovered ? ImGuiCol.HeaderHovered : ImGuiCol.Header);
                     ImGuiP.RenderFrame(frame_bb.Min, frame_bb.Max, bg_col, true, style.FrameRounding);
-                    ImGuiP.RenderNavHighlight(frame_bb, id, nav_highlight_flags);
+                    ImGuiP.RenderNavCursor(frame_bb, id, nav_highlight_flags);
                     if ((flags & ImGuiTreeNodeFlags.Bullet) != 0)
                         ImGuiP.RenderBullet(draw, new(text_pos.X - text_offset_x * 0.60f, text_pos.Y + g.FontSize * 0.5f), text_col);
                     else if (!is_leaf)
@@ -290,7 +290,7 @@
                         uint bg_col = ImGui.GetColorU32(held && hovered ? ImGuiCol.HeaderActive : hovered ? ImGuiCol.HeaderHovered : ImGuiCol.Header);
                         ImGuiP.RenderFrame(frame_bb.Min, frame_bb.Max, bg_col, false, style.FrameRounding);
                     }
-                    ImGuiP.RenderNavHighlight(frame_bb, id, nav_highlight_flags);
+                    ImGuiP.RenderNavCursor(frame_bb, id, nav_highlight_flags);
                     if ((flags & ImGuiTreeNodeFlags.Bullet) != 0)
                         ImGuiP.RenderBullet(draw, new(text_pos.X - text_offset_x * 0.5f, text_pos.Y + g.FontSize * 0.5f), text_col);
                     else if (!is_leaf)
@@ -335,7 +335,7 @@
             ImGuiTreeNodeStackData* tree_node_data = treeNodeStack->Back;
             tree_node_data->ID = g->LastItemData.ID;
             tree_node_data->TreeFlags = flags;
-            tree_node_data->InFlags = g->LastItemData.InFlags;
+            tree_node_data->ItemFlags = g->LastItemData.ItemFlags;
             tree_node_data->NavRect = g->LastItemData.NavRect;
             window->DC.TreeHasStackDataDepthMask = window->DC.TreeHasStackDataDepthMask | (uint)(1 << window->DC.TreeDepth);
         }

@@ -7,7 +7,8 @@
         Ok,
         OkCancel,
         YesNo,
-        YesNoCancel
+        YesNoCancel,
+        YesCancel,
     }
 
     public class DialogMessageBox : Dialog
@@ -72,6 +73,18 @@
                     if (ImGui.Button("No"))
                     {
                         Close(DialogResult.No);
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.Button("Cancel"))
+                    {
+                        Close(DialogResult.Cancel);
+                    }
+                    break;
+
+                case DialogMessageBoxType.YesCancel:
+                    if (ImGui.Button("Yes"))
+                    {
+                        Close(DialogResult.Yes);
                     }
                     ImGui.SameLine();
                     if (ImGui.Button("Cancel"))

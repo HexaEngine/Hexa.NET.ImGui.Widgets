@@ -70,7 +70,7 @@
                     return false;
                 }
 
-                ImGuiP.RenderNavHighlight(frame_bb, id, ImGuiNavHighlightFlags.None);
+                ImGuiP.RenderNavCursor(frame_bb, id, ImGuiNavRenderCursorFlags.None);
                 ImGuiP.RenderFrame(frame_bb.Min, frame_bb.Max, ImGui.GetColorU32(ImGuiCol.FrameBg), true, ImGui.GetStyle().FrameRounding);
                 ImGui.PushClipRect(total_bb.Min, total_bb.Max, true);
 

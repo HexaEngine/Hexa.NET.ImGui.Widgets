@@ -31,7 +31,7 @@
 
                 if (isOpen)
                 {
-                    foreach (var subFolder in FileSystemHelper.GetFileSystemEntries(item.Path, RefreshFlags.Folders | RefreshFlags.IgnoreHidden, null))
+                    foreach (var subFolder in FileSystemHelper.GetFileSystemEntries(item.Path, RefreshFlags.Folders | RefreshFlags.Hidden, null))
                     {
                         changed |= Display(subFolder, ref currentFolder, false);
                     }

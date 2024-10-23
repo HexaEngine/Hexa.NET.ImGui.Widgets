@@ -1,6 +1,7 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     using Hexa.NET.ImGui;
+    using System.Collections.Generic;
 
     public class SaveFileDialog : FileDialogBase
     {
@@ -83,7 +84,7 @@
             }
         }
 
-        protected override ImGuiWindowFlags Flags { get; }
+        protected override ImGuiWindowFlags Flags { get; } = ImGuiWindowFlags.NoDocking;
 
         protected override void DrawContent()
         {
@@ -152,6 +153,11 @@
 
         private void ValidateAndClose()
         {
+            if (string.IsNullOrWhiteSpace(selectedFile))
+            {
+                return;
+            }
+
             if (OnlyAllowFolders && Directory.Exists(selectedFile) || !OnlyAllowFolders && File.Exists(selectedFile))
             {
                 DialogMessageBox messageBox = new("File already exists", "Do you want to overwrite the file?", DialogMessageBoxType.YesNo);

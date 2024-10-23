@@ -35,11 +35,7 @@
 
                     ImGui.BeginDisabled(isNotLast);
                     ImGuiWindowFlags overwriteFlags = ImGuiWindowFlags.None;
-                    if (!isNotLast)
-                    {
-                        ImGui.SetNextWindowFocus();
-                    }
-                    else
+                    if (isNotLast)
                     {
                         overwriteFlags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoNavInputs | ImGuiWindowFlags.NoNavFocus | ImGuiWindowFlags.NoBringToFrontOnFocus;
                     }

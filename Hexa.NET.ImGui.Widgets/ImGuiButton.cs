@@ -197,7 +197,7 @@
             bool hovered, held;
             bool pressed = ImGuiP.ButtonBehavior(bb, id, &hovered, &held, flags);
 
-            ImGuiP.RenderNavHighlight(bb, id, default);
+            ImGuiP.RenderNavCursor(bb, id, default);
             if (pressed || hovered || held)
             {
                 uint col = ImGui.GetColorU32(held && hovered ? ImGuiCol.ButtonActive : hovered ? ImGuiCol.ButtonHovered : ImGuiCol.Button);
