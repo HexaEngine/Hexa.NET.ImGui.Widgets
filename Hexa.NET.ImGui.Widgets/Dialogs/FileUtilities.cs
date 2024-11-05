@@ -3,10 +3,14 @@
     using Hexa.NET.Utilities;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
+    using System.Reflection;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
     using System.Text;
+    using static System.Runtime.InteropServices.JavaScript.JSType;
     using Utils = HexaGen.Runtime.Utils;
 
     public static unsafe partial class FileUtilities
@@ -124,6 +128,7 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static FileMetadata Convert(WIN32_FIND_DATA data, StdWString path)
         {
+            Dump(&data);
             FileMetadata metadata = new();
             int length = StrLen(data.cFileName);
             StdWString str = new(length + path.Size + 1);
@@ -534,6 +539,7 @@
 
         private static FileMetadata Convert(DirEnt entry, StdString path)
         {
+            Dump(&entry);
             int length = NET.Utilities.Utils.StrLen(entry.d_name);
             StdWString str = new(path.Size + length);
             str.Append(path);
@@ -549,6 +555,56 @@
             meta.Size = stat.StSize;
             meta.Attributes = ConvertStatModeToAttributes(stat.StMode, str);
             return meta;
+        }
+
+        [RequiresDynamicCode("")]
+        public static void Dump<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] T>(T* ptr) where T : unmanaged
+        {
+            byte* p = (byte*)ptr;
+            int sizeInBytes = sizeof(T);
+            Type type = typeof(T);
+            FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            (FieldInfo info, int offset, int size)[] offsetData = new (FieldInfo info, int offset, int size)[fields.Length];
+
+            int currentOffset = 0;
+            for (int j = 0; j < fields.Length; j++)
+            {
+                FieldInfo field = fields[j];
+                int size = Marshal.SizeOf(field.FieldType);
+                offsetData[j] = (field, currentOffset, size);
+                Console.WriteLine($"Field: {field.Name}, Offset: {currentOffset:X8}, Size: {size}, Type: {field.FieldType}");
+                currentOffset += size;
+
+            }
+
+            int startInfo = 0;
+            for (int i = 0; i < sizeInBytes; i++)
+            {
+                (FieldInfo info, int offset, int size)? info = default;
+                for (int k = startInfo; k < offsetData.Length; k++)
+                {
+                    var x = offsetData[k];
+                    if (x.offset == i)
+                    {
+                        startInfo = k;
+                        info = x;
+                        break;
+                    }
+                    if (x.offset > i)
+                    {
+                        break;
+                    }
+                }
+                if (info.HasValue)
+                {
+                    Console.WriteLine($"{((nint)p + i):X8}: {p[i]:X} : {info.Value.info.Name} {info.Value.size}");
+                }
+                else
+                {
+                    Console.WriteLine($"{((nint)p + i):X8}: {p[i]:X}");
+                }
+               
+            }
         }
 
         private static void FileStat(StdWString str, out Stat stat)
