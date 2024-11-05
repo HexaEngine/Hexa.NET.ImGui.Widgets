@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35122.118
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hexa.NET.ImGui.Widgets", "Hexa.NET.ImGui.Widgets\Hexa.NET.ImGui.Widgets.csproj", "{18AA69A5-04E1-4E49-8CB8-378DF59CF980}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hexa.NET.ImGui.Widgets", "Hexa.NET.ImGui.Widgets\Hexa.NET.ImGui.Widgets.csproj", "{18AA69A5-04E1-4E49-8CB8-378DF59CF980}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{088B7207-ED91-435C-8A35-9ED64A510F50}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "TestApp\TestApp.csproj", "{088B7207-ED91-435C-8A35-9ED64A510F50}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hexa.NET.ImGui.Widgets.Extras", "Hexa.NET.ImGui.Widgets.Extras\Hexa.NET.ImGui.Widgets.Extras.csproj", "{A9F458A4-F994-43C3-944E-1E2E635F3A7D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hexa.NET.ImGui.Widgets.Extras", "Hexa.NET.ImGui.Widgets.Extras\Hexa.NET.ImGui.Widgets.Extras.csproj", "{A9F458A4-F994-43C3-944E-1E2E635F3A7D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerformanceTests", "PerformanceTests\PerformanceTests.csproj", "{B0B1BFA5-9CB4-4811-9167-A8B7566EAF41}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{A9F458A4-F994-43C3-944E-1E2E635F3A7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9F458A4-F994-43C3-944E-1E2E635F3A7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9F458A4-F994-43C3-944E-1E2E635F3A7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0B1BFA5-9CB4-4811-9167-A8B7566EAF41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0B1BFA5-9CB4-4811-9167-A8B7566EAF41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0B1BFA5-9CB4-4811-9167-A8B7566EAF41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0B1BFA5-9CB4-4811-9167-A8B7566EAF41}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

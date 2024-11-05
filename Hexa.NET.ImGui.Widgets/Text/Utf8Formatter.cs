@@ -1,6 +1,8 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Text
 {
+    using Hexa.NET.Utilities;
     using System.Diagnostics.CodeAnalysis;
+    using System.Globalization;
     using System.Runtime.CompilerServices;
     using System.Text;
 
@@ -275,96 +277,33 @@
             return i;
         }
 
-        public static unsafe uint FractionToInt(float fraction, int precision)
+        public static unsafe int Format(float value, byte* buffer, int bufSize, int digits = -1)
         {
-            fraction -= (uint)fraction;
-            return (uint)(fraction * MathF.Pow(10, precision));
-        }
-
-        public static unsafe uint FractionToIntLimit(float fraction, int maxPrecision)
-        {
-            uint result = 0;
-            fraction -= (uint)fraction;
-            for (int i = 0; i < maxPrecision; i++)
-            {
-                fraction *= 10;
-                int digit = (int)fraction;
-                result = result * 10 + (uint)digit;
-                fraction -= digit;
-                if (fraction == 0)
-                {
-                    break;
-                }
-            }
-
-            return result;
-        }
-
-        public static unsafe ulong FractionToInt(double fraction, int precision)
-        {
-            fraction -= (uint)fraction;
-            return (uint)(fraction * MathF.Pow(10, precision));
-        }
-
-        public static unsafe ulong FractionToIntLimit(double fraction, int maxPrecision)
-        {
-            uint result = 0;
-            fraction -= (uint)fraction;
-            for (int i = 0; i < maxPrecision; i++)
-            {
-                fraction *= 10;
-                int digit = (int)fraction;
-                result = result * 10 + (uint)digit;
-                fraction -= digit;
-                if (fraction == 0)
-                {
-                    break;
-                }
-            }
-
-            return result;
+            return Format(value, buffer, bufSize, CultureInfo.CurrentCulture, digits);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe int Format(float value, byte* buffer, int bufSize, int digits = -1)
+        public static unsafe int Format(float value, byte* buffer, int bufSize, CultureInfo cultureInfo, int digits = -1)
         {
+            var format = cultureInfo.NumberFormat;
+            var start = buffer;
+            var end = buffer + bufSize;
             if (float.IsNaN(value))
             {
-                if (bufSize < 4)
-                {
-                    return 0;
-                }
-                buffer[0] = (byte)'N';
-                buffer[1] = (byte)'a';
-                buffer[2] = (byte)'N';
-                buffer[3] = 0;
-                return 3;
+                buffer += ConvertUtf16ToUtf8(format.NaNSymbol, buffer, bufSize);
+                goto end;
             }
             if (float.IsPositiveInfinity(value))
             {
-                if (bufSize < 4)
-                {
-                    return 0;
-                }
-                buffer[0] = (byte)'i';
-                buffer[1] = (byte)'n';
-                buffer[2] = (byte)'f';
-                buffer[3] = 0;
-                return 3;
+                buffer += ConvertUtf16ToUtf8(format.PositiveInfinitySymbol, buffer, bufSize);
+                goto end;
             }
             if (float.IsNegativeInfinity(value))
             {
-                if (bufSize < 5)
-                {
-                    return 0;
-                }
-                buffer[0] = (byte)'-';
-                buffer[1] = (byte)'i';
-                buffer[2] = (byte)'n';
-                buffer[3] = (byte)'f';
-                buffer[4] = 0;
-                return 4;
+                buffer += ConvertUtf16ToUtf8(format.NegativeInfinitySymbol, buffer, bufSize);
+                goto end;
             }
+
             if (value == 0)
             {
                 if (bufSize < 2)
@@ -376,83 +315,73 @@
                 return 1;
             }
 
-            int number = (int)value; // Get the integer part of the number
-            float fraction = value - number; // Get the fractional part of the number
+            int number = (int)value;
+            double fraction = value - number;
 
             if (fraction < 0)
             {
                 fraction = -fraction;
             }
 
-            int offset = Format(number, buffer, bufSize);
-            buffer += offset; // Move the buffer pointer to the right
-            bufSize -= offset; // Adjust the buffer size
+            buffer += Format(number, buffer, bufSize, cultureInfo);
 
-            if (bufSize == 0)
+            if (buffer + 1 == end)
             {
-                return offset;
+                return (int)(buffer - start);
             }
 
-            buffer[0] = (byte)'.';
-            buffer++; // Move the buffer pointer to the right
-            bufSize--; // Adjust the buffer size
-            offset++; // Increment the offset
+            buffer += ConvertUtf16ToUtf8(format.CurrencyDecimalSeparator, buffer, (int)(end - buffer));
 
-            uint factionInt;
-            if (digits >= 0)
+            digits = digits >= 0 ? digits : 7;
+
+            for (int j = 0; buffer != end && j < digits; j++)
             {
-                factionInt = FractionToInt(fraction, Math.Min(bufSize - 1, digits));
+                fraction *= 10;
+                int fractionalDigit = (int)fraction;
+                *buffer++ = (byte)('0' + fractionalDigit);
+                fraction -= fractionalDigit;
+
+                if (fraction < 1e-14) break;
             }
-            else
+
+            while (*(buffer - 1) == '0' || *(buffer - 1) == '.')
             {
-                factionInt = FractionToIntLimit(fraction, bufSize - 1);
+                buffer--;
             }
 
-            offset += Format(factionInt, buffer, bufSize);
+        end:
+            *buffer = 0;
+            return (int)(buffer - start);
+        }
 
-            return offset;
+        public static unsafe int Format(double value, byte* buffer, int bufSize, int digits = -1)
+        {
+            return Format(value, buffer, bufSize, CultureInfo.CurrentCulture, digits);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe int Format(double value, byte* buffer, int bufSize, int digits = -1)
+        public static unsafe int Format(double value, byte* buffer, int bufSize, CultureInfo cultureInfo, int digits = -1)
         {
+            var format = cultureInfo.NumberFormat;
+
+            var start = buffer;
+            var end = buffer + bufSize;
             if (double.IsNaN(value))
             {
-                if (bufSize < 4)
-                {
-                    return 0;
-                }
-                buffer[0] = (byte)'N';
-                buffer[1] = (byte)'a';
-                buffer[2] = (byte)'N';
-                buffer[3] = 0;
-                return 3;
+                buffer += ConvertUtf16ToUtf8(format.NaNSymbol, buffer, bufSize);
+                goto end;
             }
             if (double.IsPositiveInfinity(value))
             {
-                if (bufSize < 4)
-                {
-                    return 0;
-                }
-                buffer[0] = (byte)'i';
-                buffer[1] = (byte)'n';
-                buffer[2] = (byte)'f';
-                buffer[3] = 0;
-                return 3;
+                buffer += ConvertUtf16ToUtf8(format.PositiveInfinitySymbol, buffer, bufSize);
+                goto end;
             }
             if (double.IsNegativeInfinity(value))
             {
-                if (bufSize < 5)
-                {
-                    return 0;
-                }
-                buffer[0] = (byte)'-';
-                buffer[1] = (byte)'i';
-                buffer[2] = (byte)'n';
-                buffer[3] = (byte)'f';
-                buffer[4] = 0;
-                return 4;
+                buffer += ConvertUtf16ToUtf8(format.NegativeInfinitySymbol, buffer, bufSize);
+                goto end;
             }
+
             if (value == 0)
             {
                 if (bufSize < 2)
@@ -472,33 +401,35 @@
                 fraction = -fraction;
             }
 
-            int offset = Format(number, buffer, bufSize);
-            buffer += offset; // Move the buffer pointer to the right
-            bufSize -= offset; // Adjust the buffer size
+            buffer += Format(number, buffer, bufSize, cultureInfo);
 
-            if (bufSize == 0)
+            if (buffer == end)
             {
-                return offset;
+                return (int)(buffer - start);
             }
 
-            buffer[0] = (byte)'.';
-            buffer++; // Move the buffer pointer to the right
-            bufSize--; // Adjust the buffer size
-            offset++; // Increment the offset
+            buffer += ConvertUtf16ToUtf8(format.CurrencyDecimalSeparator, buffer, (int)(end - buffer));
 
-            ulong factionInt;
-            if (digits >= 0)
+            digits = digits >= 0 ? digits : 7;
+
+            for (int j = 0; buffer != end && j < digits; j++)
             {
-                factionInt = FractionToInt(fraction, Math.Min(bufSize - 1, digits));
+                fraction *= 10;
+                int fractionalDigit = (int)fraction;
+                *buffer++ = (byte)('0' + fractionalDigit);
+                fraction -= fractionalDigit;
+
+                if (fraction < 1e-14) break;
             }
-            else
+
+            while (*(buffer - 1) == '0' || *(buffer - 1) == '.')
             {
-                factionInt = FractionToIntLimit(fraction, bufSize - 1);
+                buffer--;
             }
 
-            offset += Format(factionInt, buffer, bufSize);
-
-            return offset;
+        end:
+            *buffer = 0;
+            return (int)(buffer - start);
         }
 
         public static unsafe int Format(nint value, byte* buffer, int bufSize)
@@ -527,9 +458,16 @@
             return 0;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe int Format(sbyte value, byte* buffer, int bufSize)
         {
+            return Format(value, buffer, bufSize, CultureInfo.CurrentCulture);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe int Format(sbyte value, byte* buffer, int bufSize, CultureInfo cultureInfo)
+        {
+            var format = cultureInfo.NumberFormat;
+
             bool negative = value < 0;
             if (!negative && bufSize < 2 || negative && bufSize < 3)
             {
@@ -543,7 +481,7 @@
 
             byte abs = (byte)(negative ? -value : value); // Handle int.MinValue case
 
-            EncodeNegativeSign(&buffer, &bufSize, negative);
+            EncodeNegativeSign(&buffer, &bufSize, negative, format);
 
             return Format(abs, buffer, bufSize) + (negative ? 1 : 0);
         }
@@ -588,9 +526,16 @@
             return i;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe int Format(short value, byte* buffer, int bufSize)
         {
+            return Format(value, buffer, bufSize, CultureInfo.CurrentCulture);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe int Format(short value, byte* buffer, int bufSize, CultureInfo cultureInfo)
+        {
+            var format = cultureInfo.NumberFormat;
+
             bool negative = value < 0;
             if (!negative && bufSize < 2 || negative && bufSize < 3)
             {
@@ -604,7 +549,7 @@
 
             ushort abs = (ushort)(negative ? -value : value); // Handle int.MinValue case
 
-            EncodeNegativeSign(&buffer, &bufSize, negative);
+            EncodeNegativeSign(&buffer, &bufSize, negative, format);
 
             return Format(abs, buffer, bufSize) + (negative ? 1 : 0);
         }
@@ -662,9 +607,16 @@
             return i;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public static unsafe int Format(int value, byte* buffer, int bufSize)
         {
+            return Format(value, buffer, bufSize, CultureInfo.CurrentCulture);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe int Format(int value, byte* buffer, int bufSize, CultureInfo cultureInfo)
+        {
+            var format = cultureInfo.NumberFormat;
+
             bool negative = value < 0;
             if (!negative && bufSize < 2 || negative && bufSize < 3)
             {
@@ -678,67 +630,90 @@
 
             uint abs = (uint)(negative ? -value : value); // Handle int.MinValue case
 
-            EncodeNegativeSign(&buffer, &bufSize, negative);
+            if (negative)
+            {
+                int size = ConvertUtf16ToUtf8(format.NegativeSign, buffer, bufSize);
+                bufSize -= size; // Reserve space for the negative sign
+                buffer += size; // Move the buffer pointer to the right
+            }
 
             return Format(abs, buffer, bufSize) + (negative ? 1 : 0);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static unsafe int Format(uint value, byte* buffer, int bufSize)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe int Format(uint value, byte* buffer, in int bufSize)
         {
-            if (bufSize < 2)
-            {
-                if (bufSize > 1)
-                {
-                    buffer[0] = 0; // Null-terminate
-                }
+            byte* start = buffer;
+            byte* end = buffer + bufSize - 1;
 
-                return 0;  // Buffer too small to hold even "0\0" or "-0\0"
+            // Quickly estimate number of digits based on the position of the MSB
+            int estimatedDigits = (value < 10) ? 1 :
+                                  (value < 100) ? 2 :
+                                  (value < 1000) ? 3 :
+                                  (value < 10000) ? 4 :
+                                  (value < 100000) ? 5 :
+                                  (value < 1000000) ? 6 :
+                                  (value < 10000000) ? 7 :
+                                  (value < 100000000) ? 8 :
+                                  (value < 1000000000) ? 9 : 10;
+
+            // Position buffer at the end, to back-fill
+            buffer += estimatedDigits;
+
+            if (buffer > end)
+                buffer = end;
+
+            *buffer = 0; // Null-terminate
+
+            for (int i = 0; i < estimatedDigits; i++)
+            {
+                uint oldValue = value;
+                value /= 10;
+                uint mod = oldValue - value * 10;
+                *--buffer = (byte)('0' + mod);
             }
 
-            if (value == 0)
+            return estimatedDigits;
+
+            /*
+            byte* end = buffer + bufSize - 1;
+            byte* start = buffer;
+
+            while (value > 0)
             {
-                buffer[0] = (byte)'0';
-                buffer[1] = 0; // Null-terminate
-                return 1;
+                uint oldValue = value;
+                value /= 10; // Exact value / 10
+                uint mod = oldValue - value * 10; // Calculate value % 10, avoids additional div. (div is slow on CPU compared to v - v1 * 10)
+                *buffer++ = (byte)('0' + mod);
+                if (buffer == end) // Break early if we run out of space
+                    break;
             }
 
-            int i = 0;
-            if (value < 1029) // Fast path for small values
-            {
-                while (value > 0 && i < bufSize - 1) // -1 to leave room for null terminator
-                {
-                    uint oldValue = value;
-                    value = (value * 205) >> 11; // Approximate value / 10
-                    uint mod = oldValue - value * 10; // Calculate value % 10
-                    buffer[i++] = (byte)('0' + mod);
-                }
-            }
-            else
-            {
-                while (value > 0 && i < bufSize - 1) // -1 to leave room for null terminator
-                {
-                    uint oldValue = value;
-                    value /= 10; // Exact value / 10
-                    uint mod = oldValue - value * 10; // Calculate value % 10
-                    buffer[i++] = (byte)('0' + mod);
-                }
-            }
+            //*buffer = 0; // Null-terminate
+
+            int len = (int)(buffer - start);
 
             // Reverse the digits for correct order
-            for (int j = 0, k = i - 1; j < k; j++, k--)
+            for (byte* left = start, right = buffer - 1; left < right; left++, right--)
             {
-                (buffer[k], buffer[j]) = (buffer[j], buffer[k]);
+                byte tmp = *left;
+                *left = *right;
+                *right = tmp;
             }
 
-            buffer[i] = 0; // Null-terminate
+            return len;*/
+        }
 
-            return i;
+        public static unsafe int Format(long value, byte* buffer, int bufSize)
+        {
+            return Format(value, buffer, bufSize, CultureInfo.CurrentCulture);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static unsafe int Format(long value, byte* buffer, int bufSize)
+        public static unsafe int Format(long value, byte* buffer, int bufSize, CultureInfo cultureInfo)
         {
+            var format = cultureInfo.NumberFormat;
+
             bool negative = value < 0;
             if (!negative && bufSize < 2 || negative && bufSize < 3)
             {
@@ -750,7 +725,7 @@
                 return 0;  // Buffer too small to hold even "0\0" or "-0\0"
             }
 
-            EncodeNegativeSign(&buffer, &bufSize, negative);
+            EncodeNegativeSign(&buffer, &bufSize, negative, format);
 
             ulong abs = (ulong)(negative ? -value : value); // Handle int.MinValue case
 
@@ -989,7 +964,7 @@
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-        public static unsafe void EncodeNegativeSign(byte** buffer, int* bufSize, bool negative)
+        public static unsafe void EncodeNegativeSign(byte** buffer, int* bufSize, bool negative, NumberFormatInfo format)
         {
             if (*bufSize == 0)
             {
@@ -998,9 +973,9 @@
 
             if (negative)
             {
-                *buffer[0] = (byte)'-';
-                bufSize--; // Reserve space for the negative sign
-                buffer++; // Move the buffer pointer to the right
+                int size = ConvertUtf16ToUtf8(format.NegativeSign, *buffer, *bufSize);
+                *bufSize -= size; // Reserve space for the negative sign
+                *buffer += size; // Move the buffer pointer to the right
             }
         }
 
@@ -1009,35 +984,67 @@
             return Encoding.UTF8.GetBytes(&c, 1, buf, bufSize);
         }
 
+        public static unsafe int ConvertUtf16ToUtf8(char c, byte* utf8Bytes, int utf8Length)
+        {
+            return ConvertUtf16ToUtf8(&c, 1, utf8Bytes, utf8Length);
+        }
+
+        public static unsafe int ConvertUtf16ToUtf8(string str, int offset, int length, byte* utf8Bytes, int utf8Length)
+        {
+            fixed (char* pStr = str)
+            {
+                return ConvertUtf16ToUtf8(pStr + offset, length, utf8Bytes, utf8Length);
+            }
+        }
+
+        public static unsafe int ConvertUtf16ToUtf8(ReadOnlySpan<char> span, byte* utf8Bytes, int utf8Length)
+        {
+            fixed (char* pStr = span)
+            {
+                return ConvertUtf16ToUtf8(pStr, span.Length, utf8Bytes, utf8Length);
+            }
+        }
+
+        public static unsafe int ConvertUtf16ToUtf8(string str, byte* utf8Bytes, int utf8Length)
+        {
+            return ConvertUtf16ToUtf8(str, 0, str.Length, utf8Bytes, utf8Length);
+        }
+
+        public static unsafe int ConvertUtf16ToUtf8(string str, int offset, byte* utf8Bytes, int utf8Length)
+        {
+            return ConvertUtf16ToUtf8(str, offset, str.Length - offset, utf8Bytes, utf8Length);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe int ConvertUtf16ToUtf8(char* utf16Chars, int utf16Length, byte* utf8Bytes, int utf8Length)
         {
-            int utf8Index = 0;
-
+            byte* start = utf8Bytes;
+            byte* utf8BytesEnd = utf8Bytes + utf8Length;
             for (int i = 0; i < utf16Length; i++)
             {
-                if (utf8Index >= utf8Length)
-                    return utf8Index; // Soft exception: buffer too small, return the number of bytes written so far
+                if (utf8Bytes >= utf8BytesEnd)
+                    return (int)(utf8Bytes - start);
 
-                // Read the UTF-16 character (char is 2 bytes)
                 char utf16Char = utf16Chars[i];
 
-                // Determine the UTF-16 code point
                 int codePoint = utf16Char;
 
                 switch (codePoint)
                 {
                     case <= 0x7F:
-                        // 1-byte UTF-8 (ASCII)
-                        utf8Bytes[utf8Index++] = (byte)codePoint;
+                        *utf8Bytes = (byte)codePoint;
+                        utf8Bytes++;
                         break;
 
                     case <= 0x7FF:
                         // 2-byte UTF-8
-                        if (utf8Index + 1 >= utf8Length)
-                            return utf8Index; // Soft exception: buffer too small, return the number of bytes written so far
+                        if (utf8Bytes + 1 >= utf8BytesEnd)
+                            return (int)(utf8Bytes - start);
 
-                        utf8Bytes[utf8Index++] = (byte)(0xC0 | (codePoint >> 6));
-                        utf8Bytes[utf8Index++] = (byte)(0x80 | (codePoint & 0x3F));
+                        *utf8Bytes = (byte)(0xC0 | (codePoint >> 6));
+                        utf8Bytes++;
+                        *utf8Bytes = (byte)(0x80 | (codePoint & 0x3F));
+                        utf8Bytes++;
                         break;
 
                     case >= 0xD800 and <= 0xDFFF:
@@ -1050,13 +1057,17 @@
                                 int codePointSurrogate = 0x10000 + ((utf16Char - 0xD800) << 10) + (lowSurrogate - 0xDC00);
 
                                 // This results in a 4-byte UTF-8 sequence
-                                if (utf8Index + 3 >= utf8Length)
-                                    return utf8Index; // Soft exception: buffer too small, return the number of bytes written so far
+                                if (utf8Bytes + 3 >= utf8BytesEnd)
+                                    return (int)(utf8Bytes - start);
 
-                                utf8Bytes[utf8Index++] = (byte)(0xF0 | (codePointSurrogate >> 18));
-                                utf8Bytes[utf8Index++] = (byte)(0x80 | ((codePointSurrogate >> 12) & 0x3F));
-                                utf8Bytes[utf8Index++] = (byte)(0x80 | ((codePointSurrogate >> 6) & 0x3F));
-                                utf8Bytes[utf8Index++] = (byte)(0x80 | (codePointSurrogate & 0x3F));
+                                *utf8Bytes = (byte)(0xF0 | (codePointSurrogate >> 18));
+                                utf8Bytes++;
+                                *utf8Bytes = (byte)(0x80 | ((codePointSurrogate >> 12) & 0x3F));
+                                utf8Bytes++;
+                                *utf8Bytes = (byte)(0x80 | ((codePointSurrogate >> 6) & 0x3F));
+                                utf8Bytes++;
+                                *utf8Bytes = (byte)(0x80 | (codePointSurrogate & 0x3F));
+                                utf8Bytes++;
 
                                 // Skip the low surrogate as it has already been processed
                                 i++;
@@ -1064,21 +1075,506 @@
                             }
                         }
 
-                        return utf8Index; // Soft exception: missing low surrogate
+                        return (int)(utf8Bytes - start);
 
                     default:
                         // 3-byte UTF-8
-                        if (utf8Index + 2 >= utf8Length)
-                            return utf8Index; // Soft exception: buffer too small, return the number of bytes written so far
+                        if (utf8Bytes + 2 >= utf8BytesEnd)
+                            return (int)(utf8Bytes - start);
 
-                        utf8Bytes[utf8Index++] = (byte)(0xE0 | (codePoint >> 12));
-                        utf8Bytes[utf8Index++] = (byte)(0x80 | ((codePoint >> 6) & 0x3F));
-                        utf8Bytes[utf8Index++] = (byte)(0x80 | (codePoint & 0x3F));
+                        *utf8Bytes = (byte)(0xE0 | (codePoint >> 12));
+                        utf8Bytes++;
+                        *utf8Bytes = (byte)(0x80 | ((codePoint >> 6) & 0x3F));
+                        utf8Bytes++;
+                        *utf8Bytes = (byte)(0x80 | (codePoint & 0x3F));
+                        utf8Bytes++;
                         break;
                 }
             }
 
-            return utf8Index; // Return the number of bytes written to the utf8Bytes buffer
+            return (int)(utf8Bytes - start);
+        }
+
+        public static string DefaultPattern { get; } = CultureInfo.CurrentCulture.DateTimeFormat.GetAllDateTimePatterns('G')[0];
+
+        public static unsafe int Format(DateTime dateTime, Span<byte> buf)
+        {
+            fixed (byte* pBuf = buf)
+                return Format(dateTime, pBuf, buf.Length, DefaultPattern, CultureInfo.CurrentCulture);
+        }
+
+        public static unsafe int Format(DateTime dateTime, Span<byte> buf, string format)
+        {
+            fixed (byte* pBuf = buf)
+                return Format(dateTime, pBuf, buf.Length, format, CultureInfo.CurrentCulture);
+        }
+
+        public static unsafe int Format(DateTime dateTime, Span<byte> buf, string format, CultureInfo cultureInfo)
+        {
+            fixed (byte* pBuf = buf)
+                return Format(dateTime, pBuf, buf.Length, format, cultureInfo);
+        }
+
+        public static unsafe int Format(DateTime dateTime, byte* buf, int bufSize)
+        {
+            return Format(dateTime, buf, bufSize, DefaultPattern, CultureInfo.CurrentCulture);
+        }
+
+        public static unsafe int Format(DateTime dateTime, byte* buf, int bufSize, string format)
+        {
+            return Format(dateTime, buf, bufSize, format, CultureInfo.CurrentCulture);
+        }
+
+        /// <summary>
+        /// Formats a <see cref="DateTime"/> to it's
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <param name="buf"></param>
+        /// <param name="bufSize"></param>
+        /// <param name="format"></param>
+        /// <param name="cultureInfo"></param>
+        /// <returns></returns>
+        public static unsafe int Format(DateTime dateTime, byte* buf, int bufSize, string format, CultureInfo cultureInfo)
+        {
+            if (bufSize == 0)
+            {
+                return 0;
+            }
+
+            if (bufSize == 1)
+            {
+                *buf = 0;
+                return 0;
+            }
+
+            var dateFormat = cultureInfo.DateTimeFormat;
+            int idx = 0;
+            const int maxPrecision = 7;
+
+            fixed (char* pFixedFormat = format)
+            {
+                char* pFormat = pFixedFormat;
+                char* formatEnd = pFormat + format.Length;
+                while (pFormat != formatEnd)
+                {
+                    if (idx >= bufSize) break;
+                    char c = pFormat[0];
+                    pFormat++;
+
+                    switch (c)
+                    {
+                        case 'd':
+                            int dCount = CountAhead(&pFormat, formatEnd, 'd', 3) + 1;
+                            int day = dateTime.Day;
+                            switch (dCount)
+                            {
+                                case 1:
+                                    if (day >= 10) goto case 2;
+                                    if (idx + 1 > bufSize) goto end;
+                                    buf[idx++] = (byte)('0' + day % 10);
+                                    break;
+
+                                case 2:
+                                    if (idx + 2 > bufSize) goto end;
+                                    buf[idx++] = (byte)('0' + day / 10);
+                                    buf[idx++] = (byte)('0' + day % 10);
+                                    break;
+
+                                case 3:
+                                    {
+                                        var dayString = dateFormat.GetAbbreviatedDayName(dateTime.DayOfWeek);
+                                        idx += ConvertUtf16ToUtf8(dayString, buf + idx, bufSize - idx);
+                                    }
+                                    break;
+
+                                case 4:
+                                    {
+                                        var dayString = dateFormat.GetDayName(dateTime.DayOfWeek);
+                                        idx += ConvertUtf16ToUtf8(dayString, buf + idx, bufSize - idx);
+                                    }
+                                    break;
+                            }
+
+                            break;
+
+                        case 'f':
+
+                            int fCount = CountAhead(&pFormat, formatEnd, 'f', 6) + 1;
+                            if (idx + fCount > bufSize) goto end;
+                            Format(dateTime, buf, &idx, maxPrecision, fCount, false);
+                            break;
+
+                        case 'F':
+                            int FCount = CountAhead(&pFormat, formatEnd, 'F', 6) + 1;
+                            if (idx + FCount > bufSize) goto end;
+                            Format(dateTime, buf, &idx, maxPrecision, FCount, true);
+                            break;
+
+                        case 'M':
+                            int MCount = CountAhead(&pFormat, formatEnd, 'M', 3) + 1;
+                            int month = dateTime.Month;
+                            switch (MCount)
+                            {
+                                case 1:
+                                    if (month >= 10) goto case 2;
+                                    if (idx + 1 > bufSize) goto end;
+                                    buf[idx++] = (byte)('0' + dateTime.Month % 10);
+                                    break;
+
+                                case 2:
+                                    if (idx + 2 > bufSize) goto end;
+                                    buf[idx++] = (byte)('0' + dateTime.Month / 10);
+                                    buf[idx++] = (byte)('0' + dateTime.Month % 10);
+                                    break;
+
+                                case 3:
+                                    {
+                                        var monthString = dateFormat.GetAbbreviatedMonthName(month);
+                                        idx += ConvertUtf16ToUtf8(monthString, buf + idx, bufSize - idx);
+                                    }
+                                    break;
+
+                                case 4:
+                                    {
+                                        var monthString = dateFormat.GetMonthName(month);
+                                        idx += ConvertUtf16ToUtf8(monthString, buf + idx, bufSize - idx);
+                                    }
+                                    break;
+                            }
+                            break;
+
+                        case 'y':
+                            int yCount = CountAhead(&pFormat, formatEnd, 'y', 4) + 1;
+                            int year = dateTime.Year;
+                            switch (yCount)
+                            {
+                                case 1:
+                                    if (year >= 10) goto case 2;
+                                    if (idx + 1 > bufSize) goto end;
+                                    buf[idx++] = (byte)('0' + year % 10);
+                                    break;
+
+                                case 2:
+                                    if (idx + 2 > bufSize) goto end;
+                                    buf[idx++] = (byte)('0' + (year / 10 % 10));
+                                    buf[idx++] = (byte)('0' + year % 10);
+                                    break;
+
+                                case 3:
+                                    if (year >= 1000) goto case 4;
+                                    if (idx + 3 > bufSize) goto end;
+                                    buf[idx++] = (byte)('0' + (year / 100 % 10));
+                                    buf[idx++] = (byte)('0' + (year / 10 % 10));
+                                    buf[idx++] = (byte)('0' + year % 10);
+                                    break;
+
+                                case 4:
+                                    if (idx + 4 > bufSize) goto end;
+                                    buf[idx++] = (byte)('0' + (year / 1000) % 10);
+                                    buf[idx++] = (byte)('0' + (year / 100 % 10));
+                                    buf[idx++] = (byte)('0' + (year / 10 % 10));
+                                    buf[idx++] = (byte)('0' + year % 10);
+                                    break;
+
+                                case 5:
+                                    if (idx + 5 > bufSize) goto end;
+                                    buf[idx++] = (byte)('0' + (year / 10000) % 10);
+                                    buf[idx++] = (byte)('0' + (year / 1000) % 10);
+                                    buf[idx++] = (byte)('0' + (year / 100 % 10));
+                                    buf[idx++] = (byte)('0' + (year / 10 % 10));
+                                    buf[idx++] = (byte)('0' + year % 10);
+                                    break;
+                            }
+                            break;
+
+                        case 'H':
+                            {
+                                int HCount = CountAhead(&pFormat, formatEnd, 'H', 1) + 1;
+                                int hour = dateTime.Hour;
+                                switch (HCount)
+                                {
+                                    case 1:
+                                        if (hour >= 10) goto case 2;
+                                        if (idx + 1 > bufSize) goto end;
+                                        buf[idx++] = (byte)('0' + hour % 10);
+                                        break;
+
+                                    case 2:
+                                        if (idx + 2 > bufSize) goto end;
+                                        buf[idx++] = (byte)('0' + hour / 10);
+                                        buf[idx++] = (byte)('0' + hour % 10);
+                                        break;
+                                }
+                            }
+                            break;
+
+                        case 'h':
+                            {
+                                int hCount = CountAhead(&pFormat, formatEnd, 'h', 1) + 1;
+                                int hour = dateTime.Hour;
+                                if (hour == 0) hour = 12;
+                                else if (hour > 12) hour -= 12;
+                                switch (hCount)
+                                {
+                                    case 1:
+                                        if (hour >= 10) goto case 2;
+                                        if (idx + 1 > bufSize) goto end;
+                                        buf[idx++] = (byte)('0' + hour % 10);
+                                        break;
+
+                                    case 2:
+                                        if (idx + 2 > bufSize) goto end;
+                                        buf[idx++] = (byte)('0' + hour / 10);
+                                        buf[idx++] = (byte)('0' + hour % 10);
+                                        break;
+                                }
+                            }
+                            break;
+
+                        case 't':
+                            {
+                                int hour = dateTime.Hour;
+                                string designator = hour >= 12 ? dateFormat.PMDesignator : dateFormat.AMDesignator;
+                                bool full = pFormat != formatEnd && *pFormat == 't';
+                                if (full)
+                                {
+                                    pFormat++;
+                                }
+
+                                if (string.IsNullOrEmpty(designator))
+                                {
+                                    break;
+                                }
+
+                                idx += ConvertUtf16ToUtf8(designator, 0, full ? designator.Length : 1, buf + idx, bufSize - idx);
+                            }
+                            break;
+
+                        case 'm':
+                            {
+                                int mCount = CountAhead(&pFormat, formatEnd, 'm', 1) + 1;
+                                int minute = dateTime.Minute;
+                                switch (mCount)
+                                {
+                                    case 1:
+                                        if (minute >= 10) goto case 2;
+                                        if (idx + 1 > bufSize) goto end;
+                                        buf[idx++] = (byte)('0' + minute % 10);
+                                        break;
+
+                                    case 2:
+                                        if (idx + 2 > bufSize) goto end;
+                                        buf[idx++] = (byte)('0' + minute / 10);
+                                        buf[idx++] = (byte)('0' + minute % 10);
+                                        break;
+                                }
+                            }
+                            break;
+
+                        case 's':
+                            {
+                                int sCount = CountAhead(&pFormat, formatEnd, 's', 1) + 1;
+                                int second = dateTime.Second;
+                                switch (sCount)
+                                {
+                                    case 1:
+                                        if (second >= 10) goto case 2;
+                                        if (idx + 1 > bufSize) goto end;
+                                        buf[idx++] = (byte)('0' + second % 10);
+                                        break;
+
+                                    case 2:
+                                        if (idx + 2 > bufSize) goto end;
+                                        buf[idx++] = (byte)('0' + second / 10);
+                                        buf[idx++] = (byte)('0' + second % 10);
+                                        break;
+                                }
+                            }
+                            break;
+
+                        case 'g':
+                            {
+                                int gCount = CountAhead(&pFormat, formatEnd, 'g', 1) + 1;
+                                int era = dateFormat.Calendar.GetEra(dateTime);
+                                string eraString = dateFormat.GetEraName(era);
+                                idx += ConvertUtf16ToUtf8(eraString, buf + idx, bufSize - idx);
+                            }
+                            break;
+
+                        case 'z':
+                            {
+                                int zCount = CountAhead(&pFormat, formatEnd, 'z', 2) + 1;
+                                TimeSpan offset = TimeZoneInfo.Local.GetUtcOffset(dateTime);
+                                if (idx + 1 > bufSize) goto end;
+                                buf[idx++] = (byte)(offset.Ticks >= 0 ? '+' : '-');
+                                int hours = Math.Abs(offset.Hours);
+                                int minutes = Math.Abs(offset.Minutes);
+                                switch (zCount)
+                                {
+                                    case 1:
+                                        if (idx + 1 > bufSize) goto end;
+                                        buf[idx++] = (byte)('0' + hours);
+                                        break;
+
+                                    case 2:
+                                        if (idx + 2 > bufSize) goto end;
+                                        buf[idx++] = (byte)('0' + hours / 10);
+                                        buf[idx++] = (byte)('0' + hours % 10);
+                                        break;
+
+                                    case 3:
+                                        if (idx + 5 > bufSize) goto end;
+                                        buf[idx++] = (byte)('0' + hours / 10);
+                                        buf[idx++] = (byte)('0' + hours % 10);
+                                        buf[idx++] = (byte)':';
+                                        buf[idx++] = (byte)('0' + minutes / 10);
+                                        buf[idx++] = (byte)('0' + minutes % 10);
+                                        break;
+                                }
+                            }
+                            break;
+
+                        case 'K':
+                            {
+                                TimeSpan offset = TimeZoneInfo.Local.GetUtcOffset(dateTime);
+                                if (dateTime.Kind == DateTimeKind.Utc)
+                                {
+                                    buf[idx++] = (byte)'Z';
+                                }
+                                else
+                                {
+                                    buf[idx++] = (byte)(offset.Ticks >= 0 ? '+' : '-');
+
+                                    int hours = Math.Abs(offset.Hours);
+                                    int minutes = Math.Abs(offset.Minutes);
+
+                                    buf[idx++] = (byte)('0' + hours / 10);
+                                    buf[idx++] = (byte)('0' + hours % 10);
+                                    buf[idx++] = (byte)':';
+                                    buf[idx++] = (byte)('0' + minutes / 10);
+                                    buf[idx++] = (byte)('0' + minutes % 10);
+                                }
+                            }
+                            break;
+
+                        case ':':
+                            idx += ConvertUtf16ToUtf8(dateFormat.TimeSeparator, buf + idx, bufSize - idx);
+                            break;
+
+                        case '/':
+                            idx += ConvertUtf16ToUtf8(dateFormat.DateSeparator, buf + idx, bufSize - idx);
+                            break;
+
+                        case '\'':
+                            {
+                                int end = IndexOf(pFormat, formatEnd, '\'');
+                                if (end == -1) goto default;
+                                idx += ConvertUtf16ToUtf8(pFormat, end, buf + idx, bufSize - idx);
+                                pFormat += end + 1;
+                            }
+                            break;
+
+                        case '"':
+                            {
+                                int end = IndexOf(pFormat, formatEnd, '"');
+                                if (end == -1) goto default;
+                                idx += ConvertUtf16ToUtf8(pFormat, end, buf + idx, bufSize - idx);
+                                pFormat += end + 1;
+                            }
+                            break;
+
+                        case '\\':
+                            if (pFormat != formatEnd) goto end;
+                            c = *pFormat;
+                            pFormat++;
+                            goto default;
+
+                        default: // literal
+                            if (idx + 1 > bufSize) goto end;
+                            idx += ConvertUtf16ToUtf8(c, buf + idx, bufSize - idx);
+                            break;
+                    }
+                }
+            }
+
+        end:
+
+            if (idx >= bufSize)
+            {
+                buf[bufSize - 1] = 0;
+                idx = bufSize - 1;
+            }
+            else
+            {
+                buf[idx] = 0;
+            }
+
+            return idx;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe static int IndexOf(char* str, char* strEnd, char target)
+        {
+            char* start = str;
+            while (str != strEnd && *str != target)
+            {
+                str++;
+            }
+
+            if (str == strEnd)
+            {
+                return -1;
+            }
+            else
+            {
+                return (int)(str - start);
+            }
+        }
+
+        private static unsafe void Format(DateTime dateTime, byte* buf, int* idx, int maxPrecision, int precision, bool removeTail)
+        {
+            int milliseconds = dateTime.Millisecond;
+            int microseconds = dateTime.Microsecond;
+            int nanoseconds = dateTime.Nanosecond;
+
+            ulong value = (ulong)milliseconds * 1_000_000 + (ulong)microseconds * 1_000 + (ulong)nanoseconds;
+
+            ulong divisor = (ulong)Math.Pow(10, maxPrecision + 1);
+
+            int ix = *idx;
+            for (int i = 0; i < precision; i++)
+            {
+                byte digit = (byte)(value / divisor % 10);
+                buf[ix++] = (byte)('0' + digit);
+                divisor /= 10;
+            }
+
+            if (removeTail)
+            {
+                while (buf[ix] == '0')
+                {
+                    buf[ix] = 0;
+                    ix--;
+                }
+            }
+
+            *idx = ix;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        private unsafe static int CountAhead(char** format, char* formatEnd, char target, int max)
+        {
+            int count = 0;
+            char* pChar = *format;
+
+            while (pChar != formatEnd && *pChar == target && count < max)
+            {
+                count++;
+                pChar++;
+            }
+            *format = pChar;
+
+            return count;
         }
     }
 }

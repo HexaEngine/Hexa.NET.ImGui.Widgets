@@ -2,7 +2,9 @@
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets.Text;
+    using System.Buffers;
     using System.Numerics;
+    using System.Runtime.CompilerServices;
 
     public abstract class ImGuiFileView<T> where T : struct, IFileSystemItem
     {
@@ -180,10 +182,10 @@
                 return false;
             }
 
-            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.PreferSortDescending);
-            ImGui.TableSetupColumn("Date Modified", ImGuiTableColumnFlags.None);
-            ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.None);
-            ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.None);
+            ImGui.TableSetupColumn("Name"u8, ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.PreferSortDescending);
+            ImGui.TableSetupColumn("Date Modified"u8, ImGuiTableColumnFlags.None);
+            ImGui.TableSetupColumn("Type"u8, ImGuiTableColumnFlags.None);
+            ImGui.TableSetupColumn("Size"u8, ImGuiTableColumnFlags.None);
 
             ImGui.TableSetupScrollFreeze(0, 1);
 
@@ -248,6 +250,8 @@
                 ImGui.Dummy(new(1, start * lineHeight));
             }
 
+            byte* stack = stackalloc byte[64];
+
             for (int i = start; i < end && i < entries.Count; i++)
             {
                 var entry = entries[i];
@@ -288,7 +292,8 @@
 
                 if (ImGui.TableSetColumnIndex(1))
                 {
-                    ImGui.TextDisabled($"{entry.DateModified:dd/mm/yyyy HH:mm}");
+                    Utf8Formatter.Format(entry.DateModified, stack, 64, "dd/mm/yyyy HH:mm");
+                    ImGui.TextDisabled(stack);
                 }
 
                 if (ImGui.TableSetColumnIndex(2))
@@ -332,10 +337,10 @@
                 return false;
             }
 
-            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.PreferSortDescending);
-            ImGui.TableSetupColumn("Date Modified", ImGuiTableColumnFlags.None);
-            ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.None);
-            ImGui.TableSetupColumn("Size", ImGuiTableColumnFlags.None);
+            ImGui.TableSetupColumn("Name"u8, ImGuiTableColumnFlags.DefaultSort | ImGuiTableColumnFlags.PreferSortDescending);
+            ImGui.TableSetupColumn("Date Modified"u8, ImGuiTableColumnFlags.None);
+            ImGui.TableSetupColumn("Type"u8, ImGuiTableColumnFlags.None);
+            ImGui.TableSetupColumn("Size"u8, ImGuiTableColumnFlags.None);
 
             ImGui.TableSetupScrollFreeze(0, 1);
 

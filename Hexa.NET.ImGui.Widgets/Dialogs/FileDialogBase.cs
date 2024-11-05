@@ -163,22 +163,22 @@
         protected virtual unsafe void DrawMenuBar()
         {
             var style = WidgetManager.Style;
-            if (ImGuiButton.TransparentButton($"{MaterialIcons.Home}"))
+            if (ImGuiButton.TransparentButton(MaterialIcons.Home))
             {
                 CurrentFolder = RootFolder;
             }
             ImGui.SameLine();
-            if (ImGuiButton.TransparentButton($"{MaterialIcons.ArrowBack}"))
+            if (ImGuiButton.TransparentButton(MaterialIcons.ArrowBack))
             {
                 TryGoBack();
             }
             ImGui.SameLine();
-            if (ImGuiButton.TransparentButton($"{MaterialIcons.ArrowForward}"))
+            if (ImGuiButton.TransparentButton(MaterialIcons.ArrowForward))
             {
                 TryGoForward();
             }
             ImGui.SameLine();
-            if (ImGuiButton.TransparentButton($"{MaterialIcons.Refresh}"))
+            if (ImGuiButton.TransparentButton(MaterialIcons.Refresh))
             {
                 Refresh();
             }
@@ -221,7 +221,7 @@
                 var flags = refreshFlags;
 
                 bool hiddenFiles = (flags & RefreshFlags.Hidden) != 0;
-                if (ImGui.MenuItem("Hidden Files", hiddenFiles))
+                if (ImGui.MenuItem("Hidden Files"u8, hiddenFiles))
                 {
                     if (hiddenFiles) // invert flag
                     {
@@ -235,7 +235,7 @@
                 }
 
                 bool systemFiles = (flags & RefreshFlags.SystemFiles) != 0;
-                if (ImGui.MenuItem("System Files", systemFiles))
+                if (ImGui.MenuItem("System Files"u8, systemFiles))
                 {
                     if (systemFiles) // invert flag
                     {
@@ -271,7 +271,7 @@
                 var flags = searchOptions.Flags;
 
                 bool subFolders = (flags & SearchOptionsFlags.Subfolders) != 0;
-                if (ImGui.MenuItem("All subfolders", subFolders))
+                if (ImGui.MenuItem("All subfolders"u8, subFolders))
                 {
                     if (subFolders) // invert flag
                     {
@@ -286,7 +286,7 @@
 
                 ImGui.Separator();
 
-                if (ImGui.BeginMenu("Date modified"))
+                if (ImGui.BeginMenu("Date modified"u8))
                 {
                     for (SearchFilterDate i = SearchFilterDate.Today; i <= SearchFilterDate.LastYear; i++)
                     {
@@ -307,7 +307,7 @@
                     ImGui.EndMenu();
                 }
 
-                if (ImGui.BeginMenu("Size"))
+                if (ImGui.BeginMenu("Size"u8))
                 {
                     for (SearchFilterSize i = SearchFilterSize.Empty; i <= SearchFilterSize.Gigantic; i++)
                     {
@@ -331,7 +331,7 @@
                 ImGui.Separator();
 
                 bool hiddenFiles = (flags & SearchOptionsFlags.Hidden) != 0;
-                if (ImGui.MenuItem("Hidden Files", hiddenFiles))
+                if (ImGui.MenuItem("Hidden Files"u8, hiddenFiles))
                 {
                     if (hiddenFiles) // invert flag
                     {
@@ -345,7 +345,7 @@
                 }
 
                 bool systemFiles = (flags & SearchOptionsFlags.SystemFiles) != 0;
-                if (ImGui.MenuItem("System Files", systemFiles))
+                if (ImGui.MenuItem("System Files"u8, systemFiles))
                 {
                     if (systemFiles) // invert flag
                     {
@@ -420,7 +420,7 @@
             }
             ImGui.EndChild();
 
-            ImGuiSplitter.VerticalSplitter("Vertical Splitter", ref widthDrives, 50, avail.X, -footerHeightToReserve);
+            ImGuiSplitter.VerticalSplitter("V"u8, ref widthDrives, 50, avail.X, -footerHeightToReserve);
 
             ImGui.SameLine();
 

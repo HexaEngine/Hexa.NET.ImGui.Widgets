@@ -1,6 +1,7 @@
 ﻿namespace Hexa.NET.ImGui.Widgets
 {
     using Hexa.NET.ImGui;
+    using Hexa.NET.ImGui.Widgets.Text;
     using System;
     using System.Numerics;
 
@@ -130,6 +131,13 @@
             }
 
             return isClicked;
+        }
+
+        public static bool TransparentButton(char label)
+        {
+            byte* buf = stackalloc byte[5];
+            Utf8Formatter.ConvertUtf16ToUtf8(&label, 1, buf, 4);
+            return TransparentButton(buf, default, ImGuiButtonFlags.None);
         }
 
         public static bool TransparentButton(byte* label)

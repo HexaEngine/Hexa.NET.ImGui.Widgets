@@ -7,7 +7,7 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
 		<AssemblyVersion>1.0.0</AssemblyVersion>
-		<PackageVersion>1.0.1</PackageVersion>
+		<PackageVersion>1.0.2</PackageVersion>
 		<Description>
 			Hexa.NET.ImGui.Widgets is a comprehensive library of custom widgets for the ImGui graphical user interface library. This package includes a variety of pre-built widgets that enhance the functionality and usability of ImGui in your .NET applications. Each widget is designed to be easy to integrate, with consistent styling and behavior. This library is an extension of the Hexa.NET.ImGui wrapper, providing additional UI components for a seamless user experience.
 		</Description>
