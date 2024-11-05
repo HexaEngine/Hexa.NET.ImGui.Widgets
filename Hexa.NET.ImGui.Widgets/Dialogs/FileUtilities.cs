@@ -581,20 +581,13 @@
             for (int i = 0; i < sizeInBytes; i++)
             {
                 (FieldInfo info, int offset, int size)? info = default;
-                for (int k = startInfo; k < offsetData.Length; k++)
+               
+                if (startInfo < offsetData.Length && offsetData[startInfo].offset == i)
                 {
-                    var x = offsetData[k];
-                    if (x.offset == i)
-                    {
-                        startInfo = k;
-                        info = x;
-                        break;
-                    }
-                    if (x.offset > i)
-                    {
-                        break;
-                    }
+                    info = offsetData[startInfo];
+                    startInfo++;
                 }
+
                 if (info.HasValue)
                 {
                     Console.WriteLine($"{((nint)p + i):X8}: {p[i]:X} : {info.Value.info.Name} {info.Value.size}");
