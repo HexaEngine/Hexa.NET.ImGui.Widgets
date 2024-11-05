@@ -16,11 +16,11 @@
 		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
 		<PackageReference Include="System.Text.Json" Version="8.0.5" />
 		<PackageReference Include="Hexa.NET.OpenGL3" Version="1.0.1" />
-		<PackageReference Include="Hexa.NET.SDL2" Version="1.2.6" />
+		<PackageReference Include="Hexa.NET.SDL2" Version="1.2.7" />
 		<PackageReference Include="Hexa.NET.Math" Version="2.0.2" />
 		<PackageReference Include="Hexa.NET.Utilities" Version="2.1.8" />
-		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.5" />
-		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.5" />
+		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.7" />
+		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.7" />
 	</ItemGroup>
 
 	<ItemGroup>
