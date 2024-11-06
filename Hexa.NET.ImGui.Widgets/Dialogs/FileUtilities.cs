@@ -1,16 +1,15 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     using Hexa.NET.Utilities;
+    using Microsoft.CodeAnalysis;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Reflection;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
     using System.Text;
-    using static System.Runtime.InteropServices.JavaScript.JSType;
     using Utils = HexaGen.Runtime.Utils;
 
     public static unsafe partial class FileUtilities
@@ -50,6 +49,8 @@
                 return EnumerateEntriesUnix(path, pattern, option);
             }
         }
+
+        #region WIN32
 
         public static IEnumerable<FileMetadata> EnumerateEntriesWin(string path, string pattern, SearchOption option)
         {
@@ -128,7 +129,7 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static FileMetadata Convert(WIN32_FIND_DATA data, StdWString path)
         {
-            Dump(&data);
+            MemoryDump(&data);
             FileMetadata metadata = new();
             int length = StrLen(data.cFileName);
             StdWString str = new(length + path.Size + 1);
@@ -208,93 +209,6 @@
             {
                 CloseHandle(fileHandle);
             }
-        }
-
-        private static FileMetadata GetFileMetadataUnix(string filePath)
-        {
-            byte* str0;
-            int strSize0 = Utils.GetByteCountUTF8(filePath);
-            if (strSize0 >= Utils.MaxStackallocSize)
-            {
-                str0 = Utils.Alloc<byte>(strSize0 + 1);
-            }
-            else
-            {
-                byte* strStack0 = stackalloc byte[strSize0 + 1];
-                str0 = strStack0;
-            }
-            Utils.EncodeStringUTF8(filePath, str0, strSize0);
-            str0[strSize0] = 0;
-
-            var result = FileStat(str0, out Stat fileStat);
-            FileMetadata metadata = new();
-            metadata.Path = filePath;
-
-            metadata.CreationTime = DateTimeOffset.FromUnixTimeSeconds(fileStat.StCtime).LocalDateTime.AddTicks((long)(fileStat.StCtimensec / 100));
-            metadata.LastAccessTime = DateTimeOffset.FromUnixTimeSeconds(fileStat.StAtime).LocalDateTime.AddTicks((long)(fileStat.StAtimensec / 100));
-            metadata.LastWriteTime = DateTimeOffset.FromUnixTimeSeconds(fileStat.StMtime).LocalDateTime.AddTicks((long)(fileStat.StMtimensec / 100));
-            metadata.Size = fileStat.StSize;
-            metadata.Attributes = ConvertStatModeToAttributes(fileStat.StMode, filePath);
-
-            if (strSize0 >= Utils.MaxStackallocSize)
-            {
-                Utils.Free(str0);
-            }
-
-            if (result == 0)
-            {
-                return metadata;
-            }
-            else
-            {
-                return default;
-            }
-        }
-
-        private const int S_IFDIR = 0x4000;   // Directory
-        private const int S_IFREG = 0x8000;   // Regular file
-        private const int S_IFLNK = 0xA000;   // Symbolic link (Unix)
-        private const int S_IRUSR = 0x0100;   // Owner read permission
-        private const int S_IWUSR = 0x0080;   // Owner write permission
-        private const int S_IXUSR = 0x0040;   // Owner execute permission
-
-        public static FileAttributes ConvertStatModeToAttributes(int st_mode, ReadOnlySpan<char> fileName)
-        {
-            FileAttributes attributes = FileAttributes.None;
-
-            // File type determination
-            if ((st_mode & S_IFDIR) == S_IFDIR)
-            {
-                attributes |= FileAttributes.Directory;
-            }
-            else if ((st_mode & S_IFREG) == S_IFREG)
-            {
-                attributes |= FileAttributes.Normal;
-            }
-            else if ((st_mode & S_IFLNK) == S_IFLNK)
-            {
-                attributes |= FileAttributes.ReparsePoint;  // Symbolic links in Unix can be mapped to ReparsePoint in Windows
-            }
-
-            // Permission handling - If no write permission for the owner, mark as ReadOnly
-            if ((st_mode & S_IWUSR) == 0)
-            {
-                attributes |= FileAttributes.ReadOnly;
-            }
-
-            // Hidden file detection (Unix files that start with '.' are treated as hidden)
-            if (fileName.Length > 0 && fileName[0] == '.')
-            {
-                attributes |= FileAttributes.Hidden;
-            }
-
-            // Add other attributes as necessary, but keep in mind Unix-like systems may not have equivalents for:
-            // - FileAttributes.Compressed
-            // - FileAttributes.Encrypted
-            // - FileAttributes.Offline
-            // - FileAttributes.NotContentIndexed
-
-            return attributes;
         }
 
         // Windows API P/Invoke declarations
@@ -400,6 +314,10 @@
         [return: MarshalAs(UnmanagedType.Bool)]
         public static partial bool FindClose(nint hFindFile);
 
+        #endregion WIN32
+
+        #region UNIX/LINUX
+
         // Unix-based stat method
         [LibraryImport("libc", EntryPoint = "stat", SetLastError = true)]
         private static unsafe partial int FileStat(byte* path, out Stat buf);
@@ -427,6 +345,105 @@
             public long GlibcReserved0;
             public long GlibcReserved1;
             public long GlibcReserved2;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Timespec
+        {
+            public long tv_sec;             // time_t: Seconds
+            public long tv_nsec;            // long: Nanoseconds
+
+            public static implicit operator DateTime(Timespec timespec)
+            {
+                return DateTimeOffset.FromUnixTimeSeconds(timespec.tv_sec).LocalDateTime.AddTicks(timespec.tv_nsec / 100);
+            }
+        }
+
+        private static FileMetadata GetFileMetadataUnix(string filePath)
+        {
+            byte* str0;
+            int strSize0 = Utils.GetByteCountUTF8(filePath);
+            if (strSize0 >= Utils.MaxStackallocSize)
+            {
+                str0 = Utils.Alloc<byte>(strSize0 + 1);
+            }
+            else
+            {
+                byte* strStack0 = stackalloc byte[strSize0 + 1];
+                str0 = strStack0;
+            }
+            Utils.EncodeStringUTF8(filePath, str0, strSize0);
+            str0[strSize0] = 0;
+
+            var result = FileStat(str0, out Stat fileStat);
+            FileMetadata metadata = new();
+            metadata.Path = filePath;
+
+            metadata.CreationTime = DateTimeOffset.FromUnixTimeSeconds(fileStat.StCtime).LocalDateTime.AddTicks((long)(fileStat.StCtimensec / 100));
+            metadata.LastAccessTime = DateTimeOffset.FromUnixTimeSeconds(fileStat.StAtime).LocalDateTime.AddTicks((long)(fileStat.StAtimensec / 100));
+            metadata.LastWriteTime = DateTimeOffset.FromUnixTimeSeconds(fileStat.StMtime).LocalDateTime.AddTicks((long)(fileStat.StMtimensec / 100));
+            metadata.Size = fileStat.StSize;
+            metadata.Attributes = ConvertStatModeToAttributes(fileStat.StMode, filePath);
+
+            if (strSize0 >= Utils.MaxStackallocSize)
+            {
+                Utils.Free(str0);
+            }
+
+            if (result == 0)
+            {
+                return metadata;
+            }
+            else
+            {
+                return default;
+            }
+        }
+
+        private const int S_IFDIR = 0x4000;   // Directory
+        private const int S_IFREG = 0x8000;   // Regular file
+        private const int S_IFLNK = 0xA000;   // Symbolic link (Unix)
+        private const int S_IRUSR = 0x0100;   // Owner read permission
+        private const int S_IWUSR = 0x0080;   // Owner write permission
+        private const int S_IXUSR = 0x0040;   // Owner execute permission
+
+        public static FileAttributes ConvertStatModeToAttributes(int st_mode, ReadOnlySpan<char> fileName)
+        {
+            FileAttributes attributes = FileAttributes.None;
+
+            // File type determination
+            if ((st_mode & S_IFDIR) == S_IFDIR)
+            {
+                attributes |= FileAttributes.Directory;
+            }
+            else if ((st_mode & S_IFREG) == S_IFREG)
+            {
+                attributes |= FileAttributes.Normal;
+            }
+            else if ((st_mode & S_IFLNK) == S_IFLNK)
+            {
+                attributes |= FileAttributes.ReparsePoint;  // Symbolic links in Unix can be mapped to ReparsePoint in Windows
+            }
+
+            // Permission handling - If no write permission for the owner, mark as ReadOnly
+            if ((st_mode & S_IWUSR) == 0)
+            {
+                attributes |= FileAttributes.ReadOnly;
+            }
+
+            // Hidden file detection (Unix files that start with '.' are treated as hidden)
+            if (fileName.Length > 0 && fileName[0] == '.')
+            {
+                attributes |= FileAttributes.Hidden;
+            }
+
+            // Add other attributes as necessary, but keep in mind Unix-like systems may not have equivalents for:
+            // - FileAttributes.Compressed
+            // - FileAttributes.Encrypted
+            // - FileAttributes.Offline
+            // - FileAttributes.NotContentIndexed
+
+            return attributes;
         }
 
         public const int DT_DIR = 4;
@@ -539,7 +556,7 @@
 
         private static FileMetadata Convert(DirEnt entry, StdString path)
         {
-            Dump(&entry);
+            MemoryDump(&entry);
             int length = NET.Utilities.Utils.StrLen(entry.d_name);
             StdWString str = new(path.Size + length);
             str.Append(path);
@@ -555,49 +572,6 @@
             meta.Size = stat.StSize;
             meta.Attributes = ConvertStatModeToAttributes(stat.StMode, str);
             return meta;
-        }
-
-        [RequiresDynamicCode("")]
-        public static void Dump<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)] T>(T* ptr) where T : unmanaged
-        {
-            byte* p = (byte*)ptr;
-            int sizeInBytes = sizeof(T);
-            Type type = typeof(T);
-            FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            (FieldInfo info, int offset, int size)[] offsetData = new (FieldInfo info, int offset, int size)[fields.Length];
-
-            int currentOffset = 0;
-            for (int j = 0; j < fields.Length; j++)
-            {
-                FieldInfo field = fields[j];
-                int size = Marshal.SizeOf(field.FieldType);
-                offsetData[j] = (field, currentOffset, size);
-                Console.WriteLine($"Field: {field.Name}, Offset: {currentOffset:X8}, Size: {size}, Type: {field.FieldType}");
-                currentOffset += size;
-
-            }
-
-            int startInfo = 0;
-            for (int i = 0; i < sizeInBytes; i++)
-            {
-                (FieldInfo info, int offset, int size)? info = default;
-               
-                if (startInfo < offsetData.Length && offsetData[startInfo].offset == i)
-                {
-                    info = offsetData[startInfo];
-                    startInfo++;
-                }
-
-                if (info.HasValue)
-                {
-                    Console.WriteLine($"{((nint)p + i):X8}: {p[i]:X} : {info.Value.info.Name} {info.Value.size}");
-                }
-                else
-                {
-                    Console.WriteLine($"{((nint)p + i):X8}: {p[i]:X}");
-                }
-               
-            }
         }
 
         private static void FileStat(StdWString str, out Stat stat)
@@ -623,5 +597,279 @@
                 Utils.Free(pStr0);
             }
         }
+
+        #endregion UNIX/LINUX
+
+        #region OSX
+
+        // Unix-based stat method
+        [LibraryImport("libSystem.B.dylib", EntryPoint = "stat", SetLastError = true)]
+        private static unsafe partial int OSXFileStat(byte* path, out OSXStat buf);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct OSXStat
+        {
+            public ulong st_dev;            // dev_t: Device ID containing file
+            public ulong st_ino;            // ino_t: File serial number
+            public ushort st_mode;          // mode_t: Mode of file
+            public ushort st_nlink;         // nlink_t: Number of hard links
+            public uint st_uid;             // uid_t: User ID of the file
+            public uint st_gid;             // gid_t: Group ID of the file
+            public ulong st_rdev;           // dev_t: Device ID
+            public Timespec st_atimespec;   // time of last access
+            public Timespec st_mtimespec;   // time of last data modification
+            public Timespec st_ctimespec;   // time of last status change
+            public long st_size;            // off_t: file size in bytes
+            public long st_blocks;          // blkcnt_t: blocks allocated for file
+            public int st_blksize;          // blksize_t: optimal block size for I/O
+            public uint st_flags;           // __uint32_t: user-defined flags for file
+            public uint st_gen;             // __uint32_t: file generation number
+            private int st_lspare;          // RESERVED: DO NOT USE!
+            private long st_qspare1;        // RESERVED: DO NOT USE!
+            private long st_qspare2;        // RESERVED: DO NOT USE!
+        }
+
+        private static FileMetadata GetFileMetadataOSX(string filePath)
+        {
+            byte* str0;
+            int strSize0 = Utils.GetByteCountUTF8(filePath);
+            if (strSize0 >= Utils.MaxStackallocSize)
+            {
+                str0 = Utils.Alloc<byte>(strSize0 + 1);
+            }
+            else
+            {
+                byte* strStack0 = stackalloc byte[strSize0 + 1];
+                str0 = strStack0;
+            }
+            Utils.EncodeStringUTF8(filePath, str0, strSize0);
+            str0[strSize0] = 0;
+
+            var result = OSXFileStat(str0, out OSXStat fileStat);
+            FileMetadata metadata = new();
+            metadata.Path = filePath;
+
+            metadata.CreationTime = fileStat.st_ctimespec;
+            metadata.LastAccessTime = fileStat.st_atimespec;
+            metadata.LastWriteTime = fileStat.st_mtimespec;
+            metadata.Size = fileStat.st_size;
+            metadata.Attributes = OSXConvertStatModeToAttributes(fileStat.st_mode, filePath);
+
+            if (strSize0 >= Utils.MaxStackallocSize)
+            {
+                Utils.Free(str0);
+            }
+
+            if (result == 0)
+            {
+                return metadata;
+            }
+            else
+            {
+                return default;
+            }
+        }
+
+        private const int OSX_IFDIR = 0x4000;   // Directory
+        private const int OSX_IFREG = 0x8000;   // Regular file
+        private const int OSX_IfLNK = 0xA000;   // Symbolic link (Unix)
+        private const int OSX_IRUSR = 0x0100;   // Owner read permission
+        private const int OSX_IWUSR = 0x0080;   // Owner write permission
+        private const int OSX_IXUSR = 0x0040;   // Owner execute permission
+
+        public static FileAttributes OSXConvertStatModeToAttributes(int st_mode, ReadOnlySpan<char> fileName)
+        {
+            FileAttributes attributes = FileAttributes.None;
+
+            // File type determination
+            if ((st_mode & OSX_IFDIR) == OSX_IFDIR)
+            {
+                attributes |= FileAttributes.Directory;
+            }
+            else if ((st_mode & OSX_IFREG) == OSX_IFREG)
+            {
+                attributes |= FileAttributes.Normal;
+            }
+            else if ((st_mode & OSX_IfLNK) == OSX_IfLNK)
+            {
+                attributes |= FileAttributes.ReparsePoint;  // Symbolic links in Unix can be mapped to ReparsePoint in Windows
+            }
+
+            // Permission handling - If no write permission for the owner, mark as ReadOnly
+            if ((st_mode & OSX_IRUSR) == 0)
+            {
+                attributes |= FileAttributes.ReadOnly;
+            }
+
+            // Hidden file detection (Unix files that start with '.' are treated as hidden)
+            if (fileName.Length > 0 && fileName[0] == '.')
+            {
+                attributes |= FileAttributes.Hidden;
+            }
+
+            // Add other attributes as necessary, but keep in mind Unix-like systems may not have equivalents for:
+            // - FileAttributes.Compressed
+            // - FileAttributes.Encrypted
+            // - FileAttributes.Offline
+            // - FileAttributes.NotContentIndexed
+
+            return attributes;
+        }
+
+        public const int OSX_DT_DIR = 4;
+
+        public const int DARWIN_MAXPATHLEN = 1024;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private unsafe struct OSXDirEnt
+        {
+            public ulong d_ino;         // Inode number
+            public ulong d_off;          // Offset to the next dirent
+            public ushort d_reclen;     // Length of this record
+            public ushort d_namlen;     // Length of this record
+            public byte d_type;         // Type of file
+            public fixed byte d_name[DARWIN_MAXPATHLEN]; // Filename (null-terminated)
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool ShouldIgnore(string pattern, out bool result)
+            {
+                if (d_name[0] == '.' && d_name[1] == '\0' || d_name[0] == '.' && d_name[1] == '.' && d_name[2] == '\0')
+                {
+                    return result = true;
+                }
+
+                fixed (byte* p = d_name)
+                {
+                    result = !FileSystemSearcher.IsMatch(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(p), pattern, StringComparison.CurrentCulture);
+                }
+
+                if (d_type == DT_DIR)
+                {
+                    return false;
+                }
+
+                return result;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool ShouldIgnore()
+            {
+                return d_name[0] == '.' && d_name[1] == '\0' || d_name[0] == '.' && d_name[1] == '.' && d_name[2] == '\0';
+            }
+        }
+
+        // P/Invoke for opendir
+        [DllImport("libSystem.B.dylib", EntryPoint = "opendir", SetLastError = true)]
+        private static extern unsafe nint OSXOpenDir(byte* name);
+
+        // P/Invoke for readdir
+        [DllImport("libSystem.B.dylib", EntryPoint = "readdir", SetLastError = true)]
+        private static extern unsafe OSXDirEnt* OSXReadDir(nint dir);
+
+        // P/Invoke for closedir
+        [DllImport("libSystem.B.dylib", EntryPoint = "closedir", SetLastError = true)]
+        private static extern unsafe int OSXCloseDir(nint dir);
+
+        public static IEnumerable<FileMetadata> EnumerateEntriesOSX(string path, string pattern, SearchOption option)
+        {
+            UnsafeStack<StdString> walkStack = new();
+            walkStack.Push(path);
+
+            while (walkStack.TryPop(out var dir))
+            {
+                var dirHandle = OSXOpenDir(dir);
+
+                if (dirHandle == 0)
+                {
+                    dir.Release();
+                    continue;
+                }
+
+                while (OSXTryReadDir(dirHandle, out var dirEnt))
+                {
+                    if (!dirEnt.ShouldIgnore(pattern, out var ignore))
+                    {
+                        var meta = Convert(dirEnt, dir);
+                        if ((meta.Attributes & FileAttributes.Directory) != 0 && option == SearchOption.AllDirectories)
+                        {
+                            walkStack.Push(meta.Path.ToUTF8String());
+                        }
+
+                        if (!ignore)
+                        {
+                            yield return meta;
+                            meta.Path.Release();
+                        }
+                    }
+                }
+
+                OSXCloseDir(dirHandle);
+                dir.Release();
+            }
+
+            walkStack.Release();
+        }
+
+        private static nint OSXOpenDir(StdString str)
+        {
+            return OSXOpenDir(str.Data);
+        }
+
+        private static bool OSXTryReadDir(nint dirHandle, out DirEnt dirEnt)
+        {
+            var entry = ReadDir(dirHandle);
+            if (entry == null)
+            {
+                dirEnt = default;
+                return false;
+            }
+            dirEnt = *entry;
+            return true;
+        }
+
+        private static FileMetadata OSXConvert(DirEnt entry, StdString path)
+        {
+            int length = NET.Utilities.Utils.StrLen(entry.d_name);
+            StdWString str = new(path.Size + length);
+            str.Append(path);
+            str.Append('/');
+            str.Append(entry.d_name);
+            FileMetadata meta = new();
+            meta.Path = str;
+
+            OSXFileStat(str, out var stat);
+            meta.CreationTime = stat.st_ctimespec;
+            meta.LastAccessTime = stat.st_atimespec;
+            meta.LastWriteTime = stat.st_mtimespec;
+            meta.Size = stat.st_size;
+            meta.Attributes = ConvertStatModeToAttributes(stat.st_mode, str);
+            return meta;
+        }
+
+        private static void OSXFileStat(StdWString str, out OSXStat stat)
+        {
+            int strSize0 = Encoding.UTF8.GetByteCount(str.Data, str.Size);
+            byte* pStr0;
+            if (strSize0 >= Utils.MaxStackallocSize)
+            {
+                pStr0 = Utils.Alloc<byte>(strSize0);
+            }
+            else
+            {
+                byte* pStrStack0 = stackalloc byte[strSize0];
+                pStr0 = pStrStack0;
+            }
+            Encoding.UTF8.GetBytes(str.Data, str.Size, pStr0, strSize0);
+            pStr0[strSize0] = 0;
+
+            OSXFileStat(pStr0, out stat);
+
+            if (strSize0 >= Utils.MaxStackallocSize)
+            {
+                Utils.Free(pStr0);
+            }
+        }
+
+        #endregion OSX
     }
 }
