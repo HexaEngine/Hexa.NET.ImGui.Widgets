@@ -19,32 +19,61 @@
         private long size;
         private CommonFilePermissions permissions;
 
-        public FileSystemItem(string path, string icon, string name, string type, FileSystemItemFlags flags)
+        public FileSystemItem(string path, string icon, string name, FileSystemItemFlags flags)
         {
             this.path = path;
             this.icon = icon;
             this.name = name;
             this.flags = flags;
-            this.type = type;
-
-            this.dateModified = File.GetLastWriteTime(path);
+            dateModified = path.TryReturn(File.GetLastWriteTime);
 
             if (IsFile)
             {
-                size = new FileInfo(path).Length;
-            }
-            /*
-            if (!OperatingSystem.IsWindows())
-            {
-                var access = File.GetUnixFileMode(path);
-                if ((access & UnixFileMode.UserExecute) != 0 || (access & UnixFileMode.GroupExecute) != 0 || (access & UnixFileMode.OtherExecute) != 0)
-                {
-                }
+                size = path.TryReturn(FileUtilities.GetFileSize);
+                type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
             }
             else
             {
-                FileSecurity security = new(path, AccessControlSections.All);
-            }*/
+                type = "File Folder";
+            }
+        }
+
+        public FileSystemItem(FileMetadata metadata, string name, string icon, FileSystemItemFlags flags)
+        {
+            path = metadata.Path.ToString();
+            this.icon = icon;
+            this.name = name;
+            this.flags = flags;
+            dateModified = metadata.LastWriteTime;
+
+            if (IsFile)
+            {
+                size = metadata.Size;
+                type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
+            }
+            else
+            {
+                type = "File Folder";
+            }
+        }
+
+        public FileSystemItem(string path, string icon, FileSystemItemFlags flags)
+        {
+            this.path = path;
+            this.icon = icon;
+            name = System.IO.Path.GetFileName(path);
+            this.flags = flags;
+
+            dateModified = path.TryReturn(File.GetLastWriteTime);
+            if (IsFile)
+            {
+                size = path.TryReturn(FileUtilities.GetFileSize);
+                type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
+            }
+            else
+            {
+                type = "File Folder";
+            }
         }
 
         private static CommonFilePermissions ConvertUnixPermissions(UnixFileMode permissions)
@@ -122,65 +151,6 @@
             }
 
             return result;
-        }
-
-        public FileSystemItem(string path, string icon, string name, FileSystemItemFlags flags)
-        {
-            this.path = path;
-            this.icon = icon;
-            this.name = name;
-            this.flags = flags;
-            this.dateModified = File.GetLastWriteTime(path);
-
-            if (IsFile)
-            {
-                this.size = FileUtilities.GetFileSize(path);
-                this.type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
-            }
-            else
-            {
-                this.type = "File Folder";
-            }
-        }
-
-        public FileSystemItem(FileMetadata metadata, string icon, string name, FileSystemItemFlags flags)
-        {
-            this.path = metadata.Path.ToString();
-            this.icon = icon;
-            this.name = name;
-            this.flags = flags;
-            this.dateModified = metadata.LastWriteTime;
-
-            if (IsFile)
-            {
-                this.size = metadata.Size;
-                this.type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
-            }
-            else
-            {
-                this.type = "File Folder";
-            }
-        }
-
-        public FileSystemItem(string path, string icon, FileSystemItemFlags flags)
-        {
-            this.path = path;
-            this.icon = icon;
-            this.name = System.IO.Path.GetFileName(path);
-            this.flags = flags;
-
-            var mode = File.GetAttributes(path);
-
-            dateModified = File.GetLastWriteTime(path);
-            if (IsFile)
-            {
-                size = FileUtilities.GetFileSize(path);
-                type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
-            }
-            else
-            {
-                type = "File Folder";
-            }
         }
 
         public readonly bool IsFile => (flags & FileSystemItemFlags.Folder) == 0;

@@ -100,9 +100,13 @@
 
             {
                 StdWString str = path;
-                str.Append('\\');
-                str.Append('*');
                 CorrectPath(str);
+                if (str[str.Size - 1] != '\\')
+                {
+                    str.Append('\\');
+                }
+                str.Append('*');
+
                 walkStack.Push(str);
             }
 
@@ -174,19 +178,11 @@
         {
             int length = StrLen(data.cFileName);
             StdWString str;
-            if (path[path.Size - 1] != '/' || path[path.Size - 1] != '\\')
-            {
-                str = new(length + 1 + path.Size);
-                str.Append(path);
-                str.Append('/');
-                str.Append(data.cFileName, length);
-            }
-            else
-            {
-                str = new(length + path.Size);
-                str.Append(path);
-                str.Append(data.cFileName, length);
-            }
+
+            str = new(length + path.Size);
+            str.Append(path.Data, path.Size - 1);
+            str.Append(data.cFileName, length);
+
             *(str.Data + str.Size) = '\0';
 
             FileMetadata metadata = new();
@@ -367,10 +363,10 @@
 
         // Unix-based stat method
         [DllImport("libc", CallingConvention = CallingConvention.Cdecl, EntryPoint = "stat", SetLastError = true)]
-        private static extern unsafe int FileStat(byte* path, out Stat buf);
+        private static extern unsafe int UnixFileStat(byte* path, out UnixStat buf);
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct Stat
+        private struct UnixStat
         {
             public ulong StDev;
             public ulong StIno;
@@ -422,7 +418,7 @@
             Utils.EncodeStringUTF8(filePath, str0, strSize0);
             str0[strSize0] = 0;
 
-            var result = FileStat(str0, out Stat fileStat);
+            var result = UnixFileStat(str0, out UnixStat fileStat);
             FileMetadata metadata = new();
             metadata.Path = filePath;
 
@@ -430,7 +426,7 @@
             metadata.LastAccessTime = DateTimeOffset.FromUnixTimeSeconds(fileStat.StAtime).LocalDateTime.AddTicks((long)(fileStat.StAtimensec / 100));
             metadata.LastWriteTime = DateTimeOffset.FromUnixTimeSeconds(fileStat.StMtime).LocalDateTime.AddTicks((long)(fileStat.StMtimensec / 100));
             metadata.Size = fileStat.StSize;
-            metadata.Attributes = ConvertStatModeToAttributes(fileStat.StMode, filePath);
+            metadata.Attributes = UnixConvertStatModeToAttributes(fileStat.StMode, filePath);
 
             if (strSize0 >= Utils.MaxStackallocSize)
             {
@@ -454,7 +450,7 @@
         private const int S_IWUSR = 0x0080;   // Owner write permission
         private const int S_IXUSR = 0x0040;   // Owner execute permission
 
-        public static FileAttributes ConvertStatModeToAttributes(int st_mode, ReadOnlySpan<char> fileName)
+        public static FileAttributes UnixConvertStatModeToAttributes(int st_mode, ReadOnlySpan<char> fileName)
         {
             FileAttributes attributes = FileAttributes.None;
 
@@ -496,7 +492,7 @@
         public const int DT_DIR = 4;
 
         [StructLayout(LayoutKind.Sequential)]
-        private unsafe struct DirEnt
+        private unsafe struct UnixDirEnt
         {
             public ulong d_ino;         // Inode number
             public long d_off;          // Offset to the next dirent
@@ -534,15 +530,15 @@
 
         // P/Invoke for opendir
         [DllImport("libc", CallingConvention = CallingConvention.Cdecl, EntryPoint = "opendir", SetLastError = true)]
-        private static extern unsafe nint OpenDir(byte* name);
+        private static extern unsafe nint UnixOpenDir(byte* name);
 
         // P/Invoke for readdir
         [DllImport("libc", CallingConvention = CallingConvention.Cdecl, EntryPoint = "readdir", SetLastError = true)]
-        private static extern unsafe DirEnt* ReadDir(nint dir);
+        private static extern unsafe UnixDirEnt* UnixReadDir(nint dir);
 
         // P/Invoke for closedir
         [DllImport("libc", CallingConvention = CallingConvention.Cdecl, EntryPoint = "closedir", SetLastError = true)]
-        private static extern unsafe int CloseDir(nint dir);
+        private static extern unsafe int UnixCloseDir(nint dir);
 
         public static IEnumerable<FileMetadata> EnumerateEntriesUnix(string path, string pattern, SearchOption option)
         {
@@ -553,7 +549,7 @@
 
             while (walkStack.TryPop(out var dir))
             {
-                var dirHandle = OpenDir(dir);
+                var dirHandle = UnixOpenDir(dir);
 
                 if (dirHandle == 0)
                 {
@@ -561,7 +557,7 @@
                     continue;
                 }
 
-                while (TryReadDir(dirHandle, out var dirEnt))
+                while (UnixTryReadDir(dirHandle, out var dirEnt))
                 {
                     if (!dirEnt.ShouldIgnore(pattern, out var ignore))
                     {
@@ -579,21 +575,21 @@
                     }
                 }
 
-                CloseDir(dirHandle);
+                UnixCloseDir(dirHandle);
                 dir.Release();
             }
 
             walkStack.Release();
         }
 
-        private static nint OpenDir(StdString str)
+        private static nint UnixOpenDir(StdString str)
         {
-            return OpenDir(str.Data);
+            return UnixOpenDir(str.Data);
         }
 
-        private static bool TryReadDir(nint dirHandle, out DirEnt dirEnt)
+        private static bool UnixTryReadDir(nint dirHandle, out UnixDirEnt dirEnt)
         {
-            var entry = ReadDir(dirHandle);
+            var entry = UnixReadDir(dirHandle);
             if (entry == null)
             {
                 dirEnt = default;
@@ -603,7 +599,7 @@
             return true;
         }
 
-        private static FileMetadata Convert(DirEnt entry, StdString path)
+        private static FileMetadata Convert(UnixDirEnt entry, StdString path)
         {
             int length = NET.Utilities.Utils.StrLen(entry.d_name);
             StdWString str;
@@ -623,17 +619,17 @@
             *(str.Data + str.Size) = '\0';
 
             FileMetadata meta = default;
-            FileStat(str, out var stat);
+            UnixFileStat(str, out var stat);
             meta.Path = str;
             meta.CreationTime = DateTimeOffset.FromUnixTimeSeconds(stat.StCtime).LocalDateTime.AddTicks((long)(stat.StCtimensec / 100));
             meta.LastAccessTime = DateTimeOffset.FromUnixTimeSeconds(stat.StAtime).LocalDateTime.AddTicks((long)(stat.StAtimensec / 100));
             meta.LastWriteTime = DateTimeOffset.FromUnixTimeSeconds(stat.StMtime).LocalDateTime.AddTicks((long)(stat.StMtimensec / 100));
             meta.Size = stat.StSize;
-            meta.Attributes = ConvertStatModeToAttributes(stat.StMode, str);
+            meta.Attributes = UnixConvertStatModeToAttributes(stat.StMode, str);
             return meta;
         }
 
-        private static void FileStat(StdWString str, out Stat stat)
+        private static void UnixFileStat(StdWString str, out UnixStat stat)
         {
             int strSize0 = Encoding.UTF8.GetByteCount(str.Data, str.Size);
             byte* pStr0;
@@ -649,7 +645,7 @@
             Encoding.UTF8.GetBytes(str.Data, str.Size, pStr0, strSize0);
             pStr0[strSize0] = 0;
 
-            FileStat(pStr0, out stat);
+            UnixFileStat(pStr0, out stat);
 
             if (strSize0 >= Utils.MaxStackallocSize)
             {
@@ -919,7 +915,7 @@
             meta.LastAccessTime = stat.st_atimespec;
             meta.LastWriteTime = stat.st_mtimespec;
             meta.Size = stat.st_size;
-            meta.Attributes = ConvertStatModeToAttributes(stat.st_mode, str);
+            meta.Attributes = OSXConvertStatModeToAttributes(stat.st_mode, str);
 
             return meta;
         }

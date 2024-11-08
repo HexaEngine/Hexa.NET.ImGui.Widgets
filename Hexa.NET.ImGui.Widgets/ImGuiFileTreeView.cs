@@ -21,7 +21,7 @@
                 }
 
                 Vector4 color = item.IsFolder && !first ? new(1.0f, 0.87f, 0.37f, 1.0f) : new(1.0f, 1.0f, 1.0f, 1.0f);
-                bool isOpen = ImGuiTreeNode.IconTreeNode(item.Name, item.Icon, color, ImGuiTreeNodeFlags.OpenOnArrow);
+                bool isOpen = ImGui.TreeNodeEx(item.Name, ImGuiTreeNodeFlags.OpenOnArrow);
                 bool changed = false;
                 if (ImGui.IsItemHovered() && ImGui.IsItemClicked(ImGuiMouseButton.Left))
                 {

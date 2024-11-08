@@ -7,6 +7,7 @@
     using Hexa.NET.SDL2;
     using Hexa.NET.Utilities;
     using System;
+    using System.Diagnostics;
 
     public class ImGuiManager
     {
@@ -42,6 +43,8 @@
             io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
             io.ConfigViewportsNoAutoMerge = false;
             io.ConfigViewportsNoTaskBarIcon = false;
+            io.ConfigDebugIsDebuggerPresent = true;
+            io.ConfigErrorRecoveryEnableAssert = true;
 
             // Setup Platform
             ImGuiImplSDL2.SetCurrentContext(guiContext);
@@ -61,7 +64,8 @@
 
             builder.SetOption(config => { config.PixelSnapH = true; config.OversampleH = 2; config.OversampleV = 2; });
             builder.AddFontFromFileTTF("assets/fonts/arialuni.ttf", 18, array);
-            builder.SetOption(config => {
+            builder.SetOption(config =>
+            {
                 config.GlyphMinAdvanceX = 18;
                 config.GlyphOffset = new(0, 4);
                 config.MergeMode = true;

@@ -1,12 +1,14 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     using Hexa.NET.ImGui.Widgets.Extensions;
+    using Microsoft.CodeAnalysis;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Runtime.InteropServices;
     using System.Text.Json.Serialization;
+    using System.Xml.Linq;
 
     [JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Serialization)]
     [JsonSerializable(typeof(Dictionary<string, string>))]
@@ -212,7 +214,7 @@
 
                     var itemName = option == SearchOption.AllDirectories ? $"{name}##{id++}" : name.ToString();
                     var decorator = isDir ? $"{folderDecorator}" : fileDecorator(metadata);
-                    FileSystemItem item = new(metadata, decorator, itemName, isDir ? FileSystemItemFlags.Folder : FileSystemItemFlags.None);
+                    FileSystemItem item = new(metadata, itemName, decorator, isDir ? FileSystemItemFlags.Folder : FileSystemItemFlags.None);
                     yield return item;
                 }
             }
@@ -238,40 +240,51 @@
                 throw new ArgumentNullException(nameof(allowedExtensions));
             }
 
-            foreach (var fse in Directory.GetFileSystemEntries(folder, string.Empty))
+            try
             {
-                var flags = File.GetAttributes(fse);
-                if ((flags & FileAttributes.System) != 0)
-                    continue;
-                if ((flags & FileAttributes.Hidden) != 0)
-                    continue;
-                if ((flags & FileAttributes.Device) != 0)
-                    continue;
-
-                if ((flags & FileAttributes.Directory) != 0)
+                foreach (var metadata in FileUtilities.EnumerateEntries(folder, string.Empty, SearchOption.TopDirectoryOnly))
                 {
-                    if (folders)
-                    {
-                        items.Add(new(fse, $"{MaterialIcons.Folder}", FileSystemItemFlags.Folder));
-                    }
+                    var flags = metadata.Attributes;
+                    if ((flags & FileAttributes.System) != 0)
+                        continue;
+                    if ((flags & FileAttributes.Hidden) != 0)
+                        continue;
+                    if ((flags & FileAttributes.Device) != 0)
+                        continue;
 
-                    continue;
-                }
-                else if (files)
-                {
-                    if (onlyAllowFilteredExtensions)
+                    var span = metadata.Path.AsSpan();
+                    var name = Path.GetFileName(span);
+
+                    var itemName = name.ToString();
+
+                    if ((flags & FileAttributes.Directory) != 0)
                     {
-                        var ext = Path.GetExtension(fse.AsSpan());
-                        if (allowedExtensions!.Contains(ext, StringComparison.OrdinalIgnoreCase))
+                        if (folders)
                         {
-                            items.Add(new FileSystemItem(fse, string.Empty, FileSystemItemFlags.None));
+                            items.Add(new(metadata, itemName, $"{MaterialIcons.Folder}", FileSystemItemFlags.Folder));
+                        }
+
+                        continue;
+                    }
+                    else if (files)
+                    {
+                        if (onlyAllowFilteredExtensions)
+                        {
+                            var ext = Path.GetExtension(span);
+                            if (allowedExtensions!.Contains(ext, StringComparison.OrdinalIgnoreCase))
+                            {
+                                items.Add(new FileSystemItem(metadata, itemName, string.Empty, FileSystemItemFlags.None));
+                            }
+                        }
+                        else
+                        {
+                            items.Add(new FileSystemItem(metadata, itemName, string.Empty, FileSystemItemFlags.None));
                         }
                     }
-                    else
-                    {
-                        items.Add(new FileSystemItem(fse, string.Empty, FileSystemItemFlags.None));
-                    }
                 }
+            }
+            catch
+            {
             }
 
             cache.Add(folder, items);

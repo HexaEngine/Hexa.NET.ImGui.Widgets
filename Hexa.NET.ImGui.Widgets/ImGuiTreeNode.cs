@@ -165,6 +165,10 @@
             float arrow_hit_x2 = text_pos.X - text_offset_x + (g.FontSize + padding.X * 2.0f) + style.TouchExtraPadding.X;
             bool is_mouse_x_over_arrow = g.IO.MousePos.X >= arrow_hit_x1 && g.IO.MousePos.X < arrow_hit_x2;
 
+            bool is_multi_select = (g.LastItemData.ItemFlags & (ImGuiItemFlags)ImGuiItemFlagsPrivate.IsMultiSelect) != 0;
+            if (is_multi_select) // We absolutely need to distinguish open vs select so _OpenOnArrow comes by default
+                flags |= (flags & (ImGuiTreeNodeFlags)ImGuiTreeNodeFlagsPrivate.OpenOnMask) == 0 ? ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick : ImGuiTreeNodeFlags.OpenOnArrow;
+
             // Open behaviors can be altered with the _OpenOnArrow and _OnOnDoubleClick flags.
             // Some alteration have subtle effects (e.g. toggle on MouseUp vs MouseDown events) due to requirements for multi-selection and drag and drop support.
             // - Single-click on label = Toggle on MouseUp (default, when _OpenOnArrow=0)
@@ -185,16 +189,12 @@
             bool was_selected = selected;
 
             // Multi-selection support (header)
-            bool is_multi_select = (g.LastItemData.ItemFlags & (ImGuiItemFlags)ImGuiItemFlagsPrivate.IsMultiSelect) != 0;
             if (is_multi_select)
             {
                 // Handle multi-select + alter button flags for it
                 ImGuiP.MultiSelectItemHeader(id, &selected, &button_flags);
                 if (is_mouse_x_over_arrow)
                     button_flags = (ImGuiButtonFlags)(((ImGuiButtonFlagsPrivate)button_flags | ImGuiButtonFlagsPrivate.PressedOnClick) & ~ImGuiButtonFlagsPrivate.PressedOnClickRelease);
-
-                // We absolutely need to distinguish open vs select so comes by default
-                flags |= ImGuiTreeNodeFlags.OpenOnArrow;
             }
             else
             {
@@ -209,18 +209,20 @@
             {
                 if (pressed && g.DragDropHoldJustPressedId != id)
                 {
-                    if ((flags & (ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick)) == 0 || g.NavActivateId == id && !is_multi_select)
-                        toggled = true;
+                    if ((flags & (ImGuiTreeNodeFlags)ImGuiTreeNodeFlagsPrivate.OpenOnMask) == 0 || g.NavActivateId == id && !is_multi_select)
+                        toggled = true; // Single click
                     if ((flags & ImGuiTreeNodeFlags.OpenOnArrow) != 0)
-                        toggled |= is_mouse_x_over_arrow; // Lightweight equivalent of IsMouseHoveringRect() since ButtonBehavior() already did the job
+                        toggled |= is_mouse_x_over_arrow && !g.NavHighlightItemUnderNav;  // Lightweight equivalent of IsMouseHoveringRect() since ButtonBehavior() already did the job
                     if ((flags & ImGuiTreeNodeFlags.OpenOnDoubleClick) != 0 && g.IO.MouseClickedCount_0 == 2)
-                        toggled = true;
+                        toggled = true; // Double click
                 }
                 else if (pressed && g.DragDropHoldJustPressedId == id)
                 {
                     Trace.Assert((button_flags & (ImGuiButtonFlags)ImGuiButtonFlagsPrivate.PressedOnDragDropHold) != 0);
                     if (!is_open) // When using Drag and Drop "hold to open" we keep the node highlighted after opening, but never close it again.
                         toggled = true;
+                    else
+                        pressed = false; // Cancel press so it doesn't trigger selection.
                 }
 
                 if (g.NavId == id && g.NavMoveDir == ImGuiDir.Left && is_open)
@@ -262,15 +264,15 @@
             // Render
             {
                 uint text_col = ImGui.GetColorU32(ImGuiCol.Text);
-                ImGuiNavRenderCursorFlags nav_highlight_flags = ImGuiNavRenderCursorFlags.Compact;
+                ImGuiNavRenderCursorFlags nav_render_cursor_flags = ImGuiNavRenderCursorFlags.Compact;
                 if (is_multi_select)
-                    nav_highlight_flags |= ImGuiNavRenderCursorFlags.AlwaysDraw; // Always show the nav rectangle
+                    nav_render_cursor_flags |= ImGuiNavRenderCursorFlags.AlwaysDraw; // Always show the nav rectangle
                 if (display_frame)
                 {
                     // Framed type
                     uint bg_col = ImGui.GetColorU32(held && hovered ? ImGuiCol.HeaderActive : hovered ? ImGuiCol.HeaderHovered : ImGuiCol.Header);
                     ImGuiP.RenderFrame(frame_bb.Min, frame_bb.Max, bg_col, true, style.FrameRounding);
-                    ImGuiP.RenderNavCursor(frame_bb, id, nav_highlight_flags);
+                    ImGuiP.RenderNavCursor(frame_bb, id, nav_render_cursor_flags);
                     if ((flags & ImGuiTreeNodeFlags.Bullet) != 0)
                         ImGuiP.RenderBullet(draw, new(text_pos.X - text_offset_x * 0.60f, text_pos.Y + g.FontSize * 0.5f), text_col);
                     else if (!is_leaf)
@@ -290,7 +292,7 @@
                         uint bg_col = ImGui.GetColorU32(held && hovered ? ImGuiCol.HeaderActive : hovered ? ImGuiCol.HeaderHovered : ImGuiCol.Header);
                         ImGuiP.RenderFrame(frame_bb.Min, frame_bb.Max, bg_col, false, style.FrameRounding);
                     }
-                    ImGuiP.RenderNavCursor(frame_bb, id, nav_highlight_flags);
+                    ImGuiP.RenderNavCursor(frame_bb, id, nav_render_cursor_flags);
                     if ((flags & ImGuiTreeNodeFlags.Bullet) != 0)
                         ImGuiP.RenderBullet(draw, new(text_pos.X - text_offset_x * 0.5f, text_pos.Y + g.FontSize * 0.5f), text_col);
                     else if (!is_leaf)
