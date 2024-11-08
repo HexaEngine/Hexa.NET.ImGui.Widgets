@@ -580,11 +580,11 @@
             byte* pStr0;
             if (strSize0 >= Utils.MaxStackallocSize)
             {
-                pStr0 = Utils.Alloc<byte>(strSize0);
+                pStr0 = Utils.Alloc<byte>(strSize0 + 1);
             }
             else
             {
-                byte* pStrStack0 = stackalloc byte[strSize0];
+                byte* pStrStack0 = stackalloc byte[strSize0 + 1];
                 pStr0 = pStrStack0;
             }
             Encoding.UTF8.GetBytes(str.Data, str.Size, pStr0, strSize0);
@@ -872,11 +872,11 @@
             byte* pStr0;
             if (strSize0 >= Utils.MaxStackallocSize)
             {
-                pStr0 = Utils.Alloc<byte>(strSize0);
+                pStr0 = Utils.Alloc<byte>(strSize0 + 1);
             }
             else
             {
-                byte* pStrStack0 = stackalloc byte[strSize0];
+                byte* pStrStack0 = stackalloc byte[strSize0 + 1];
                 pStr0 = pStrStack0;
             }
             Encoding.UTF8.GetBytes(str.Data, str.Size, pStr0, strSize0);
