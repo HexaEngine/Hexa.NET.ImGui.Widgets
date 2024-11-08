@@ -849,16 +849,19 @@
 
             Console.WriteLine($"OSXConvert -> Ptr: {(nint)str.Data}");
 
-            Console.WriteLine($"OSXConvert meta -> Ptr: {(nint)meta.Path.Data}");
+            Console.WriteLine($"OSXConvert meta -> Ptr: {(nint)meta.Path.Data}"); // not null.
 
             OSXFileStat(str, out var stat);
+
+            Console.WriteLine($"OSXConvert meta -> Ptr: {(nint)meta.Path.Data}");
+
             meta.CreationTime = stat.st_ctimespec;
             meta.LastAccessTime = stat.st_atimespec;
             meta.LastWriteTime = stat.st_mtimespec;
             meta.Size = stat.st_size;
             meta.Attributes = ConvertStatModeToAttributes(stat.st_mode, str);
 
-            Console.WriteLine($"OSXConvert meta -> Ptr: {(nint)meta.Path.Data}");
+            Console.WriteLine($"OSXConvert meta -> Ptr: {(nint)meta.Path.Data}"); // suddenly becomes null
 
             return meta;
         }
