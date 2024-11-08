@@ -837,19 +837,16 @@
             str.Append('/');
             str.Append(entry.d_name, length);
             *(str.Data + str.Size) = '\0';
-            FileMetadata meta = new();
-            meta.Path = str;
 
             OSXFileStat(str, out var stat);
+
+            FileMetadata meta = new();
+            meta.Path = str;
             meta.CreationTime = stat.st_ctimespec;
             meta.LastAccessTime = stat.st_atimespec;
             meta.LastWriteTime = stat.st_mtimespec;
             meta.Size = stat.st_size;
             meta.Attributes = ConvertStatModeToAttributes(stat.st_mode, str);
-
-            Console.WriteLine($"OSXConvert meta -> Ptr: {(nint)meta.Path.Data}"); // suddenly becomes null
-
-            Console.WriteLine($"OSXConvert str -> Ptr: {(nint)str.Data}"); // not null.
 
             return meta;
         }
