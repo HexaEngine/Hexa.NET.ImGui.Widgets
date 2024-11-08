@@ -838,9 +838,10 @@
             str.Append(entry.d_name, length);
             *(str.Data + str.Size) = '\0';
 
+            FileMetadata meta = new();
+
             OSXFileStat(str, out var stat);
 
-            FileMetadata meta = new();
             meta.Path = str;
             meta.CreationTime = stat.st_ctimespec;
             meta.LastAccessTime = stat.st_atimespec;
