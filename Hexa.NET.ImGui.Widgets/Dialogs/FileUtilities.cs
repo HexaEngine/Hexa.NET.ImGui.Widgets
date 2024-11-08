@@ -845,18 +845,10 @@
             str.Append(entry.d_name, length);
             *(str.Data + str.Size) = '\0';
             FileMetadata meta = new();
-            meta.Path = str;
-
-            Console.WriteLine($"OSXConvert -> Ptr: {(nint)str.Data}");
-
-            Console.WriteLine($"OSXConvert meta -> Ptr: {(nint)meta.Path.Data}"); // not null.
 
             OSXFileStat(str, out var stat);
 
-            Console.WriteLine($"OSXConvert meta -> Ptr: {(nint)meta.Path.Data}");
-
-            Console.WriteLine($"OSXConvert str -> Ptr: {(nint)str.Data}");
-
+            meta.Path = str;
             meta.CreationTime = stat.st_ctimespec;
             meta.LastAccessTime = stat.st_atimespec;
             meta.LastWriteTime = stat.st_mtimespec;
@@ -865,16 +857,16 @@
 
             Console.WriteLine($"OSXConvert meta -> Ptr: {(nint)meta.Path.Data}"); // suddenly becomes null
 
-            Console.WriteLine($"OSXConvert str -> Ptr: {(nint)str.Data}");
+            Console.WriteLine($"OSXConvert str -> Ptr: {(nint)str.Data}"); // not null.
 
             return meta;
         }
 
         private static void OSXFileStat(StdWString str, out OSXStat stat)
         {
-            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}");
+            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}"); // not null
             int strSize0 = Encoding.UTF8.GetByteCount(str.Data, str.Size);
-            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}");
+            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}"); // not null
             byte* pStr0;
             if (strSize0 >= Utils.MaxStackallocSize)
             {
@@ -887,14 +879,14 @@
             }
             Encoding.UTF8.GetBytes(str.Data, str.Size, pStr0, strSize0);
             pStr0[strSize0] = 0;
-            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}");
+            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}"); // not null
             OSXFileStat(pStr0, out stat);
-            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}");
+            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}"); // not null
             if (strSize0 >= Utils.MaxStackallocSize)
             {
                 Utils.Free(pStr0);
             }
-            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}");
+            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}"); // not null
         }
 
         #endregion OSX
