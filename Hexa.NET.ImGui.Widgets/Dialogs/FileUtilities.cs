@@ -318,8 +318,8 @@
         #region UNIX/LINUX
 
         // Unix-based stat method
-        [LibraryImport("libc", EntryPoint = "stat", SetLastError = true)]
-        private static unsafe partial int FileStat(byte* path, out Stat buf);
+        [DllImport("libc", CallingConvention = CallingConvention.Cdecl, EntryPoint = "stat", SetLastError = true)]
+        private static extern unsafe int FileStat(byte* path, out Stat buf);
 
         [StructLayout(LayoutKind.Sequential)]
         private struct Stat
@@ -485,15 +485,15 @@
         }
 
         // P/Invoke for opendir
-        [DllImport("libc", EntryPoint = "opendir", SetLastError = true)]
+        [DllImport("libc", CallingConvention = CallingConvention.Cdecl, EntryPoint = "opendir", SetLastError = true)]
         private static extern unsafe nint OpenDir(byte* name);
 
         // P/Invoke for readdir
-        [DllImport("libc", EntryPoint = "readdir", SetLastError = true)]
+        [DllImport("libc", CallingConvention = CallingConvention.Cdecl, EntryPoint = "readdir", SetLastError = true)]
         private static extern unsafe DirEnt* ReadDir(nint dir);
 
         // P/Invoke for closedir
-        [DllImport("libc", EntryPoint = "closedir", SetLastError = true)]
+        [DllImport("libc", CallingConvention = CallingConvention.Cdecl, EntryPoint = "closedir", SetLastError = true)]
         private static extern unsafe int CloseDir(nint dir);
 
         public static IEnumerable<FileMetadata> EnumerateEntriesUnix(string path, string pattern, SearchOption option)
@@ -603,8 +603,9 @@
         #region OSX
 
         // Unix-based stat method
-        [LibraryImport("libSystem.B.dylib", EntryPoint = "stat", SetLastError = true)]
-        private static unsafe partial int OSXFileStat(byte* path, out OSXStat buf);
+
+        [DllImport("libSystem.B.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "stat", SetLastError = true)]
+        private static extern unsafe int OSXFileStat(byte* path, out OSXStat buf);
 
         [StructLayout(LayoutKind.Sequential)]
         private struct OSXStat
@@ -759,15 +760,15 @@
         }
 
         // P/Invoke for opendir
-        [DllImport("libSystem.B.dylib", EntryPoint = "opendir", SetLastError = true)]
+        [DllImport("libSystem.B.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "opendir", SetLastError = true)]
         private static extern unsafe nint OSXOpenDir(byte* name);
 
         // P/Invoke for readdir
-        [DllImport("libSystem.B.dylib", EntryPoint = "readdir", SetLastError = true)]
+        [DllImport("libSystem.B.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "readdir", SetLastError = true)]
         private static extern unsafe OSXDirEnt* OSXReadDir(nint dir);
 
         // P/Invoke for closedir
-        [DllImport("libSystem.B.dylib", EntryPoint = "closedir", SetLastError = true)]
+        [DllImport("libSystem.B.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "closedir", SetLastError = true)]
         private static extern unsafe int OSXCloseDir(nint dir);
 
         public static IEnumerable<FileMetadata> EnumerateEntriesOSX(string path, string pattern, SearchOption option)
@@ -790,7 +791,6 @@
                     if (!dirEnt.ShouldIgnore(pattern, out var ignore))
                     {
                         var meta = OSXConvert(dirEnt, dir);
-                        Print(meta);
 
                         if ((meta.Attributes & FileAttributes.Directory) != 0 && option == SearchOption.AllDirectories)
                         {
@@ -799,9 +799,7 @@
 
                         if (!ignore)
                         {
-                            Print(meta);
                             yield return meta;
-                            Print(meta);
                             meta.Path.Release();
                         }
                     }
@@ -812,11 +810,6 @@
             }
 
             walkStack.Release();
-        }
-
-        private static void Print(FileMetadata meta)
-        {
-            Console.WriteLine($"Print -> Ptr: {(nint)meta.Path.Data}");
         }
 
         private static nint OSXOpenDir(StdString str)
@@ -845,10 +838,9 @@
             str.Append(entry.d_name, length);
             *(str.Data + str.Size) = '\0';
             FileMetadata meta = new();
+            meta.Path = str;
 
             OSXFileStat(str, out var stat);
-
-            meta.Path = str;
             meta.CreationTime = stat.st_ctimespec;
             meta.LastAccessTime = stat.st_atimespec;
             meta.LastWriteTime = stat.st_mtimespec;
