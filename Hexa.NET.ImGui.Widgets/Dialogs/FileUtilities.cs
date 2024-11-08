@@ -855,6 +855,8 @@
 
             Console.WriteLine($"OSXConvert meta -> Ptr: {(nint)meta.Path.Data}");
 
+            Console.WriteLine($"OSXConvert str -> Ptr: {(nint)str.Data}");
+
             meta.CreationTime = stat.st_ctimespec;
             meta.LastAccessTime = stat.st_atimespec;
             meta.LastWriteTime = stat.st_mtimespec;
@@ -862,6 +864,8 @@
             meta.Attributes = ConvertStatModeToAttributes(stat.st_mode, str);
 
             Console.WriteLine($"OSXConvert meta -> Ptr: {(nint)meta.Path.Data}"); // suddenly becomes null
+
+            Console.WriteLine($"OSXConvert str -> Ptr: {(nint)str.Data}");
 
             return meta;
         }
@@ -890,6 +894,7 @@
             {
                 Utils.Free(pStr0);
             }
+            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}");
         }
 
         #endregion OSX
