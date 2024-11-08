@@ -604,7 +604,7 @@
 
         // Unix-based stat method
 
-        [DllImport("libSystem.B.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "stat", SetLastError = true)]
+        [DllImport("libSystem.B.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "stat")]
         private static extern unsafe int OSXFileStat(byte* path, out OSXStat buf);
 
         [StructLayout(LayoutKind.Sequential)]
@@ -760,15 +760,15 @@
         }
 
         // P/Invoke for opendir
-        [DllImport("libSystem.B.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "opendir", SetLastError = true)]
+        [DllImport("libSystem.B.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "opendir")]
         private static extern unsafe nint OSXOpenDir(byte* name);
 
         // P/Invoke for readdir
-        [DllImport("libSystem.B.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "readdir", SetLastError = true)]
+        [DllImport("libSystem.B.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "readdir")]
         private static extern unsafe OSXDirEnt* OSXReadDir(nint dir);
 
         // P/Invoke for closedir
-        [DllImport("libSystem.B.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "closedir", SetLastError = true)]
+        [DllImport("libSystem.B.dylib", CallingConvention = CallingConvention.Cdecl, EntryPoint = "closedir")]
         private static extern unsafe int OSXCloseDir(nint dir);
 
         public static IEnumerable<FileMetadata> EnumerateEntriesOSX(string path, string pattern, SearchOption option)
@@ -854,11 +854,9 @@
             return meta;
         }
 
-        private static void OSXFileStat(StdWString str, out OSXStat stat)
+        private static int OSXFileStat(StdWString str, out OSXStat stat)
         {
-            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}"); // not null
             int strSize0 = Encoding.UTF8.GetByteCount(str.Data, str.Size);
-            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}"); // not null
             byte* pStr0;
             if (strSize0 >= Utils.MaxStackallocSize)
             {
@@ -871,14 +869,12 @@
             }
             Encoding.UTF8.GetBytes(str.Data, str.Size, pStr0, strSize0);
             pStr0[strSize0] = 0;
-            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}"); // not null
-            OSXFileStat(pStr0, out stat);
-            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}"); // not null
+            int ret = OSXFileStat(pStr0, out stat);
             if (strSize0 >= Utils.MaxStackallocSize)
             {
                 Utils.Free(pStr0);
             }
-            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}"); // not null
+            return ret;
         }
 
         #endregion OSX
