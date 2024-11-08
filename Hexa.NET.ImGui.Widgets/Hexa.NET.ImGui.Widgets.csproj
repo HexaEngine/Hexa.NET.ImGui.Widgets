@@ -48,7 +48,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Hexa.NET.ImGui" Version="2.1.10" />
-		<PackageReference Include="Hexa.NET.Utilities" Version="2.1.9" />
+		<PackageReference Include="Hexa.NET.Utilities" Version="2.1.10" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.10.0" />
 	</ItemGroup>
 
