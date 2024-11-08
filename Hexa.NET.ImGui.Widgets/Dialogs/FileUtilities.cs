@@ -1,12 +1,9 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     using Hexa.NET.Utilities;
-    using Microsoft.CodeAnalysis;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
     using System.IO;
-    using System.Reflection;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
     using System.Text;
@@ -20,6 +17,10 @@
             {
                 return GetFileMetadataWindows(filePath).Size;
             }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return GetFileMetadataOSX(filePath).Size;
+            }
             else
             {
                 return GetFileMetadataUnix(filePath).Size;
@@ -31,6 +32,10 @@
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return GetFileMetadataWindows(filePath);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return GetFileMetadataOSX(filePath);
             }
             else
             {
@@ -44,9 +49,46 @@
             {
                 return EnumerateEntriesWin(path, pattern, option);
             }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return EnumerateEntriesOSX(path, pattern, option);
+            }
             else
             {
                 return EnumerateEntriesUnix(path, pattern, option);
+            }
+        }
+
+        public static readonly char DirectorySeparatorChar = Path.DirectorySeparatorChar;
+        public static readonly char AltDirectorySeparatorChar = Path.AltDirectorySeparatorChar;
+
+        public static void CorrectPath(StdString str)
+        {
+            byte* ptr = str.Data;
+            byte* end = ptr + str.Size;
+            while (ptr != end)
+            {
+                byte c = *ptr;
+                if (c == '/' || c == '\\')
+                {
+                    *ptr = (byte)DirectorySeparatorChar;
+                }
+                ptr++;
+            }
+        }
+
+        public static void CorrectPath(StdWString str)
+        {
+            char* ptr = str.Data;
+            char* end = ptr + str.Size;
+            while (ptr != end)
+            {
+                char c = *ptr;
+                if (c == '/' || c == '\\')
+                {
+                    *ptr = DirectorySeparatorChar;
+                }
+                ptr++;
             }
         }
 
@@ -60,6 +102,7 @@
                 StdWString str = path;
                 str.Append('\\');
                 str.Append('*');
+                CorrectPath(str);
                 walkStack.Push(str);
             }
 
@@ -129,19 +172,24 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static FileMetadata Convert(WIN32_FIND_DATA data, StdWString path)
         {
-            FileMetadata metadata = new();
             int length = StrLen(data.cFileName);
-            StdWString str = new(length + path.Size + 1);
-            for (int i = 0; i < path.Size - 1; i++)
+            StdWString str;
+            if (path[path.Size - 1] != '/' || path[path.Size - 1] != '\\')
             {
-                str.Append(path[i]);
+                str = new(length + 1 + path.Size);
+                str.Append(path);
+                str.Append('/');
+                str.Append(data.cFileName, length);
             }
-
-            for (int i = 0; i < length; i++)
+            else
             {
-                str.Append(data.cFileName[i]);
+                str = new(length + path.Size);
+                str.Append(path);
+                str.Append(data.cFileName, length);
             }
+            *(str.Data + str.Size) = '\0';
 
+            FileMetadata metadata = new();
             metadata.Path = str;
             metadata.CreationTime = DateTime.FromFileTime(data.ftCreationTime);
             metadata.LastAccessTime = DateTime.FromFileTime(data.ftLastAccessTime);
@@ -498,8 +546,10 @@
 
         public static IEnumerable<FileMetadata> EnumerateEntriesUnix(string path, string pattern, SearchOption option)
         {
+            StdString str = path;
+            CorrectPath(str);
             UnsafeStack<StdString> walkStack = new();
-            walkStack.Push(path);
+            walkStack.Push(str);
 
             while (walkStack.TryPop(out var dir))
             {
@@ -555,17 +605,26 @@
 
         private static FileMetadata Convert(DirEnt entry, StdString path)
         {
-            MemoryDump(&entry);
             int length = NET.Utilities.Utils.StrLen(entry.d_name);
-            StdWString str = new(path.Size + 1 + length);
-            str.Append(path);
-            str.Append('/');
-            str.Append(entry.d_name);
+            StdWString str;
+            if (path.Data[path.Size - 1] != '/')
+            {
+                str = new(path.Size + 1 + length);
+                str.Append(path);
+                str.Append('/');
+                str.Append(entry.d_name);
+            }
+            else
+            {
+                str = new(path.Size + length);
+                str.Append(path);
+                str.Append(entry.d_name);
+            }
             *(str.Data + str.Size) = '\0';
-            FileMetadata meta = new();
-            meta.Path = str;
 
+            FileMetadata meta = default;
             FileStat(str, out var stat);
+            meta.Path = str;
             meta.CreationTime = DateTimeOffset.FromUnixTimeSeconds(stat.StCtime).LocalDateTime.AddTicks((long)(stat.StCtimensec / 100));
             meta.LastAccessTime = DateTimeOffset.FromUnixTimeSeconds(stat.StAtime).LocalDateTime.AddTicks((long)(stat.StAtimensec / 100));
             meta.LastWriteTime = DateTimeOffset.FromUnixTimeSeconds(stat.StMtime).LocalDateTime.AddTicks((long)(stat.StMtimensec / 100));
@@ -773,8 +832,10 @@
 
         public static IEnumerable<FileMetadata> EnumerateEntriesOSX(string path, string pattern, SearchOption option)
         {
+            StdString str = path;
+            CorrectPath(str);
             UnsafeStack<StdString> walkStack = new();
-            walkStack.Push(path);
+            walkStack.Push(str);
 
             while (walkStack.TryPop(out var dir))
             {
@@ -832,10 +893,21 @@
         private static FileMetadata OSXConvert(OSXDirEnt entry, StdString path)
         {
             int length = entry.d_namlen;
-            StdWString str = new(path.Size + 1 + length);
-            str.Append(path);
-            str.Append('/');
-            str.Append(entry.d_name, length);
+            StdWString str;
+            if (path.Data[path.Size - 1] != '/')
+            {
+                str = new(path.Size + 1 + length);
+                str.Append(path);
+                str.Append('/');
+                str.Append(entry.d_name, length);
+            }
+            else
+            {
+                str = new(path.Size + length);
+                str.Append(path);
+                str.Append(entry.d_name, length);
+            }
+
             *(str.Data + str.Size) = '\0';
 
             FileMetadata meta = default;
