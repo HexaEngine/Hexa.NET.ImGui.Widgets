@@ -790,6 +790,8 @@
                     if (!dirEnt.ShouldIgnore(pattern, out var ignore))
                     {
                         var meta = OSXConvert(dirEnt, dir);
+                        Print(meta);
+
                         if ((meta.Attributes & FileAttributes.Directory) != 0 && option == SearchOption.AllDirectories)
                         {
                             walkStack.Push(meta.Path.ToUTF8String());
@@ -847,12 +849,17 @@
 
             Console.WriteLine($"OSXConvert -> Ptr: {(nint)str.Data}");
 
+            Console.WriteLine($"OSXConvert meta -> Ptr: {(nint)meta.Path.Data}");
+
             OSXFileStat(str, out var stat);
             meta.CreationTime = stat.st_ctimespec;
             meta.LastAccessTime = stat.st_atimespec;
             meta.LastWriteTime = stat.st_mtimespec;
             meta.Size = stat.st_size;
             meta.Attributes = ConvertStatModeToAttributes(stat.st_mode, str);
+
+            Console.WriteLine($"OSXConvert meta -> Ptr: {(nint)meta.Path.Data}");
+
             return meta;
         }
 
