@@ -129,7 +129,6 @@
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static FileMetadata Convert(WIN32_FIND_DATA data, StdWString path)
         {
-            MemoryDump(&data);
             FileMetadata metadata = new();
             int length = StrLen(data.cFileName);
             StdWString str = new(length + path.Size + 1);
@@ -798,7 +797,9 @@
 
                         if (!ignore)
                         {
+                            Print(meta);
                             yield return meta;
+                            Print(meta);
                             meta.Path.Release();
                         }
                     }
@@ -809,6 +810,11 @@
             }
 
             walkStack.Release();
+        }
+
+        private static void Print(FileMetadata meta)
+        {
+            Console.WriteLine($"Print -> Ptr: {(nint)meta.Path.Data}");
         }
 
         private static nint OSXOpenDir(StdString str)
@@ -838,6 +844,8 @@
             *(str.Data + str.Size) = '\0';
             FileMetadata meta = new();
             meta.Path = str;
+
+            Console.WriteLine($"OSXConvert -> Ptr: {(nint)str.Data}");
 
             OSXFileStat(str, out var stat);
             meta.CreationTime = stat.st_ctimespec;
