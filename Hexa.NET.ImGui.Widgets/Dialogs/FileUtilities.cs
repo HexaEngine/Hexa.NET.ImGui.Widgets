@@ -718,15 +718,16 @@
 
         public const int OSX_DT_DIR = 4;
 
-        public const int DARWIN_MAXPATHLEN = 255 + 1;
+        public const int DARWIN_MAXPATHLEN = 1024;
 
         [StructLayout(LayoutKind.Sequential)]
         private unsafe struct OSXDirEnt
         {
-            public uint d_fileno;         // Inode number
-            public ushort d_reclen;     // Length of this record
-            public byte d_type;         // Type of file
-            public byte d_namlen;     // Length of this record
+            public ulong d_ino;            // __uint64_t (64-bit file number of entry)
+            public ulong d_seekoff;        // __uint64_t (64-bit seek offset, optional)
+            public ushort d_reclen;        // __uint16_t (length of this record)
+            public ushort d_namlen;        // __uint16_t (length of string in d_name)
+            public byte d_type;            // __uint8_t (file type)
             public fixed byte d_name[DARWIN_MAXPATHLEN]; // Filename (null-terminated)
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
