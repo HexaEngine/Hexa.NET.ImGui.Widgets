@@ -16,19 +16,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: cat header
-      continue-on-error: true
-      run: |
-        cat /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/dirent.h
-
-    - name: cat header 2
-      continue-on-error: true
-      run: |
-        cat /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/dirent.h
-
-
-
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:

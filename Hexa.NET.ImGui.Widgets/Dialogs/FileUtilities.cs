@@ -829,7 +829,6 @@
 
         private static FileMetadata OSXConvert(OSXDirEnt entry, StdString path)
         {
-            MemoryDump(&entry);
             int length = entry.d_namlen;
             StdWString str = new(path.Size + length);
             str.Append(path);
