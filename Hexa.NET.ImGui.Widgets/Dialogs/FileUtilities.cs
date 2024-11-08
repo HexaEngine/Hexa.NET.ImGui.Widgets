@@ -830,11 +830,11 @@
         private static FileMetadata OSXConvert(OSXDirEnt entry, StdString path)
         {
             MemoryDump(&entry);
-            int length = NET.Utilities.Utils.StrLen(entry.d_name);
+            int length = entry.d_namlen;
             StdWString str = new(path.Size + length);
             str.Append(path);
             str.Append('/');
-            str.Append(entry.d_name);
+            str.Append(entry.d_name, length);
             FileMetadata meta = new();
             meta.Path = str;
 
