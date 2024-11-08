@@ -558,10 +558,11 @@
         {
             MemoryDump(&entry);
             int length = NET.Utilities.Utils.StrLen(entry.d_name);
-            StdWString str = new(path.Size + length);
+            StdWString str = new(path.Size + 1 + length);
             str.Append(path);
             str.Append('/');
             str.Append(entry.d_name);
+            *(str.Data + str.Size) = '\0';
             FileMetadata meta = new();
             meta.Path = str;
 
@@ -830,10 +831,11 @@
         private static FileMetadata OSXConvert(OSXDirEnt entry, StdString path)
         {
             int length = entry.d_namlen;
-            StdWString str = new(path.Size + length);
+            StdWString str = new(path.Size + 1 + length);
             str.Append(path);
             str.Append('/');
             str.Append(entry.d_name, length);
+            *(str.Data + str.Size) = '\0';
             FileMetadata meta = new();
             meta.Path = str;
 
