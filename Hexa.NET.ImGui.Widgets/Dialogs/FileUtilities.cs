@@ -838,7 +838,7 @@
             str.Append(entry.d_name, length);
             *(str.Data + str.Size) = '\0';
 
-            FileMetadata meta = new();
+            FileMetadata meta = default;
 
             OSXFileStat(str, out var stat);
 

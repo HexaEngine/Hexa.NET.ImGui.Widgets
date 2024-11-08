@@ -14,8 +14,6 @@ namespace Hexa.NET.ImGui.Widgets.Tests
 
             foreach (var entry in FileUtilities.EnumerateEntriesOSX(testDirectory, "*", SearchOption.TopDirectoryOnly))
             {
-                Console.WriteLine($"Ptr: {(nint)entry.Path.Data}");
-                Console.WriteLine($"Size: {entry.Path.Size}");
                 var path = entry.Path.ToString();
                 string fileName = Path.GetFileName(path);
                 Assert.Multiple(() =>
