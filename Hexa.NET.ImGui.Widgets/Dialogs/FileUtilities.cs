@@ -868,7 +868,9 @@
 
         private static void OSXFileStat(StdWString str, out OSXStat stat)
         {
+            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}");
             int strSize0 = Encoding.UTF8.GetByteCount(str.Data, str.Size);
+            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}");
             byte* pStr0;
             if (strSize0 >= Utils.MaxStackallocSize)
             {
@@ -881,9 +883,9 @@
             }
             Encoding.UTF8.GetBytes(str.Data, str.Size, pStr0, strSize0);
             pStr0[strSize0] = 0;
-
+            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}");
             OSXFileStat(pStr0, out stat);
-
+            Console.WriteLine($"OSXFileStat -> Ptr: {(nint)str.Data}");
             if (strSize0 >= Utils.MaxStackallocSize)
             {
                 Utils.Free(pStr0);
