@@ -789,7 +789,7 @@
                 {
                     if (!dirEnt.ShouldIgnore(pattern, out var ignore))
                     {
-                        var meta = Convert(dirEnt, dir);
+                        var meta = OSXConvert(dirEnt, dir);
                         if ((meta.Attributes & FileAttributes.Directory) != 0 && option == SearchOption.AllDirectories)
                         {
                             walkStack.Push(meta.Path.ToUTF8String());
@@ -815,9 +815,9 @@
             return OSXOpenDir(str.Data);
         }
 
-        private static bool OSXTryReadDir(nint dirHandle, out DirEnt dirEnt)
+        private static bool OSXTryReadDir(nint dirHandle, out OSXDirEnt dirEnt)
         {
-            var entry = ReadDir(dirHandle);
+            var entry = OSXReadDir(dirHandle);
             if (entry == null)
             {
                 dirEnt = default;
@@ -827,7 +827,7 @@
             return true;
         }
 
-        private static FileMetadata OSXConvert(DirEnt entry, StdString path)
+        private static FileMetadata OSXConvert(OSXDirEnt entry, StdString path)
         {
             int length = NET.Utilities.Utils.StrLen(entry.d_name);
             StdWString str = new(path.Size + length);
