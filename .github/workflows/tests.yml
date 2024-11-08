@@ -19,12 +19,14 @@ jobs:
     - name: cat header
       continue-on-error: true
       run: |
-        cat /usr/include/sys/dirent.h
+        cat /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/dirent.h
 
     - name: cat header 2
       continue-on-error: true
       run: |
-        cat /usr/include/dirent.h
+        cat /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/dirent.h
+
+
 
 
     - name: Setup .NET
