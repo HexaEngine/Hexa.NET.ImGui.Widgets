@@ -1,14 +1,12 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     using Hexa.NET.ImGui.Widgets.Extensions;
-    using Microsoft.CodeAnalysis;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Runtime.InteropServices;
     using System.Text.Json.Serialization;
-    using System.Xml.Linq;
 
     [JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Serialization)]
     [JsonSerializable(typeof(Dictionary<string, string>))]
@@ -253,7 +251,7 @@
             }
         }
 
-        private static readonly Dictionary<string, List<FileSystemItem>> cache = new();
+        private static readonly Dictionary<string, List<FileSystemItem>> cache = [];
 
         public static List<FileSystemItem> GetFileSystemEntries(string folder, RefreshFlags refreshFlags, List<string>? allowedExtensions)
         {
