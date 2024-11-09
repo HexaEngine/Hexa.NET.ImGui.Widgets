@@ -2,6 +2,7 @@
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
+    using Hexa.NET.ImGui.Widgets.IO;
     using Hexa.NET.ImGui.Widgets.Text;
     using System.Diagnostics;
     using System.IO;

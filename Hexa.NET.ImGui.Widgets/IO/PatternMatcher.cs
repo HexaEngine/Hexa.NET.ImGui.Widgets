@@ -1,9 +1,9 @@
-﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
+﻿namespace Hexa.NET.ImGui.Widgets.IO
 {
     using System;
     using System.Text;
 
-    public unsafe class FileSystemSearcher
+    public unsafe class PatternMatcher
     {
         public static bool IsMatch(ReadOnlySpan<char> fileName, string pattern, StringComparison comparison)
         {

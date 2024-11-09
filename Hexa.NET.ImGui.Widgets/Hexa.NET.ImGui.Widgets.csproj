@@ -47,7 +47,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hexa.NET.ImGui" Version="2.1.10" />
+		<PackageReference Include="Hexa.NET.ImGui" Version="2.2.0" />
 		<PackageReference Include="Hexa.NET.Utilities" Version="2.1.10" />
 	</ItemGroup>
 

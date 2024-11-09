@@ -1,7 +1,6 @@
 ﻿namespace TestApp
 {
     using Hexa.NET.ImGui.Widgets;
-    using Hexa.NET.ImGui.Widgets.Extras.TextEditor;
     using Hexa.NET.OpenGL;
     using Hexa.NET.SDL2;
 

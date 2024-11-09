@@ -7,6 +7,7 @@
     using System.Runtime.Versioning;
     using System.Security.AccessControl;
     using System.Text.Json;
+    using Hexa.NET.ImGui.Widgets.IO;
 
     public struct FileSystemItem : IEquatable<FileSystemItem>, IFileSystemItem
     {
@@ -29,7 +30,7 @@
 
             if (IsFile)
             {
-                size = path.TryReturn(FileUtilities.GetFileSize);
+                size = path.TryReturn(FileUtils.GetFileSize);
                 type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
             }
             else
@@ -67,7 +68,7 @@
             dateModified = path.TryReturn(File.GetLastWriteTime);
             if (IsFile)
             {
-                size = path.TryReturn(FileUtilities.GetFileSize);
+                size = path.TryReturn(FileUtils.GetFileSize);
                 type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
             }
             else

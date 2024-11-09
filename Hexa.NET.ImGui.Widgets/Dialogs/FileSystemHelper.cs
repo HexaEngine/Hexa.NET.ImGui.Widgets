@@ -1,6 +1,7 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     using Hexa.NET.ImGui.Widgets.Extensions;
+    using Hexa.NET.ImGui.Widgets.IO;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -214,7 +215,7 @@
             int id = 0;
             bool emitFolders = (refreshFlags & RefreshFlags.Folders) != 0;
             bool emitFiles = (refreshFlags & RefreshFlags.Files) != 0;
-            foreach (var metadata in FileUtilities.EnumerateEntries(folder, searchOptions.Pattern, option))
+            foreach (var metadata in FileUtils.EnumerateEntries(folder, searchOptions.Pattern, option))
             {
                 var flags = metadata.Attributes;
                 var isDir = (flags & FileAttributes.Directory) != 0;
@@ -273,7 +274,7 @@
 
             try
             {
-                foreach (var metadata in FileUtilities.EnumerateEntries(folder, string.Empty, SearchOption.TopDirectoryOnly))
+                foreach (var metadata in FileUtils.EnumerateEntries(folder, string.Empty, SearchOption.TopDirectoryOnly))
                 {
                     var flags = metadata.Attributes;
                     if ((flags & FileAttributes.System) != 0)

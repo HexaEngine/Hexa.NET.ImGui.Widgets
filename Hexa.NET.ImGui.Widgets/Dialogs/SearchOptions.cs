@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using Hexa.NET.ImGui.Widgets.IO;
 
     public struct SearchOptions
     {

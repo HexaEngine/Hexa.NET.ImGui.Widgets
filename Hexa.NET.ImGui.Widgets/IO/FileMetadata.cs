@@ -1,4 +1,4 @@
-﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
+﻿namespace Hexa.NET.ImGui.Widgets.IO
 {
     using Hexa.NET.Utilities;
     using System;
