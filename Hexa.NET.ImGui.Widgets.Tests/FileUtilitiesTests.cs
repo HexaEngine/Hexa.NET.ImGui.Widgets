@@ -1,6 +1,6 @@
 namespace Hexa.NET.ImGui.Widgets.Tests
 {
-    using Hexa.NET.ImGui.Widgets.Dialogs;
+    using Hexa.NET.ImGui.Widgets.IO;
 
     [TestFixture]
     public unsafe class FileUtilitiesTests
@@ -12,7 +12,7 @@ namespace Hexa.NET.ImGui.Widgets.Tests
             // Arrange
             string testDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-            foreach (var entry in FileUtilities.EnumerateEntriesOSX(testDirectory, "*", SearchOption.TopDirectoryOnly))
+            foreach (var entry in FileUtils.OSX.EnumerateEntries(testDirectory, "*", SearchOption.TopDirectoryOnly))
             {
                 var path = entry.Path.ToString();
                 string fileName = Path.GetFileName(path);
@@ -34,7 +34,7 @@ namespace Hexa.NET.ImGui.Widgets.Tests
             // Arrange
             string testDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-            foreach (var entry in FileUtilities.EnumerateEntriesWin(testDirectory, "*", SearchOption.TopDirectoryOnly))
+            foreach (var entry in FileUtils.Win.EnumerateEntries(testDirectory, "*", SearchOption.TopDirectoryOnly))
             {
                 var path = entry.Path.ToString();
                 string fileName = Path.GetFileName(path);
