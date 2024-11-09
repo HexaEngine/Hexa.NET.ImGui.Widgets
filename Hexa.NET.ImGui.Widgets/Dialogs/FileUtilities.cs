@@ -952,8 +952,6 @@
 
             OSXFileStat(str, out var stat);
 
-            Console.WriteLine(stat.st_mode);
-
             meta.Path = str;
             meta.CreationTime = stat.st_ctimespec;
             meta.LastAccessTime = stat.st_atimespec;
