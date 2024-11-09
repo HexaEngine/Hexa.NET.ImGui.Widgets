@@ -88,11 +88,19 @@
             }
         }
 
+        private static readonly List<string> ignoredDrives = ["sys", "proc", "dev", "run", "snap", "tmp", "boot", "System"];
+        
         public static void ClearCache()
         {
             List<FileSystemItem> drives = new();
             foreach (var drive in DriveInfo.GetDrives())
             {
+                // shouldn't be a performance concern, but if it ever gets to the point use a trie. 
+                if (drive.Name.StartsWith('/') && ignoredDrives.Any(x => drive.Name.AsSpan(1).StartsWith(x)))
+                {
+                    continue; 
+                }
+                
                 try
                 {
                     if (drive.IsReady && drive.RootDirectory != null)
@@ -135,7 +143,11 @@
                             name = "Local Disk";
                         }
 
-                        name += $" ({drive.Name})";
+                        if (name != drive.Name)
+                        {
+                            name += $" ({drive.Name})";
+                        }
+                        
 
                         drives.Add(new FileSystemItem(drive.RootDirectory.FullName, driveIcon, name, FileSystemItemFlags.Folder));
                     }
@@ -146,25 +158,39 @@
             }
 
             logicalDrives = [.. drives];
+            
+            List<FileSystemItem> items = [];
+            AddSpecialDir(items, Environment.SpecialFolder.Desktop, $"{MaterialIcons.DesktopWindows}");
+            AddSpecialDir(items, GetDownloadsFolderPath, $"{MaterialIcons.DesktopWindows}");
+            AddSpecialDir(items, Environment.SpecialFolder.MyDocuments, $"{MaterialIcons.DesktopWindows}");
+            AddSpecialDir(items, Environment.SpecialFolder.MyMusic, $"{MaterialIcons.DesktopWindows}");
+            AddSpecialDir(items, Environment.SpecialFolder.MyPictures, $"{MaterialIcons.DesktopWindows}");
+            AddSpecialDir(items, Environment.SpecialFolder.MyVideos, $"{MaterialIcons.DesktopWindows}");
+            specialDirs = [.. items];
+           
+            cache.Clear();
+        }
+
+        private static void AddSpecialDir(List<FileSystemItem> items, Environment.SpecialFolder folder, string icon)
+        {
             try
             {
-                List<FileSystemItem> items =
-                [
-                    new(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{MaterialIcons.DesktopWindows}", FileSystemItemFlags.Folder),
-                    new(GetDownloadsFolderPath(), $"{MaterialIcons.Download}", FileSystemItemFlags.Folder),
-                    new(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), $"{MaterialIcons.Description}", FileSystemItemFlags.Folder),
-                    new(Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), $"{MaterialIcons.LibraryMusic}", FileSystemItemFlags.Folder),
-                    new(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), $"{MaterialIcons.Image}", FileSystemItemFlags.Folder),
-                    new(Environment.GetFolderPath(Environment.SpecialFolder.MyVideos), $"{MaterialIcons.VideoLibrary}", FileSystemItemFlags.Folder),
-                ];
-
-                specialDirs = [.. items];
+                items.Add(new (Environment.GetFolderPath(folder), icon, FileSystemItemFlags.Folder));
             }
-            catch
+            catch (Exception)
             {
-                specialDirs = [];
             }
-            cache.Clear();
+        }
+        
+        private static void AddSpecialDir(List<FileSystemItem> items, Func<string> getPath, string icon)
+        {
+            try
+            {
+                items.Add(new (getPath(), icon, FileSystemItemFlags.Folder));
+            }
+            catch (Exception)
+            {
+            }
         }
 
         public static IEnumerable<FileSystemItem> Refresh(string folder, RefreshFlags refreshFlags, List<string>? allowedExtensions, SearchOptions searchOptions, Func<FileMetadata, string> fileDecorator, char? folderDecorator)
