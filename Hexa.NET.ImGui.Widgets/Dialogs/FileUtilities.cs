@@ -665,24 +665,24 @@
         [StructLayout(LayoutKind.Sequential)]
         private struct OSXStat
         {
-            public ulong st_dev;            // dev_t: Device ID containing file
-            public ulong st_ino;            // ino_t: File serial number
-            public ushort st_mode;          // mode_t: Mode of file
-            public ushort st_nlink;         // nlink_t: Number of hard links
-            public uint st_uid;             // uid_t: User ID of the file
-            public uint st_gid;             // gid_t: Group ID of the file
-            public ulong st_rdev;           // dev_t: Device ID
-            public Timespec st_atimespec;   // time of last access
-            public Timespec st_mtimespec;   // time of last data modification
-            public Timespec st_ctimespec;   // time of last status change
-            public long st_size;            // off_t: file size in bytes
-            public long st_blocks;          // blkcnt_t: blocks allocated for file
-            public int st_blksize;          // blksize_t: optimal block size for I/O
-            public uint st_flags;           // __uint32_t: user-defined flags for file
-            public uint st_gen;             // __uint32_t: file generation number
-            private int st_lspare;          // RESERVED: DO NOT USE!
-            private long st_qspare1;        // RESERVED: DO NOT USE!
-            private long st_qspare2;        // RESERVED: DO NOT USE!
+            public int st_dev;                 /* [XSI] ID of device containing file */
+            public ushort st_mode;                /* [XSI] Mode of file (see below) */
+            public ushort st_nlink;               /* [XSI] Number of hard links */
+            public ulong st_ino;                /* [XSI] File serial number */
+            public uint st_uid;                 /* [XSI] User ID of the file */
+            public uint st_gid;                 /* [XSI] Group ID of the file */
+            public int st_rdev;                /* [XSI] Device ID */
+            public Timespec st_atimespec;           /* time of last access */
+            public Timespec st_mtimespec;           /* time of last data modification */
+            public Timespec st_ctimespec;           /* time of last status change */
+            public Timespec st_birthtimespec;       /* time of file creation(birth) */
+            public long st_size;                /* [XSI] file size, in bytes */
+            public long st_blocks;              /* [XSI] blocks allocated for file */
+            public int st_blksize;             /* [XSI] optimal blocksize for I/O */
+            public uint st_flags;               /* user defined flags for file */
+            public uint st_gen;                 /* file generation number */
+            public int st_lspare;              /* RESERVED: DO NOT USE! */
+            public fixed long st_qspare[2];           /* RESERVED: DO NOT USE! */
         }
 
         private static FileMetadata GetFileMetadataOSX(string filePath)
