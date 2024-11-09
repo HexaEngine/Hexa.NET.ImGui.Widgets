@@ -23,7 +23,7 @@ namespace Hexa.NET.ImGui.Widgets.Tests
                 });
 
                 // Optional: Print the path and file name for verification
-                Console.WriteLine($"Path: {entry.Path}, File Name: {fileName}");
+                Console.WriteLine($"Path: {entry.Path}, File Name: {fileName}, {entry.Attributes}");
             }
         }
 
@@ -45,7 +45,7 @@ namespace Hexa.NET.ImGui.Widgets.Tests
                 });
 
                 // Optional: Print the path and file name for verification
-                Console.WriteLine($"Path: {entry.Path}, File Name: {fileName}");
+                Console.WriteLine($"Path: {entry.Path}, File Name: {fileName}, {entry.Attributes}");
             }
         }
     }

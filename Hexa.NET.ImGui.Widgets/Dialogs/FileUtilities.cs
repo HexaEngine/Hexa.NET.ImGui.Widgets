@@ -726,35 +726,75 @@
             }
         }
 
-        private const int OSX_IFDIR = 0x4000;   // Directory
-        private const int OSX_IFREG = 0x8000;   // Regular file
-        private const int OSX_IfLNK = 0xA000;   // Symbolic link (Unix)
-        private const int OSX_IRUSR = 0x0100;   // Owner read permission
-        private const int OSX_IWUSR = 0x0080;   // Owner write permission
-        private const int OSX_IXUSR = 0x0040;   // Owner execute permission
+        public const int OSX_S_IFMT = 0xF000;      // type of file
+        public const int OSX_S_IFIFO = 0x1000;     // named pipe (fifo)
+        public const int OSX_S_IFCHR = 0x2000;     // character special
+        public const int OSX_S_IFDIR = 0x4000;     // directory
+        public const int OSX_S_IFBLK = 0x6000;     // block special
+        public const int OSX_S_IFREG = 0x8000;     // regular file
+        public const int OSX_S_IFLNK = 0xA000;     // symbolic link
+        public const int OSX_S_IFSOCK = 0xC000;    // socket
+        public const int OSX_S_IFWHT = 0xE000;     // whiteout
+
+        public const int OSX_S_ISUID = 0x0800;     // set user ID on execution
+        public const int OSX_S_ISGID = 0x0400;     // set group ID on execution
+        public const int OSX_S_ISVTX = 0x0200;     // save swapped text even after use
+
+        public const int OSX_S_IRUSR = 0x0100;     // read permission, owner
+        public const int OSX_S_IWUSR = 0x0080;     // write permission, owner
+        public const int OSX_S_IXUSR = 0x0040;     // execute/search permission, owner
+
+        public static bool OSXIsBlockSpecial(int mode) => (mode & OSX_S_IFMT) == OSX_S_IFBLK;
+
+        public static bool OSXIsCharSpecial(int mode) => (mode & OSX_S_IFMT) == OSX_S_IFCHR;
+
+        public static bool OSXIsDirectory(int mode) => (mode & OSX_S_IFMT) == S_IFDIR;
+
+        public static bool OSXIsFifo(int mode) => (mode & OSX_S_IFMT) == OSX_S_IFIFO;
+
+        public static bool OSXIsRegularFile(int mode) => (mode & OSX_S_IFMT) == S_IFREG;
+
+        public static bool OSXIsSymbolicLink(int mode) => (mode & OSX_S_IFMT) == S_IFLNK;
+
+        public static bool OSXIsSocket(int mode) => (mode & OSX_S_IFMT) == OSX_S_IFSOCK;
+
+        public static bool OSXIsWhiteout(int mode) => (mode & OSX_S_IFMT) == OSX_S_IFWHT;
+
+        // Helper methods to check permissions
+        public static bool OSXIsSetUserID(int mode) => (mode & OSX_S_ISUID) != 0;
+
+        public static bool OSXIsSetGroupID(int mode) => (mode & OSX_S_ISGID) != 0;
+
+        public static bool OSXIsStickyBitSet(int mode) => (mode & OSX_S_ISVTX) != 0;
+
+        public static bool OSXCanRead(int mode) => (mode & S_IRUSR) != 0;
+
+        public static bool OSXCanWrite(int mode) => (mode & S_IWUSR) != 0;
+
+        public static bool OSXCanExecute(int mode) => (mode & S_IXUSR) != 0;
 
         public static FileAttributes OSXConvertStatModeToAttributes(int st_mode, ReadOnlySpan<char> fileName)
         {
             FileAttributes attributes = FileAttributes.None;
 
             // File type determination
-            if ((st_mode & OSX_IFDIR) == OSX_IFDIR)
+            if (OSXIsDirectory(st_mode))
             {
                 attributes |= FileAttributes.Directory;
             }
-            else if ((st_mode & OSX_IFREG) == OSX_IFREG)
+            else if (OSXIsRegularFile(st_mode))
             {
-                attributes |= FileAttributes.Normal;
+                attributes |= FileAttributes.Normal; // Used for symbolic links
             }
-            else if ((st_mode & OSX_IfLNK) == OSX_IfLNK)
+            else if (OSXIsSymbolicLink(st_mode))
             {
-                attributes |= FileAttributes.ReparsePoint;  // Symbolic links in Unix can be mapped to ReparsePoint in Windows
+                attributes |= FileAttributes.ReparsePoint; // Used for symbolic links
             }
 
             // Permission handling - If no write permission for the owner, mark as ReadOnly
-            if ((st_mode & OSX_IRUSR) == 0)
+            if ((st_mode & OSX_S_IRUSR) == 0)
             {
-                attributes |= FileAttributes.ReadOnly;
+                attributes |= FileAttributes.ReadOnly; // If the owner has no read permission, mark it as read-only
             }
 
             // Hidden file detection (Unix files that start with '.' are treated as hidden)
@@ -763,16 +803,18 @@
                 attributes |= FileAttributes.Hidden;
             }
 
-            // Add other attributes as necessary, but keep in mind Unix-like systems may not have equivalents for:
-            // - FileAttributes.Compressed
-            // - FileAttributes.Encrypted
-            // - FileAttributes.Offline
-            // - FileAttributes.NotContentIndexed
-
             return attributes;
         }
 
+        public const int OSX_DT_UNKNOWN = 0;
+        public const int OSX_DT_FIFO = 1;
+        public const int OSX_DT_CHR = 2;
         public const int OSX_DT_DIR = 4;
+        public const int OSX_DT_BLK = 6;
+        public const int OSX_DT_REG = 8;
+        public const int OSX_DT_LNK = 10;
+        public const int OSX_DT_SOCK = 12;
+        public const int OSX_DT_WHT = 14;
 
         public const int DARWIN_MAXPATHLEN = 1024;
 
@@ -799,7 +841,7 @@
                     result = !FileSystemSearcher.IsMatch(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(p), pattern, StringComparison.CurrentCulture);
                 }
 
-                if (d_type == DT_DIR)
+                if (d_type == OSX_DT_DIR)
                 {
                     return false;
                 }

@@ -84,23 +84,23 @@
             }
             else
             {
-                throw new PlatformNotSupportedException("This platform is not supported.");
+                return string.Empty;
             }
         }
 
         private static readonly List<string> ignoredDrives = ["sys", "proc", "dev", "run", "snap", "tmp", "boot", "System"];
-        
+
         public static void ClearCache()
         {
             List<FileSystemItem> drives = new();
             foreach (var drive in DriveInfo.GetDrives())
             {
-                // shouldn't be a performance concern, but if it ever gets to the point use a trie. 
+                // shouldn't be a performance concern, but if it ever gets to the point use a trie.
                 if (drive.Name.StartsWith('/') && ignoredDrives.Any(x => drive.Name.AsSpan(1).StartsWith(x)))
                 {
-                    continue; 
+                    continue;
                 }
-                
+
                 try
                 {
                     if (drive.IsReady && drive.RootDirectory != null)
@@ -147,7 +147,6 @@
                         {
                             name += $" ({drive.Name})";
                         }
-                        
 
                         drives.Add(new FileSystemItem(drive.RootDirectory.FullName, driveIcon, name, FileSystemItemFlags.Folder));
                     }
@@ -158,16 +157,16 @@
             }
 
             logicalDrives = [.. drives];
-            
+
             List<FileSystemItem> items = [];
             AddSpecialDir(items, Environment.SpecialFolder.Desktop, $"{MaterialIcons.DesktopWindows}");
-            AddSpecialDir(items, GetDownloadsFolderPath, $"{MaterialIcons.DesktopWindows}");
-            AddSpecialDir(items, Environment.SpecialFolder.MyDocuments, $"{MaterialIcons.DesktopWindows}");
-            AddSpecialDir(items, Environment.SpecialFolder.MyMusic, $"{MaterialIcons.DesktopWindows}");
-            AddSpecialDir(items, Environment.SpecialFolder.MyPictures, $"{MaterialIcons.DesktopWindows}");
-            AddSpecialDir(items, Environment.SpecialFolder.MyVideos, $"{MaterialIcons.DesktopWindows}");
+            AddSpecialDir(items, GetDownloadsFolderPath, $"{MaterialIcons.Download}");
+            AddSpecialDir(items, Environment.SpecialFolder.MyDocuments, $"{MaterialIcons.Description}");
+            AddSpecialDir(items, Environment.SpecialFolder.MyMusic, $"{MaterialIcons.LibraryMusic}");
+            AddSpecialDir(items, Environment.SpecialFolder.MyPictures, $"{MaterialIcons.Image}");
+            AddSpecialDir(items, Environment.SpecialFolder.MyVideos, $"{MaterialIcons.VideoLibrary}");
             specialDirs = [.. items];
-           
+
             cache.Clear();
         }
 
@@ -175,18 +174,26 @@
         {
             try
             {
-                items.Add(new (Environment.GetFolderPath(folder), icon, FileSystemItemFlags.Folder));
+                var path = Environment.GetFolderPath(folder);
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    items.Add(new(path, icon, FileSystemItemFlags.Folder));
+                }
             }
             catch (Exception)
             {
             }
         }
-        
+
         private static void AddSpecialDir(List<FileSystemItem> items, Func<string> getPath, string icon)
         {
             try
             {
-                items.Add(new (getPath(), icon, FileSystemItemFlags.Folder));
+                var path = getPath();
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    items.Add(new(path, icon, FileSystemItemFlags.Folder));
+                }
             }
             catch (Exception)
             {
