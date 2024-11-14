@@ -1,5 +1,6 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.IO
 {
+    using Hexa.NET.ImGui.Widgets.Extensions;
     using Hexa.NET.Utilities;
     using System;
     using System.Collections.Generic;
@@ -76,7 +77,7 @@
                 metadata.LastAccessTime = fileStat.st_atimespec;
                 metadata.LastWriteTime = fileStat.st_mtimespec;
                 metadata.Size = fileStat.st_size;
-                metadata.Attributes = ConvertStatModeToAttributes(fileStat.st_mode, filePath);
+                metadata.Attributes = ConvertStatModeToAttributes(fileStat.st_mode, filePath.AsSpan());
 
                 if (strSize0 >= Utils.MaxStackallocSize)
                 {
@@ -142,7 +143,7 @@
 
             public static FileAttributes ConvertStatModeToAttributes(int st_mode, ReadOnlySpan<char> fileName)
             {
-                FileAttributes attributes = FileAttributes.None;
+                FileAttributes attributes = 0;
 
                 // File type determination
                 if (IsDirectory(st_mode))
@@ -205,7 +206,7 @@
 
                     fixed (byte* p = d_name)
                     {
-                        result = !PatternMatcher.IsMatch(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(p), pattern, StringComparison.CurrentCulture);
+                        result = !PatternMatcher.IsMatch(SpanHelper.CreateReadOnlySpanFromNullTerminated(p), pattern, StringComparison.CurrentCulture);
                     }
 
                     if (d_type == DT_DIR)

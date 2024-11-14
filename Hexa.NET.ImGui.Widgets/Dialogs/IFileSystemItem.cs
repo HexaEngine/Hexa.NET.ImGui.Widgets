@@ -18,12 +18,25 @@
 
         CommonFilePermissions Permissions { get; }
 
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+
         public bool IsFile => (Flags & FileSystemItemFlags.Folder) == 0;
 
         public bool IsFolder => (Flags & FileSystemItemFlags.Folder) != 0;
 
         public bool IsHidden => (Flags & FileSystemItemFlags.Hidden) != 0;
 
+#else
+        public bool IsFile { get; }
+
+        public bool IsFolder { get; }
+
+        public bool IsHidden { get; }
+#endif
+    }
+
+    public static class BaseComparer
+    {
         public static int CompareByBase(IFileSystemItem a, IFileSystemItem b)
         {
             if (a.IsFolder && !b.IsFolder)

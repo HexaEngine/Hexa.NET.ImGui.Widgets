@@ -2,6 +2,7 @@
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
+    using Hexa.NET.ImGui.Widgets.Extensions;
     using Hexa.NET.ImGui.Widgets.IO;
     using Hexa.NET.ImGui.Widgets.Text;
     using System.Diagnostics;
@@ -610,20 +611,40 @@
 
         public virtual void TryGoBack()
         {
+#if NETSTANDARD2_0
+
+            if (backHistory.Count > 0)
+            {
+                var historyItem = backHistory.Pop();
+                forwardHistory.Push(CurrentFolder);
+                SetInternal(historyItem);
+            }
+#else
             if (backHistory.TryPop(out var historyItem))
             {
                 forwardHistory.Push(CurrentFolder);
                 SetInternal(historyItem);
             }
+#endif
         }
 
         public virtual void TryGoForward()
         {
+#if NETSTANDARD2_0
+
+            if (forwardHistory.Count > 0)
+            {
+                var historyItem = forwardHistory.Pop();
+                backHistory.Push(CurrentFolder);
+                SetInternal(historyItem);
+            }
+#else
             if (forwardHistory.TryPop(out var historyItem))
             {
                 backHistory.Push(CurrentFolder);
                 SetInternal(historyItem);
             }
+#endif
         }
 
         public void ClearHistory()
@@ -733,7 +754,7 @@
 
         protected virtual string IconSelector(FileMetadata file)
         {
-            ReadOnlySpan<char> extension = Path.GetExtension(file.Path.AsSpan());
+            ReadOnlySpan<char> extension = FileUtils.GetExtension(file.Path.AsSpan());
 
             switch (extension)
             {

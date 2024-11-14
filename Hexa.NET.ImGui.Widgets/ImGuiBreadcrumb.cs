@@ -1,5 +1,6 @@
 ﻿namespace Hexa.NET.ImGui.Widgets
 {
+    using Hexa.NET.ImGui.Widgets.Extensions;
     using System;
     using System.Numerics;
     using System.Text;
@@ -83,7 +84,7 @@
                 const int MaxCharacters = 1024;
                 Span<byte> partBuffer = stackalloc byte[MaxCharacters]; // 1024 is enough for most path parts + id + null terminator
 
-                ReadOnlySpan<char> part = path;
+                ReadOnlySpan<char> part = path.AsSpan();
 
                 float widthAvail = total_size.X;
 

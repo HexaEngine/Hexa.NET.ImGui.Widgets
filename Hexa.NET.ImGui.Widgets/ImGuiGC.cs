@@ -95,7 +95,12 @@
             gcList.Remove(id);
         }
 
-        private static void HookCallback(ImGuiContext* ctx, ImGuiContextHook* hook)
+        private static void HookCallback
+#if NET5_0_OR_GREATER
+            (ImGuiContext* ctx, ImGuiContextHook* hook)
+#else
+            (nint ctx, nint hook)
+#endif
         {
             long memoryDelta = allocatedBytes - lastAllocatedBytes;
             if (frequency > 128 || memoryDelta > 4096)
@@ -125,12 +130,18 @@
                         gcFreeQueue.Enqueue(item.Key);
                     }
                 }
-
+#if NETSTANDARD2_0
+                while (gcFreeQueue.Count > 0)
+                {
+                    var id = gcFreeQueue.Dequeue();
+                    FreeInternal(id);
+                }
+#else
                 while (gcFreeQueue.TryDequeue(out uint id))
                 {
                     FreeInternal(id);
                 }
-
+#endif
                 gcList.Clear();
                 frequency = 0;
                 lastAllocatedBytes = allocatedBytes;

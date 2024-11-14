@@ -4,7 +4,7 @@
     {
         public int Compare(T a, T b)
         {
-            int cmp = IFileSystemItem.CompareByBase(a, b);
+            int cmp = BaseComparer.CompareByBase(a, b);
             if (cmp != 0)
             {
                 return cmp;

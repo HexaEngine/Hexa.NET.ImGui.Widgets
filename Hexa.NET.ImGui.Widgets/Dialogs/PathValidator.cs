@@ -1,5 +1,6 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
+    using Hexa.NET.ImGui.Widgets.IO;
     using System.Runtime.InteropServices;
 
     public static class PathValidator
@@ -38,7 +39,7 @@
             }
 
             // Check the last remaining segment of the path
-            if (Path.IsPathRooted(pathSpan))
+            if (FileUtils.IsPathRooted(pathSpan))
             {
                 return CheckRoot(pathSpan);
             }
@@ -57,7 +58,7 @@
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // Check if the drive letter is valid for Windows paths
-                ReadOnlySpan<char> root = Path.GetPathRoot(path);
+                ReadOnlySpan<char> root = FileUtils.GetPathRoot(path);
                 if (root.Length > 1 && root[1] == ':')
                 {
                     char driveLetter = root[0];

@@ -45,10 +45,19 @@
                     ImGui.EndDisabled();
                 }
 
+#if NETSTANDARD2_0
+                
+                while (closing.Count > 0)
+                {
+                    var dialog = closing.Dequeue();
+                    dialogs.Remove(dialog);
+                }
+#else
                 while (closing.TryDequeue(out var dialog))
                 {
                     dialogs.Remove(dialog);
                 }
+#endif
 
                 WidgetManager.BlockInput = dialogs.Count > 0;
             }

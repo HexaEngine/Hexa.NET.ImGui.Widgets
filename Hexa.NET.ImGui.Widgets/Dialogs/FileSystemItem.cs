@@ -31,7 +31,7 @@
             if (IsFile)
             {
                 size = path.TryReturn(FileUtils.GetFileSize);
-                type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
+                type = DetermineFileType(FileUtils.GetExtension(path.AsSpan()));
             }
             else
             {
@@ -50,7 +50,7 @@
             if (IsFile)
             {
                 size = metadata.Size;
-                type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
+                type = DetermineFileType(FileUtils.GetExtension(path.AsSpan()));
             }
             else
             {
@@ -69,13 +69,15 @@
             if (IsFile)
             {
                 size = path.TryReturn(FileUtils.GetFileSize);
-                type = DetermineFileType(System.IO.Path.GetExtension(path.AsSpan()));
+                type = DetermineFileType(FileUtils.GetExtension(path.AsSpan()));
             }
             else
             {
                 type = "File Folder";
             }
         }
+
+#if NET5_0_OR_GREATER
 
         private static CommonFilePermissions ConvertUnixPermissions(UnixFileMode permissions)
         {
@@ -154,6 +156,8 @@
             return result;
         }
 
+#endif
+
         public readonly bool IsFile => (flags & FileSystemItemFlags.Folder) == 0;
 
         public readonly bool IsFolder => (flags & FileSystemItemFlags.Folder) != 0;
@@ -195,7 +199,11 @@
                 return type;
             }
 
+#if NET5_0_OR_GREATER
             type = $"{extension} File"; // generic type name
+#else
+            type = $"{extension.ToString()} File"; // generic type name
+#endif
             fileTypes.TryAdd(hash, type);
 
             return type;

@@ -1,6 +1,7 @@
 ﻿namespace Hexa.NET.ImGui.Widgets
 {
     using Hexa.NET.ImGui;
+    using Hexa.NET.ImGui.Widgets.Extensions;
     using System;
     using System.Diagnostics;
     using System.Numerics;
@@ -20,7 +21,7 @@
                 byte* stackLabel = stackalloc byte[sizeInBytes0 + 1];
                 pLabel = stackLabel;
             }
-            System.Text.Encoding.UTF8.GetBytes(label, new Span<byte>(pLabel, sizeInBytes0));
+            System.Text.Encoding.UTF8.GetBytes(label.AsSpan(), new Span<byte>(pLabel, sizeInBytes0));
             pLabel[sizeInBytes0] = 0;
 
             int sizeInBytes1 = System.Text.Encoding.UTF8.GetByteCount(icon);
@@ -34,7 +35,7 @@
                 byte* stackLabel = stackalloc byte[sizeInBytes1 + 1];
                 pIcon = stackLabel;
             }
-            System.Text.Encoding.UTF8.GetBytes(icon, new Span<byte>(pIcon, sizeInBytes1));
+            System.Text.Encoding.UTF8.GetBytes(icon.AsSpan(), new Span<byte>(pIcon, sizeInBytes1));
             pIcon[sizeInBytes1] = 0;
 
             bool result = IconTreeNode(pLabel, null, pIcon, iconColor, flags);

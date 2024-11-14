@@ -42,7 +42,7 @@
                 return;
             }
 
-            value = Math.Clamp(value, 0f, 1f);
+            value = Clamp(value, 0f, 1f);
 
             // Render
             Vector2 progressBBMax = new(pos.X + size.X * value, bb.Max.Y);
@@ -70,6 +70,13 @@
             drawList->AddRectFilledMultiColor(gradient_p3, gradient_p4, col_b, 0x0, 0x0, col_b);
 
             ImGui.PopClipRect();
+        }
+
+        public static float Clamp(float value, float min, float max)
+        {
+            if (value < min) return min;
+            if (value > max) return max;
+            return value;
         }
     }
 }

@@ -38,8 +38,8 @@
 
             int start = (int)Math.Abs(MathF.Sin((float)(g.Time * 1.8f)) * (num_segments - 5));
 
-            float a_min = float.Pi * 2.0f * start / num_segments;
-            float a_max = float.Pi * 2.0f * ((float)num_segments - 3) / num_segments;
+            float a_min = (float)Math.PI * 2.0f * start / num_segments;
+            float a_max = (float)Math.PI * 2.0f * ((float)num_segments - 3) / num_segments;
 
             Vector2 center = pos + new Vector2(radius, radius + style.FramePadding.Y);
 

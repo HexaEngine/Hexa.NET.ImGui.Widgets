@@ -6,6 +6,7 @@
     using System.Runtime.CompilerServices;
     using System.Text;
 
+#if NET5_0_OR_GREATER
     /// <summary>
     /// Helper class to work with the hidden C# Feature TypedReference.
     /// </summary>
@@ -42,12 +43,14 @@
             return false;
         }
     }
+#endif
 
     /// <summary>
     /// Will be moved to Hexa.NET.Utilities later.
     /// </summary>
     public static class Utf8Formatter
     {
+#if NET5_0_OR_GREATER
         unsafe static int Printf(byte* buf, int bufSize, string format, __arglist)
         {
             ArgIterator args = new(__arglist);
@@ -209,6 +212,7 @@
 
             return j;
         }
+#endif
 
         public static unsafe int StrLen(byte* str)
         {
@@ -963,7 +967,7 @@
             return (start, width * 2 - start);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void EncodeNegativeSign(byte** buffer, int* bufSize, bool negative, NumberFormatInfo format)
         {
             if (*bufSize == 0)
@@ -1534,8 +1538,13 @@
         private static unsafe void Format(DateTime dateTime, byte* buf, int* idx, int maxPrecision, int precision, bool removeTail)
         {
             int milliseconds = dateTime.Millisecond;
+#if NET6_0_OR_GREATER
             int microseconds = dateTime.Microsecond;
             int nanoseconds = dateTime.Nanosecond;
+#else
+            int microseconds = (int)((dateTime.Ticks % TimeSpan.TicksPerSecond) / 10);
+            int nanoseconds = (int)((dateTime.Ticks % TimeSpan.TicksPerSecond) * 100);
+#endif
 
             ulong value = (ulong)milliseconds * 1_000_000 + (ulong)microseconds * 1_000 + (ulong)nanoseconds;
 
@@ -1561,7 +1570,7 @@
             *idx = ix;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe static int CountAhead(char** format, char* formatEnd, char target, int max)
         {
             int count = 0;

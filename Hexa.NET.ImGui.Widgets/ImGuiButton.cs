@@ -1,6 +1,7 @@
 ﻿namespace Hexa.NET.ImGui.Widgets
 {
     using Hexa.NET.ImGui;
+    using Hexa.NET.ImGui.Widgets.Extensions;
     using Hexa.NET.ImGui.Widgets.Text;
     using System;
     using System.Numerics;
@@ -166,7 +167,7 @@
                 byte* stackLabel = stackalloc byte[sizeInBytes + 1];
                 pLabel = stackLabel;
             }
-            System.Text.Encoding.UTF8.GetBytes(label, new Span<byte>(pLabel, sizeInBytes));
+            System.Text.Encoding.UTF8.GetBytes(label.AsSpan(), new Span<byte>(pLabel, sizeInBytes));
             pLabel[sizeInBytes] = 0;
             bool result = TransparentButton(pLabel, default, ImGuiButtonFlags.None);
             if (sizeInBytes + 1 >= 2048)

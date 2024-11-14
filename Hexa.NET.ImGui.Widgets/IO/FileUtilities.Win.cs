@@ -1,5 +1,6 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.IO
 {
+    using Hexa.NET.ImGui.Widgets.Extensions;
     using Hexa.NET.Utilities;
     using System;
     using System.Collections.Generic;
@@ -140,10 +141,10 @@
                 nint fileHandle;
                 fixed (char* str0 = filePath)
                 {
-                    fileHandle = CreateFile(str0, FILE_READ_ATTRIBUTES, FILE_SHARE_READ, nint.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS, nint.Zero);
+                    fileHandle = CreateFile(str0, FILE_READ_ATTRIBUTES, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS, 0);
                 }
 
-                if (fileHandle == nint.Zero || fileHandle == INVALID_HANDLE_VALUE)
+                if (fileHandle == 0 || fileHandle == INVALID_HANDLE_VALUE)
                 {
                     return default;
                 }
@@ -171,17 +172,39 @@
             }
 
             // Windows API P/Invoke declarations
-            private static readonly nint INVALID_HANDLE_VALUE = new(-1);
+            private static readonly nint INVALID_HANDLE_VALUE = -1;
+
+#if NET6_0_OR_GREATER
 
             [LibraryImport("kernel32.dll", EntryPoint = "CreateFileW", SetLastError = true)]
             private static partial nint CreateFile(char* lpFileName, uint dwDesiredAccess, uint dwShareMode, nint lpSecurityAttributes, uint dwCreationDisposition, uint dwFlagsAndAttributes, nint hTemplateFile);
+
+#else
+            [DllImport("kernel32.dll", EntryPoint = "CreateFileW", SetLastError = true)]
+            private static extern nint CreateFile(char* lpFileName, uint dwDesiredAccess, uint dwShareMode, nint lpSecurityAttributes, uint dwCreationDisposition, uint dwFlagsAndAttributes, nint hTemplateFile);
+#endif
+
+#if NET6_0_OR_GREATER
 
             [LibraryImport("kernel32.dll", EntryPoint = "GetFileInformationByHandle", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             private static partial bool GetFileInformationByHandle(nint hFile, out BY_HANDLE_FILE_INFORMATION lpFileInformation);
 
+#else
+            [DllImport("kernel32.dll", EntryPoint = "GetFileInformationByHandle", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            private static extern bool GetFileInformationByHandle(nint hFile, out BY_HANDLE_FILE_INFORMATION lpFileInformation);
+#endif
+
+#if NET6_0_OR_GREATER
+
             [LibraryImport("kernel32.dll", EntryPoint = "GetFileAttributesW", SetLastError = true)]
             private static partial uint GetFileAttributes(char* lpFileName);
+
+#else
+            [DllImport("kernel32.dll", EntryPoint = "GetFileAttributesW", SetLastError = true)]
+            private static extern uint GetFileAttributes(char* lpFileName);
+#endif
 
             [StructLayout(LayoutKind.Sequential)]
             public struct BY_HANDLE_FILE_INFORMATION
@@ -243,7 +266,7 @@
 
                     fixed (char* p = cFileName)
                     {
-                        result = !PatternMatcher.IsMatch(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(p), pattern, StringComparison.CurrentCulture);
+                        result = !PatternMatcher.IsMatch(SpanHelper.CreateReadOnlySpanFromNullTerminated(p), pattern, StringComparison.CurrentCulture);
                     }
 
                     if ((dwFileAttributes & (uint)FileAttributes.Directory) != 0)
@@ -254,6 +277,8 @@
                     return result;
                 }
             }
+
+#if NET6_0_OR_GREATER
 
             [LibraryImport("kernel32.dll", EntryPoint = "CloseHandle", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
@@ -272,6 +297,26 @@
             [LibraryImport("kernel32.dll", EntryPoint = "FindClose", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static partial bool FindClose(nint hFindFile);
+
+#else
+            [DllImport("kernel32.dll", EntryPoint = "CloseHandle", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            private static extern bool CloseHandle(nint hObject);
+
+            // FindFirstFileW declaration (native call)
+            [DllImport("kernel32.dll", EntryPoint = "FindFirstFileW", SetLastError = true)]
+            public static extern nint FindFirstFileW(char* lpFileName, out WIN32_FIND_DATA lpFindFileData);
+
+            // FindNextFileW declaration (native call)
+            [DllImport("kernel32.dll", EntryPoint = "FindNextFileW", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool FindNextFileW(nint hFindFile, out WIN32_FIND_DATA lpFindFileData);
+
+            // FindClose declaration (native call)
+            [DllImport("kernel32.dll", EntryPoint = "FindClose", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool FindClose(nint hFindFile);
+#endif
         }
     }
 }

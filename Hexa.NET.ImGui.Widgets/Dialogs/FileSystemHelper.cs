@@ -95,7 +95,7 @@
             foreach (var drive in DriveInfo.GetDrives())
             {
                 // shouldn't be a performance concern, but if it ever gets to the point use a trie.
-                if (drive.Name.StartsWith('/') && ignoredDrives.Any(x => drive.Name.AsSpan(1).StartsWith(x)))
+                if (drive.Name.StartsWith('/') && ignoredDrives.Any(x => drive.Name.AsSpan(1).StartsWith(x.AsSpan())))
                 {
                     continue;
                 }
@@ -231,20 +231,23 @@
                     continue;
 
                 var span = metadata.Path.AsSpan();
-                var name = Path.GetFileName(span);
+                var name = FileUtils.GetFileName(span);
 
                 if (searchOptions.Filter(metadata))
                 {
                     if (onlyAllowFilteredExtensions && !isDir)
                     {
-                        var ext = Path.GetExtension(name);
+                        var ext = FileUtils.GetExtension(name);
                         if (!allowedExtensions!.Contains(ext, comparison))
                         {
                             continue;
                         }
                     }
-
+#if NET5_0_OR_GREATER
                     var itemName = option == SearchOption.AllDirectories ? $"{name}##{id++}" : name.ToString();
+#else
+                    var itemName = option == SearchOption.AllDirectories ? $"{name.ToString()}##{id++}" : name.ToString();
+#endif
                     var decorator = isDir ? $"{folderDecorator}" : fileDecorator(metadata);
                     FileSystemItem item = new(metadata, itemName, decorator, isDir ? FileSystemItemFlags.Folder : FileSystemItemFlags.None);
                     yield return item;
@@ -285,7 +288,7 @@
                         continue;
 
                     var span = metadata.Path.AsSpan();
-                    var name = Path.GetFileName(span);
+                    var name = FileUtils.GetFileName(span);
 
                     var itemName = name.ToString();
 
@@ -302,7 +305,7 @@
                     {
                         if (onlyAllowFilteredExtensions)
                         {
-                            var ext = Path.GetExtension(span);
+                            var ext = FileUtils.GetExtension(span);
                             if (allowedExtensions!.Contains(ext, StringComparison.OrdinalIgnoreCase))
                             {
                                 items.Add(new FileSystemItem(metadata, itemName, string.Empty, FileSystemItemFlags.None));

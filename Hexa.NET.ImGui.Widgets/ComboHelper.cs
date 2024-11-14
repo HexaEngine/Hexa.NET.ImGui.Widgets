@@ -2,6 +2,7 @@
 {
     using Hexa.NET.ImGui;
     using System;
+    using System.Linq;
     using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
@@ -10,8 +11,13 @@
     /// <typeparam name="T">The enum type.</typeparam>
     public static class ComboEnumHelper<T> where T : struct, Enum
     {
+#if NET5_0_OR_GREATER
         private static readonly T[] values = Enum.GetValues<T>();
         private static readonly string[] names = Enum.GetNames<T>();
+#else
+        private static readonly T[] values = (T[])Enum.GetValues(typeof(T));
+        private static readonly string[] names = Enum.GetNames(typeof(T));
+#endif
 
         /// <summary>
         /// Displays a combo box to select an enum value.
@@ -54,9 +60,15 @@
     {
         private static readonly Dictionary<Type, object[]> values = new();
         private static readonly Dictionary<Type, string[]> names = new();
+#if NET7_0_OR_GREATER
 
         [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "All members are included by [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)].")]
-        private static void Get([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type type, out object[] values, out string[] names)
+#endif
+        private static void Get(
+#if NET7_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+        Type type, out object[] values, out string[] names)
         {
             if (ComboEnumHelper.values.TryGetValue(type, out var objects))
             {
@@ -78,7 +90,11 @@
         /// <param name="type">The enum type to select values from.</param>
         /// <param name="value">The currently selected enum value (modified by user interaction).</param>
         /// <returns><c>true</c> if the user selects a new value, <c>false</c> otherwise.</returns>
-        public static bool Combo(string label, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type type, ref object value)
+        public static bool Combo(string label,
+#if NET7_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+        Type type, ref object value)
         {
             Get(type, out var values, out var names);
             int index = Array.IndexOf(values, value);
@@ -95,7 +111,11 @@
         /// </summary>
         /// <param name="type">The enum type to select values from.</param>
         /// <param name="value">The enum value to display.</param>
-        public static void Text([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type type, object value)
+        public static void Text(
+#if NET7_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+#endif
+        Type type, object value)
         {
             Get(type, out var values, out var names);
             int index = Array.IndexOf(values, value);

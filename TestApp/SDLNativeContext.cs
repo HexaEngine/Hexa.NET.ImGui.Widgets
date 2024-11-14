@@ -3,8 +3,21 @@
     using Hexa.NET.SDL2;
     using HexaGen.Runtime;
 
-    public unsafe class SDLNativeContext : INativeContext
+    public unsafe class SDLNativeContext : IGLContext
     {
+        private readonly SDLWindow* window;
+        private readonly SDLGLContext context;
+
+        public SDLNativeContext(SDLWindow* window)
+        {
+            this.window = window;
+            context = SDL.GLCreateContext(window);
+        }
+
+        public nint Handle => context.Handle;
+
+        public bool IsCurrent => SDL.GLGetCurrentContext() == context;
+
         public nint GetProcAddress(string procName)
         {
             return (nint)SDL.GLGetProcAddress(procName);
@@ -23,6 +36,22 @@
 
         public void Dispose()
         {
+            SDL.GLDeleteContext(context);
+        }
+
+        public void MakeCurrent()
+        {
+            SDL.GLMakeCurrent(window, context);
+        }
+
+        public void SwapBuffers()
+        {
+            SDL.GLSwapWindow(window);
+        }
+
+        public void SwapInterval(int interval)
+        {
+            SDL.GLSetSwapInterval(interval);
         }
     }
 }

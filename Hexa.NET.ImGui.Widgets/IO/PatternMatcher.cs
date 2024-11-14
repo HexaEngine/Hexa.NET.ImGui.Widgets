@@ -1,5 +1,6 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.IO
 {
+    using Hexa.NET.ImGui.Widgets.Extensions;
     using System;
     using System.Text;
 
@@ -16,7 +17,7 @@
 
             if (!pattern.Contains('.'))
             {
-                return fileName.Contains(pattern, comparison);
+                return fileName.Contains(pattern.AsSpan(), comparison);
             }
 
             int f = 0, p = 0;

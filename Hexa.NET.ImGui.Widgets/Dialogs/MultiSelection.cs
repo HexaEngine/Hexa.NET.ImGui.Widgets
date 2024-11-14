@@ -1,5 +1,6 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
+    using Hexa.NET.ImGui.Widgets.Extensions;
     using System.Collections;
     using System.Collections.Generic;
     using System.IO;
@@ -138,11 +139,12 @@
                     }
                 }
 
-                ReadOnlySpan<char> relative = GetRelativePath(rootPath, path);
+                ReadOnlySpan<char> relative = GetRelativePath(rootPath.AsSpan(), path.AsSpan());
 
                 if (sb.Length > 0)
                 {
-                    sb.Append($";{relative}");
+                    sb.Append(';');
+                    sb.Append(relative);
                 }
                 else
                 {
@@ -166,7 +168,7 @@
 
         public void Add(string item)
         {
-            ReadOnlySpan<char> relative = GetRelativePath(rootPath, item);
+            ReadOnlySpan<char> relative = GetRelativePath(rootPath.AsSpan(), item.AsSpan());
 
             if (!allowMultipleSelection)
             {
@@ -177,7 +179,11 @@
             {
                 if (selection.Count > 0)
                 {
+#if NET5_0_OR_GREATER
                     selectionString += $";{relative}";
+#else
+                    selectionString += $";{relative.ToString()}";
+#endif
                 }
                 else
                 {
@@ -205,7 +211,7 @@
             int index = selection.IndexOf(item);
             selection.RemoveAt(index);
 
-            ReadOnlySpan<char> relative = GetRelativePath(rootPath, item);
+            ReadOnlySpan<char> relative = GetRelativePath(rootPath.AsSpan(), item.AsSpan());
 
             int stringIndex = selectionString.AsSpan().IndexOf(relative);
             if (index > 0)

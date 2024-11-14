@@ -1,39 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="assets\fileTypes.json" />
-  </ItemGroup>
-
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFrameworks>net9.0;net472</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<LangVersion>12</LangVersion>
+	</PropertyGroup>
+	
 	<ItemGroup>
-		<PackageReference Include="System.IO.Hashing" Version="8.0.0" />
-		<PackageReference Include="System.Text.Json" Version="8.0.5" />
-		<PackageReference Include="Hexa.NET.OpenGL3" Version="1.0.1" />
-		<PackageReference Include="Hexa.NET.SDL2" Version="1.2.7" />
-		<PackageReference Include="Hexa.NET.Math" Version="2.0.2" />
-		<PackageReference Include="Hexa.NET.Utilities" Version="2.1.10" />
-		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.8" />
-		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.8" />
+		<None Remove="assets\fileTypes.json" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Hexa.NET.ImGui.Widgets\Hexa.NET.ImGui.Widgets.csproj" />
+		<PackageReference Include="Hexa.NET.OpenGL3" Version="1.1.0" />
+		<PackageReference Include="Hexa.NET.SDL2" Version="1.2.8" />
+		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.10" />
+		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.10" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="assets\fonts\arialuni.ttf">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="assets\fonts\MaterialSymbolsRounded.ttf">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
+		<ProjectReference Include="..\Hexa.NET.ImGui.Widgets\Hexa.NET.ImGui.Widgets.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="assets\fonts\arialuni.ttf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="assets\fonts\MaterialSymbolsRounded.ttf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 </Project>

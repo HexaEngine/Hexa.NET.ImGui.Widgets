@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using Hexa.NET.ImGui.Widgets.Extensions;
+using System.Numerics;
 using System.Reflection.Emit;
 
 namespace Hexa.NET.ImGui.Widgets
@@ -56,7 +57,7 @@ namespace Hexa.NET.ImGui.Widgets
                 byte* stackLabel = stackalloc byte[sizeInBytes0 + 1];
                 pStrId0 = stackLabel;
             }
-            System.Text.Encoding.UTF8.GetBytes(strId, new Span<byte>(pStrId0, sizeInBytes0));
+            System.Text.Encoding.UTF8.GetBytes(strId.AsSpan(), new Span<byte>(pStrId0, sizeInBytes0));
             pStrId0[sizeInBytes0] = 0;
 
             bool result = VerticalSplitter(pStrId0, ref width, minWidth, maxWidth, height, thickness, tolerance);
@@ -196,7 +197,7 @@ namespace Hexa.NET.ImGui.Widgets
                 byte* stackLabel = stackalloc byte[sizeInBytes0 + 1];
                 pStrId0 = stackLabel;
             }
-            System.Text.Encoding.UTF8.GetBytes(strId, new Span<byte>(pStrId0, sizeInBytes0));
+            System.Text.Encoding.UTF8.GetBytes(strId.AsSpan(), new Span<byte>(pStrId0, sizeInBytes0));
             pStrId0[sizeInBytes0] = 0;
 
             bool result = HorizontalSplitter(pStrId0, ref height, minHeight, maxHeight, width, thickness, tolerance);

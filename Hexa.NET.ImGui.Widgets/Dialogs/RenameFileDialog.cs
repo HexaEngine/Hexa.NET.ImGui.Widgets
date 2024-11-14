@@ -1,6 +1,7 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     using Hexa.NET.ImGui;
+    using Hexa.NET.ImGui.Widgets.IO;
 
     public class RenameFileDialog
     {
@@ -74,9 +75,17 @@
                 ImGui.SameLine();
                 if (ImGui.Button("Ok"))
                 {
-                    string dir = new(Path.GetDirectoryName(file.AsSpan()));
+                    string dir = FileUtils.GetDirectoryName(file.AsSpan()).ToString();
                     string newPath = Path.Combine(dir, filename);
+#if NET5_0_OR_GREATER
                     System.IO.File.Move(file, newPath, overwrite);
+#else
+                    if (System.IO.File.Exists(newPath))
+                    {
+                        System.IO.File.Delete(newPath);
+                    }
+                    System.IO.File.Move(file, newPath);
+#endif
                     renameFileResult = DialogResult.Ok;
                     result = true;
                 }

@@ -68,7 +68,7 @@
 
             if (searchFilter != null)
             {
-                AllowedExtensions.AddRange(searchFilter.Split('|', StringSplitOptions.RemoveEmptyEntries));
+                AllowedExtensions.AddRange(searchFilter.Split(['|'], StringSplitOptions.RemoveEmptyEntries));
             }
         }
 

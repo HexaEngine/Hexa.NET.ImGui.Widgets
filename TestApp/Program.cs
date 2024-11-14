@@ -15,6 +15,7 @@
         private static int height;
 
         private static ImGuiManager imGuiManager;
+        internal static GL GL;
         private static SDLGLContext glcontext;
 
         public static int Width => width;
@@ -98,9 +99,9 @@
 
         private static void InitGraphics(SDLWindow* mainWindow)
         {
-            glcontext = SDL.GLCreateContext(mainWindow).Handle;
-            SDLNativeContext context = new();
-            GL.InitApi(context);
+            SDLNativeContext context = new(mainWindow);
+            glcontext = context.Handle;
+            GL = new(context);
         }
 
         private static void InitImGui(SDLWindow* mainWindow)
