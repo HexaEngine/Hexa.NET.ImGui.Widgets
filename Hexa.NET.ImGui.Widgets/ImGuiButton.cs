@@ -1,8 +1,8 @@
 ﻿namespace Hexa.NET.ImGui.Widgets
 {
     using Hexa.NET.ImGui;
-    using Hexa.NET.ImGui.Widgets.Extensions;
-    using Hexa.NET.ImGui.Widgets.Text;
+    using Hexa.NET.Utilities.Extensions;
+    using Hexa.NET.Utilities.Text;
     using System;
     using System.Numerics;
 

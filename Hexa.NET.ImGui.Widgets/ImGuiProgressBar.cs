@@ -6,7 +6,7 @@
 
     public static class ImGuiProgressBar
     {
-        public static unsafe void ProgressBar(string label, float value, Vector2 size, uint backgroundColor, uint foregroundColor)
+        public static unsafe void ProgressBar(float value, Vector2 size, uint backgroundColor, uint foregroundColor)
         {
             ImGuiWindow* window = ImGuiP.GetCurrentWindow();
             if (window->SkipItems == 1)
@@ -17,7 +17,6 @@
             ImDrawList* drawList = ImGui.GetWindowDrawList();
             ImGuiContextPtr g = ImGui.GetCurrentContext();
             ImGuiStylePtr style = ImGui.GetStyle();
-            uint id = ImGui.GetID(label);
 
             var avail = ImGui.GetContentRegionAvail();
 
@@ -37,10 +36,6 @@
 
             ImRect bb = new(pos, pos + size);
             ImGuiP.ItemSize(bb, style.FramePadding.Y);
-            if (!ImGuiP.ItemAdd(bb, id, null, ImGuiItemFlags.None))
-            {
-                return;
-            }
 
             value = Clamp(value, 0f, 1f);
 

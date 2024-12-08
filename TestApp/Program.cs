@@ -1,5 +1,6 @@
 ﻿namespace TestApp
 {
+    using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.OpenGL;
     using Hexa.NET.SDL2;
@@ -86,6 +87,7 @@
             imGuiManager.NewFrame();
 
             WidgetManager.Draw();
+            ImGui.ShowDemoWindow();
 
             SDL.GLMakeCurrent(mainWindow, glcontext);
             GL.BindFramebuffer(GLFramebufferTarget.Framebuffer, 0);

@@ -28,6 +28,7 @@
             DrawDialogs();
             DrawDateTimes();
             DrawFormats();
+            DrawTimeSpans();
         }
 
         private void DrawFormats()
@@ -62,6 +63,81 @@
             ImGui.Text(stack);
         }
 
+        private readonly DateTime start = DateTime.Now;
+
+        private void DrawTimeSpans()
+        {
+            if (!ImGui.CollapsingHeader("Time Spans"))
+            {
+                return;
+            }
+
+            DateTime now = DateTime.Now;
+            TimeSpan span = now - start;
+
+            const int stackSize = 2048;
+            byte* stack = stackalloc byte[stackSize];
+
+            Utf8Formatter.Format(span, stack, stackSize);
+            ImGui.Text(stack);
+
+            Utf8Formatter.Format(span, stack, stackSize, "d");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "dd");
+            ImGui.Text(stack);
+
+            Utf8Formatter.Format(span, stack, stackSize, "h");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "hh");
+            ImGui.Text(stack);
+
+            Utf8Formatter.Format(span, stack, stackSize, "m");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "mm");
+            ImGui.Text(stack);
+
+            Utf8Formatter.Format(span, stack, stackSize, "s");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "ss");
+            ImGui.Text(stack);
+
+            Utf8Formatter.Format(span, stack, stackSize, "fffffff");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "ffffff");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "fffff");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "ffff");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "fff");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "ff");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "f");
+            ImGui.Text(stack);
+
+            Utf8Formatter.Format(span, stack, stackSize, "FFFFFFF");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "FFFFFF");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "FFFFF");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "FFFF");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "FFF");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "FF");
+            ImGui.Text(stack);
+            Utf8Formatter.Format(span, stack, stackSize, "F");
+            ImGui.Text(stack);
+
+            Utf8Formatter.Format(span, stack, stackSize, "'yMmsK'");
+            ImGui.Text(stack);
+
+            Utf8Formatter.Format(TimeSpan.FromHours(1), stack, stackSize, "h[-s]");
+            ImGui.Text(stack);
+        }
+
         private void DrawDateTimes()
         {
             if (!ImGui.CollapsingHeader("Date Times"))
@@ -72,10 +148,8 @@
             const int stackSize = 2048;
             byte* stack = stackalloc byte[stackSize];
             DateTime time = DateTime.Now;
-
-            int w = Utf8Formatter.Format(10, stack, stackSize);
-            stack[w++] = (byte)' ';
-            Utf8Formatter.Format(time, stack + w, stackSize - w);
+    
+            Utf8Formatter.Format(time, stack, stackSize);
             ImGui.Text(stack);
 
             Utf8Formatter.Format(time, stack, stackSize, "d");
@@ -343,7 +417,7 @@
             {
                 AnimationManager.AddAnimation(id, 3, 1, progressBarAnimationType);
             }
-            ImGuiProgressBar.ProgressBar("Progress Bar", value, new(400, 20), ImGui.GetColorU32(ImGuiCol.Button), ImGui.ColorConvertFloat4ToU32(progressBarColor));
+            ImGuiProgressBar.ProgressBar(value, new(400, 20), ImGui.GetColorU32(ImGuiCol.Button), ImGui.ColorConvertFloat4ToU32(progressBarColor));
         }
 
         private Vector4 spinnerColor = *ImGui.GetStyleColorVec4(ImGuiCol.ButtonHovered);
@@ -360,7 +434,7 @@
             ImGui.ColorEdit4("Color", ref spinnerColor);
             ImGui.DragFloat("Radius", ref spinnerRadius, 0.1f, 1, 100);
             ImGui.DragFloat("Thickness", ref spinnerThickness, 0.1f, 1, 100);
-            ImGuiSpinner.Spinner("Spinner", spinnerRadius, spinnerThickness, ImGui.ColorConvertFloat4ToU32(spinnerColor));
+            ImGuiSpinner.Spinner(spinnerRadius, spinnerThickness, ImGui.ColorConvertFloat4ToU32(spinnerColor));
         }
     }
 }

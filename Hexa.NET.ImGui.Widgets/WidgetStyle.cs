@@ -1,6 +1,6 @@
 ﻿namespace Hexa.NET.ImGui.Widgets
 {
-    using Hexa.NET.ImGui.Widgets.Text;
+    using Hexa.NET.Utilities.Text;
     using System.Numerics;
 
     public class WidgetStyle

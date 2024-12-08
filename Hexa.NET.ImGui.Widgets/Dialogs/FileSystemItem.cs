@@ -1,5 +1,6 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
+    using Hexa.NET.Utilities.IO;
     using System;
     using System.Collections.Concurrent;
     using System.IO;
@@ -7,7 +8,6 @@
     using System.Runtime.Versioning;
     using System.Security.AccessControl;
     using System.Text.Json;
-    using Hexa.NET.ImGui.Widgets.IO;
 
     public struct FileSystemItem : IEquatable<FileSystemItem>, IFileSystemItem
     {

@@ -166,7 +166,10 @@ namespace Hexa.NET.ImGui.Widgets
 
         public static bool HorizontalSplitter(ReadOnlySpan<byte> strId, ref float height, float minHeight, float maxHeight, float width, float thickness, float tolerance)
         {
-            return HorizontalSplitter(strId, ref height, minHeight, maxHeight, width, thickness, tolerance);
+            fixed (byte* pStrId = strId)
+            {
+                return HorizontalSplitter(pStrId, ref height, minHeight, maxHeight, width, thickness, tolerance);
+            }
         }
 
         public static bool HorizontalSplitter(string strId, ref float height)

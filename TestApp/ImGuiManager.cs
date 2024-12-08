@@ -43,7 +43,7 @@
             io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
             io.ConfigViewportsNoAutoMerge = false;
             io.ConfigViewportsNoTaskBarIcon = false;
-            io.ConfigDebugIsDebuggerPresent = true;
+            io.ConfigDebugIsDebuggerPresent = Debugger.IsAttached;
             io.ConfigErrorRecoveryEnableAssert = true;
 
             // Setup Platform

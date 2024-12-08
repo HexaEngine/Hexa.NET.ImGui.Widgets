@@ -1,6 +1,6 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
-    using Hexa.NET.ImGui.Widgets.IO;
+    using Hexa.NET.Utilities.IO;
     using System.Runtime.InteropServices;
 
     public static class PathValidator

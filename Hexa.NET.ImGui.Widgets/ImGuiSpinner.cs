@@ -6,7 +6,7 @@
 
     public static class ImGuiSpinner
     {
-        public static unsafe void Spinner(string label, float radius, float thickness, uint color)
+        public static unsafe void Spinner(float radius, float thickness, uint color)
         {
             ImGuiWindow* window = ImGuiP.GetCurrentWindow();
             if (window->SkipItems == 1)
@@ -17,7 +17,6 @@
             ImDrawList* drawList = ImGui.GetWindowDrawList();
             var g = ImGui.GetCurrentContext();
             var style = ImGui.GetStyle();
-            uint id = ImGui.GetID(label);
 
             var pos = ImGui.GetCursorScreenPos();
 
@@ -26,10 +25,6 @@
             ImRect bb = new(pos, pos + size);
 
             ImGuiP.ItemSize(bb, -1);
-            if (!ImGuiP.ItemAdd(bb, id, null, ImGuiItemFlags.None))
-            {
-                return;
-            }
 
             // Render
             ImGui.PathClear(drawList);

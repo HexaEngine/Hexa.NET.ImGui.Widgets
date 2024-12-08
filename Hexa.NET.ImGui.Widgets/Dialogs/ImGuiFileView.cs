@@ -1,7 +1,7 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     using Hexa.NET.ImGui;
-    using Hexa.NET.ImGui.Widgets.Text;
+    using Hexa.NET.Utilities.Text;
     using System.Buffers;
     using System.Numerics;
     using System.Runtime.CompilerServices;

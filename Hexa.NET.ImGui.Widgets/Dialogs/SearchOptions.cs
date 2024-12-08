@@ -1,8 +1,8 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
+    using Hexa.NET.Utilities.IO;
     using System;
     using System.IO;
-    using Hexa.NET.ImGui.Widgets.IO;
 
     public struct SearchOptions
     {

@@ -238,7 +238,7 @@
             if (!handled && ImGui.IsMouseHoveringRect(pos, pos + new Vector2(width, lineHeight)))
             {
                 ImGui.SetMouseCursor(ImGuiMouseCursor.TextInput);
-                if (ImGuiP.IsMouseClicked(ImGuiMouseButton.Left))
+                if (*breadcrumbs && ImGuiP.IsMouseClicked(ImGuiMouseButton.Left))
                 {
                     *breadcrumbs = !*breadcrumbs;
                     switched = true;

@@ -3,8 +3,8 @@
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.ImGui.Widgets.Extensions;
-    using Hexa.NET.ImGui.Widgets.IO;
-    using Hexa.NET.ImGui.Widgets.Text;
+    using Hexa.NET.Utilities.IO;
+    using Hexa.NET.Utilities.Text;
     using System.Diagnostics;
     using System.IO;
     using System.Numerics;
@@ -204,7 +204,7 @@
                 Vector2 cursor = ImGui.GetCursorPos();
                 cursor.X -= 32;
                 ImGui.SetCursorPos(cursor);
-                ImGuiSpinner.Spinner("##Search", 9, 2, ImGui.GetColorU32(ImGuiCol.ButtonHovered));
+                ImGuiSpinner.Spinner(9, 2, ImGui.GetColorU32(ImGuiCol.ButtonHovered));
             }
 
             ImGui.PopItemWidth();

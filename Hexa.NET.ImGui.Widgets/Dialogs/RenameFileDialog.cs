@@ -1,7 +1,7 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     using Hexa.NET.ImGui;
-    using Hexa.NET.ImGui.Widgets.IO;
+    using Hexa.NET.Utilities.IO;
 
     public class RenameFileDialog
     {
