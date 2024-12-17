@@ -141,6 +141,11 @@
         protected override void OnCurrentFolderChanged(string old, string value)
         {
             selection.RootPath = value;
+            if (OnlyAllowFolders && !AllowMultipleSelection)
+            {
+                selection.Clear();
+                selection.Add(value);
+            }
         }
 
         protected override bool IsSelected(FileSystemItem entry)
@@ -193,6 +198,7 @@
         protected override void OnDoubleClicked(FileSystemItem entry, bool shift, bool ctrl)
         {
             base.OnDoubleClicked(entry, shift, ctrl);
+            if (!entry.IsFile) return;
             selection.Validate(GetValidationOptions());
             if (selection.Count == 0)
             {

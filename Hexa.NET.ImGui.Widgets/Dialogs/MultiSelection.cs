@@ -169,6 +169,7 @@
         public void Add(string item)
         {
             ReadOnlySpan<char> relative = GetRelativePath(rootPath.AsSpan(), item.AsSpan());
+            if (relative.IsEmpty) relative = item.AsSpan();
 
             if (!allowMultipleSelection)
             {

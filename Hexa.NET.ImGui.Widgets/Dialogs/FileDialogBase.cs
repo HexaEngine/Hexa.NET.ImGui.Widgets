@@ -168,6 +168,7 @@
             if (ImGuiButton.TransparentButton(MaterialIcons.Home))
             {
                 CurrentFolder = RootFolder;
+                OnClicked(new FileSystemItem(currentFolder, $"{MaterialIcons.Folder}", FileSystemItemFlags.Folder), false, false);
             }
             ImGui.SameLine();
             if (ImGuiButton.TransparentButton(MaterialIcons.ArrowBack))
@@ -504,6 +505,7 @@
             if (ImGuiFileTreeView.FileTreeView("FileTreeView", default, ref currentFolder, rootFolder))
             {
                 CurrentFolder = currentFolder;
+                OnClicked(new FileSystemItem(currentFolder, $"{MaterialIcons.Folder}", FileSystemItemFlags.Folder), false, false);
             }
         }
 

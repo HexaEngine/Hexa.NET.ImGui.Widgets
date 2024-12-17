@@ -3,7 +3,7 @@
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.ImGui.Widgets.Dialogs;
-    using Hexa.NET.ImGui.Widgets.Text;
+    using Hexa.NET.Utilities.Text;
     using System;
     using System.Globalization;
     using System.Numerics;
@@ -148,7 +148,7 @@
             const int stackSize = 2048;
             byte* stack = stackalloc byte[stackSize];
             DateTime time = DateTime.Now;
-    
+
             Utf8Formatter.Format(time, stack, stackSize);
             ImGui.Text(stack);
 
