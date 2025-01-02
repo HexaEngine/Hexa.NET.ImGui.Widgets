@@ -120,7 +120,7 @@
 
                 if (ImGui.TableSetColumnIndex(1))
                 {
-                    ImGui.TextDisabled($"{entry.DateModified:dd/mm/yyyy HH:mm}");
+                    ImGui.TextDisabled($"{entry.DateModified:dd/MM/yyyy HH:mm}");
                 }
 
                 if (ImGui.TableSetColumnIndex(2))
@@ -292,7 +292,7 @@
 
                 if (ImGui.TableSetColumnIndex(1))
                 {
-                    Utf8Formatter.Format(entry.DateModified, stack, 64, "dd/mm/yyyy HH:mm");
+                    Utf8Formatter.Format(entry.DateModified, stack, 64, "dd/MM/yyyy HH:mm");
                     ImGui.TextDisabled(stack);
                 }
 
@@ -457,7 +457,7 @@
 
                 if (ImGui.TableSetColumnIndex(1))
                 {
-                    ImGui.TextDisabled($"{entry.DateModified:dd/mm/yyyy HH:mm}");
+                    ImGui.TextDisabled($"{entry.DateModified:dd/MM/yyyy HH:mm}");
                 }
 
                 if (ImGui.TableSetColumnIndex(2))
