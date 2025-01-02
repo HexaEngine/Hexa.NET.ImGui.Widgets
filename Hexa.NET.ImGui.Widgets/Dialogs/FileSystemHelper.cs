@@ -322,6 +322,8 @@
             {
             }
 
+            items.Sort(new CompareByNameComparer<FileSystemItem>());
+
             cache.Add(folder, items);
             return items;
         }

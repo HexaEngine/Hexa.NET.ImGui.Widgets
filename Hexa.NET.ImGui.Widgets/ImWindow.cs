@@ -16,7 +16,7 @@
         private Vector2 size;
         private Vector2 position;
 
-        protected abstract string Name { get; }
+        public abstract string Name { get; }
 
         protected ImGuiWindowFlags Flags;
 

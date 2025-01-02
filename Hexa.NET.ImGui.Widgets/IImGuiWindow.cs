@@ -2,6 +2,8 @@
 {
     public interface IImGuiWindow
     {
+        string Name { get; }
+
         bool IsEmbedded { get; internal set; }
 
         void Close();

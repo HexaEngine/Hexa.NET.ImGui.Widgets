@@ -9,6 +9,8 @@
             CSharp = new CSharpSyntaxHighlight();
         }
 
+        public static SyntaxHighlight Default { get; } = new("Default", "");
+
         public static SyntaxHighlight CSharp { get; }
     }
 }

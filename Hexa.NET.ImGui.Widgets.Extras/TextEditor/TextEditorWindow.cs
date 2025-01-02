@@ -4,6 +4,8 @@
     using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.ImGui.Widgets.Dialogs;
     using Hexa.NET.ImGui.Widgets.Extras.TextEditor.Panels;
+    using Hexa.NET.ImGui.Widgets.Text;
+    using Hexa.NET.Utilities.Text;
     using System.IO;
     using System.Numerics;
 
@@ -12,8 +14,8 @@
     /// </summary>
     public class TextEditorWindow : ImWindow, IDisposable
     {
-        private readonly List<TextEditorTab> tabs = new();
-        private readonly List<SidePanel> sidePanels = new();
+        private readonly List<TextEditorTab> tabs = [];
+        private readonly List<SidePanel> sidePanels = [];
         private TextEditorTab? currentTab;
 
         public TextEditorWindow()
@@ -22,24 +24,26 @@
             sidePanels.Add(new ExplorerSidePanel());
         }
 
-        protected override string Name => "Text Editor";
+        public override string Name { get; } = "Text Editor";
 
         public IReadOnlyList<TextEditorTab> Tabs => tabs;
 
         public TextEditorTab? CurrentTab => currentTab;
 
-        private void DrawMenuBar()
+        private unsafe void DrawMenuBar()
         {
+            byte* buffer = stackalloc byte[2048];
+            StrBuilder builder = new(buffer, 2048);
             if (ImGui.BeginMenuBar())
             {
-                if (ImGui.BeginMenu("File"))
+                if (ImGui.BeginMenu("File"u8))
                 {
-                    if (ImGui.MenuItem($"{MaterialIcons.Create} New", "Ctrl+N"))
+                    if (ImGui.MenuItem(builder.BuildLabel(MaterialIcons.Create, " New"u8), "Ctrl+N"u8))
                     {
                         New();
                     }
 
-                    if (ImGui.MenuItem($"{MaterialIcons.FileOpen} Open"))
+                    if (ImGui.MenuItem(builder.BuildLabel(MaterialIcons.FileOpen, " Open"u8)))
                     {
                         OpenFileDialog openDialog = new();
                         openDialog.Show(DialogCallback);
@@ -47,12 +51,12 @@
 
                     ImGui.Separator();
 
-                    if (ImGui.MenuItem($"{MaterialIcons.Save} Save", "Ctrl+S"))
+                    if (ImGui.MenuItem(builder.BuildLabel(MaterialIcons.Save, " Save"u8), "Ctrl+S"u8))
                     {
                         Save();
                     }
 
-                    if (ImGui.MenuItem($"{MaterialIcons.SaveAs} Save As"))
+                    if (ImGui.MenuItem(builder.BuildLabel(MaterialIcons.SaveAs, " Save As"u8)))
                     {
                         SaveFileDialog saveDialog = new();
                         saveDialog.Show(DialogCallback);
@@ -62,7 +66,7 @@
 
                     ImGui.BeginDisabled(currentTab == null);
 
-                    if (ImGui.MenuItem($"{MaterialIcons.Close} Close"))
+                    if (ImGui.MenuItem(builder.BuildLabel(MaterialIcons.Close, " Close"u8)))
                     {
                         if (currentTab != null)
                         {
@@ -75,23 +79,23 @@
 
                     ImGui.EndMenu();
                 }
-                if (ImGui.BeginMenu("Edit"))
+                if (ImGui.BeginMenu("Edit"u8))
                 {
                     ImGui.BeginDisabled(currentTab == null);
 
-                    if (ImGui.MenuItem($"{MaterialIcons.Search} Search"))
+                    if (ImGui.MenuItem(builder.BuildLabel(MaterialIcons.Search, " Search"u8)))
                     {
                         currentTab?.ShowFind();
                     }
 
                     ImGui.Separator();
 
-                    if (ImGui.MenuItem($"{MaterialIcons.RotateLeft} Undo", "Ctrl+Z"))
+                    if (ImGui.MenuItem(builder.BuildLabel(MaterialIcons.RotateLeft, " Undo"u8), "Ctrl+Z"u8))
                     {
                         currentTab?.Undo();
                     }
 
-                    if (ImGui.MenuItem($"{MaterialIcons.RotateRight} Redo", "Ctrl+Y"))
+                    if (ImGui.MenuItem(builder.BuildLabel(MaterialIcons.RotateRight, " Redo"u8), "Ctrl+Y"u8))
                     {
                         currentTab?.Redo();
                     }
@@ -206,7 +210,7 @@
 
             ImGui.SetCursorPos(cursor + new Vector2(avail.X - sideBarWidth - actualSidePanelWidth - resizeBarWidth, 0));
 
-            ImGui.InvisibleButton("ResizeBar", new Vector2(resizeBarWidth, avail.Y));
+            ImGui.InvisibleButton("ResizeBar"u8, new Vector2(resizeBarWidth, avail.Y));
 
             if (ImGui.IsItemHovered())
                 ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeEw);
@@ -237,7 +241,7 @@
                 return;
             }
 
-            ImGui.BeginChild("##SidePanel", new Vector2(sidePanelWidth, 0));
+            ImGui.BeginChild("##SidePanel"u8, new Vector2(sidePanelWidth, 0));
             var cursor = ImGui.GetCursorScreenPos();
             var avail = ImGui.GetContentRegionAvail();
             var max = cursor + new Vector2(sidePanelWidth, avail.Y);
@@ -257,7 +261,7 @@
 
         private unsafe void DrawSideBar()
         {
-            ImGui.BeginChild("##SideBar", new Vector2(sideBarWidth, 0));
+            ImGui.BeginChild("##SideBar"u8, new Vector2(sideBarWidth, 0));
             var cursor = ImGui.GetCursorScreenPos();
             var avail = ImGui.GetContentRegionAvail();
             var max = cursor + new Vector2(sideBarWidth, avail.Y);
@@ -318,7 +322,6 @@
             }
 
             tabs.Clear();
-            GC.SuppressFinalize(this);
         }
     }
 }

@@ -21,6 +21,19 @@
 
         public static IReadOnlyList<IImGuiWindow> Widgets => widgets;
 
+        public static T? Find<T>(string? id = null) where T : IImGuiWindow
+        {
+            foreach (var widget in widgets)
+            {
+                if (id != null && widget.Name != id) continue;
+                if (widget is T t)
+                {
+                    return t;
+                }
+            }
+            return default;
+        }
+
         public static bool Register<T>(bool show = false, bool mainWindow = false) where T : IImGuiWindow, new()
         {
             return Register(new T(), show, mainWindow);
@@ -108,6 +121,7 @@
 
             DialogManager.Draw();
             MessageBoxes.Draw();
+            PopupManager.Draw();
             AnimationManager.Tick();
         }
 

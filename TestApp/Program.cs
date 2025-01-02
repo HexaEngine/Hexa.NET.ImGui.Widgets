@@ -109,9 +109,7 @@
         private static void InitImGui(SDLWindow* mainWindow)
         {
             imGuiManager = new(mainWindow, glcontext);
-
             WidgetManager.Register<WidgetDemo>(show: true);
-            //WidgetManager.Register<TextEditorWindow>(show: true);
 
             WidgetManager.Init();
         }

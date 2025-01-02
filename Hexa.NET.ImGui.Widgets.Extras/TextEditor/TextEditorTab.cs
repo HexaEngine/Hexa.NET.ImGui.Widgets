@@ -2,7 +2,6 @@
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
-    using Hexa.NET.Mathematics;
     using Hexa.NET.Utilities;
     using System;
     using System.Collections.Generic;
@@ -12,7 +11,6 @@
     using System.Runtime.InteropServices;
     using System.Text.RegularExpressions;
 
-
     public unsafe class TextEditorTab
     {
         private readonly ImGuiName name;
@@ -20,7 +18,7 @@
         private bool isFocused = false;
         private TextSource source;
         private TextHistory history;
-        private TextDrawData drawData = new();
+        private readonly TextDrawData drawData = new();
         private bool needsUpdate = true;
         private JumpTarget? jumpTo;
 
@@ -47,9 +45,25 @@
 
         public TextHistory History { get => history; set => history = value; }
 
+        public List<Breakpoint> Breakpoints => breakpoints;
+
         public bool IsOpen { get => open; set => open = value; }
 
         public bool IsFocused => isFocused;
+
+        public ImFontPtr Font { get => font; set => font = value; }
+
+        public SyntaxHighlight? SyntaxHighlight
+        {
+            get => syntaxHighlight;
+            set
+            {
+                syntaxHighlight = value;
+                needsUpdate = true;
+            }
+        }
+
+        private readonly List<Breakpoint> breakpoints = [];
 
         private CursorState cursorState;
 
@@ -64,7 +78,7 @@
                 isFocused = true;
                 StdWString* text = source.Text;
 
-                ImGui.PushFont(null);
+                ImGui.PushFont(font);
 
                 ImGui.BeginChild("##TextEditorChild", size, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
 
@@ -428,14 +442,19 @@
             ClearSelection();
             needsUpdate = false;
             source.Update(lineHeight);
-            SyntaxHighlightDefaults.CSharp.Analyze(source, drawData, lineHeight);
+            if (syntaxHighlight != null)
+            {
+                syntaxHighlight.Analyze(source, drawData, lineHeight);
+            }
+            else
+            {
+                SyntaxHighlightDefaults.Default.Analyze(source, drawData, lineHeight);
+            }
         }
 
         private bool wasDragging = false;
         private bool wasFocused = false;
         private TextSelection selection = TextSelection.Invalid;
-
-     
 
         private bool DrawEditor(string label, StdWString* text, Vector2 size)
         {
@@ -496,12 +515,7 @@
                 jumpTo = null;
             }
 
-            {
-                var max = cursor + new Vector2(breakpointsWidth, textAreaSize.Y);
-                draw->AddRectFilled(cursor, max, 0xff2c2c2c);
-                cursor.X += breakpointsWidth + style->FramePadding.X;
-                textAreaSize.X -= breakpointsWidth + style->FramePadding.X;
-            }
+            DrawBreakpoints(style, draw, breakpointsWidth, ref textAreaSize, ref cursor, lineHeight, mousePos, scroll);
 
             DrawLineNumbers(ref textAreaSize, style, draw, ref cursor, lineHeight, digits, lineNumberWidth);
             cursor.X += 50;
@@ -525,6 +539,73 @@
             }
 
             return changed;
+        }
+
+        private void DrawBreakpoints(ImGuiStyle* style, ImDrawList* draw, float breakpointsWidth, ref Vector2 textAreaSize, ref Vector2 cursor, float lineHeight, Vector2 mousePos, float scroll)
+        {
+            var min = cursor;
+            var max = cursor + new Vector2(breakpointsWidth, textAreaSize.Y);
+            draw->AddRectFilled(cursor, max, 0xff2c2c2c);
+            cursor.X += breakpointsWidth + style->FramePadding.X;
+            textAreaSize.X -= breakpointsWidth + style->FramePadding.X;
+
+            bool hovered = mousePos.Y >= min.Y && mousePos.X >= min.X && mousePos.Y <= max.Y && mousePos.X <= max.X;
+
+            int scrollOffset = (int)(scroll / lineHeight);
+            int hoveredLine = (int)((mousePos.Y - cursor.Y) / lineHeight) + scrollOffset;
+
+            int start = (int)Math.Floor(scroll / lineHeight);
+            int end = (int)Math.Ceiling(textAreaSize.Y / lineHeight) + start;
+
+            List<Breakpoint> breakpoints = this.breakpoints;
+            const float padding = 4;
+            float radius = (lineHeight - padding) * 0.5f;
+
+            for (int i = start; i <= end; i++)
+            {
+                // Calculate the Y position of the line, adjusting for scroll
+                float lineOffset = (i - scrollOffset) * lineHeight;
+
+                // Position of the breakpoint circle
+                var center = min + new Vector2(padding + radius, lineOffset + radius);
+
+                // Get breakpoint for the current line (if it exists)
+                var breakpoint = breakpoints.FirstOrDefault(b => b.Line == i);
+                if (breakpoint != default)
+                {
+                    uint color = breakpoint.Enabled ? 0xff0000d0 : 0xffaaaaaa; // ABGR for Enabled and Disabled
+                    draw->AddCircleFilled(center, radius, color);
+                }
+
+                // Highlight hovered line
+                if (hovered && hoveredLine == i)
+                {
+                    draw->AddCircleFilled(center, radius, 0xffff0000); // ABGR for Hovered (Blue)
+                }
+            }
+
+            // Handle mouse click to toggle or add breakpoints
+            if (hovered && false)
+            {
+                var existingBreakpoint = breakpoints.FirstOrDefault(b => b.Line == hoveredLine);
+                if (existingBreakpoint != default)
+                {
+                    // Toggle the breakpoint
+                    existingBreakpoint.Enabled = !existingBreakpoint.Enabled;
+                }
+                else
+                {
+                    // Add a new breakpoint
+                    breakpoints.Add(new Breakpoint { Line = hoveredLine, Enabled = true });
+                }
+            }
+            /*
+            if (hovered)
+            {
+                var bMin = min + new Vector2(padding, relativeHovered * lineHeight + padding);
+                var center = bMin + new Vector2(radius);
+                draw->AddCircleFilled(center, radius, 0xff0000ff);
+            }*/
         }
 
         private (int digits, float lineNumbersWidth) ComputeLineNumbersWidth()
@@ -715,6 +796,8 @@
                 absOffset--;
             }
 
+            index = Math.Clamp(index, 0, text.Size);
+
             SetCursor(index);
         }
 
@@ -748,8 +831,12 @@
                 return;
             }
 
-            source.Text->Erase(selection.EffectiveStart.Index, selection.Length);
-            source.Update(ImGui.GetTextLineHeight());
+            if (selection.Length != 0)
+            {
+                source.Text->Erase(selection.EffectiveStart.Index, selection.Length);
+                source.Update(ImGui.GetTextLineHeight());
+            }
+
             SetCursor(selection.EffectiveStart.Index);
         }
 
@@ -1202,6 +1289,8 @@
         private bool cursorVisible = true;
         private readonly float cursorBlinkInterval = 0.5f;
         private float cursorBlinkTimer = 0.0f;
+        private SyntaxHighlight? syntaxHighlight;
+        private ImFontPtr font;
 
         private void DrawCursorLine(ImDrawList* drawList, TextSource source, bool isFocused, float lineHeight, Vector2 origin, Vector2 avail, CursorState cursorState)
         {
