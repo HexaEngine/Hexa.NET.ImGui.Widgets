@@ -8,14 +8,26 @@
     using System.Globalization;
     using System.Numerics;
 
+    public unsafe class WidgetDemo2 : ImWindow
+    {
+        public override string Name { get; } = "Demo2";
+
+        public override void DrawContent()
+        { 
+        }
+
+        public override void Dispose()
+        {
+        }
+    }
+
     public unsafe class WidgetDemo : ImWindow
     {
         public WidgetDemo()
         {
-            IsEmbedded = true;
         }
 
-        protected override string Name { get; } = "Demo";
+        public override string Name { get; } = "Demo";
 
         public override void DrawContent()
         {

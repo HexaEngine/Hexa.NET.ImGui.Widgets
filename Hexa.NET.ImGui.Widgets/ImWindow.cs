@@ -70,7 +70,13 @@
             {
                 size = Vector2.Zero; // window is closed.
                 ImGui.End();
+                OnClosedInternal();
                 return;
+            }
+
+            if (!IsShown)
+            {
+                OnClosedInternal();
             }
 
             var currentSize = ImGui.GetWindowSize();
@@ -119,6 +125,21 @@
         {
         }
 
+        private void OnClosedInternal()
+        {
+            bool onClosedHandled = false;
+            OnClosed(ref onClosedHandled);
+            IsShown = true;
+            if (!onClosedHandled)
+            {
+                Close();
+            }
+        }
+
+        protected virtual void OnClosed(ref bool handled)
+        {
+        }
+
         public abstract void DrawContent();
 
         protected void EndWindow()
@@ -128,21 +149,17 @@
             windowEnded = true;
         }
 
-        public virtual void DrawMenu()
-        {
-            if (ImGui.MenuItem(Name))
-            {
-                IsShown = true;
-            }
-        }
-
         public virtual void Show()
         {
+            if (IsShown) return;
             IsShown = true;
+            WidgetManager.Register(this);
         }
 
         public virtual void Close()
         {
+            if (!IsShown) return;
+            WidgetManager.Unregister(this);
             IsShown = false;
         }
 

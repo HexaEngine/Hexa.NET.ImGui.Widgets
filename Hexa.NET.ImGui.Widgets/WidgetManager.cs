@@ -34,32 +34,32 @@
             return default;
         }
 
-        public static bool Register<T>(bool show = false, bool mainWindow = false) where T : IImGuiWindow, new()
+        internal static bool Register<T>(bool mainWindow = false) where T : IImGuiWindow, new()
         {
-            return Register(new T(), show, mainWindow);
+            return Register(new T(), mainWindow);
         }
 
-        public static void Unregister<T>() where T : IImGuiWindow, new()
+        internal static void Unregister<T>() where T : IImGuiWindow, new()
         {
             IImGuiWindow? window = widgets.FirstOrDefault(x => x is T);
             if (window != null)
             {
-                if (initialized)
-                {
-                    window.Dispose();
-                }
-
-                widgets.Remove(window);
+                Unregister(window);
             }
         }
 
-        public static bool Register(IImGuiWindow widget, bool show = false, bool mainWindow = false)
+        internal static void Unregister(IImGuiWindow window)
         {
-            if (show)
+            if (initialized)
             {
-                widget.Show();
+                window.Dispose();
             }
 
+            widgets.Remove(window);
+        }
+
+        internal static bool Register(IImGuiWindow widget, bool mainWindow = false)
+        {
             if (widgets.Count == 0)
             {
                 widget.IsEmbedded = true;
@@ -123,14 +123,6 @@
             MessageBoxes.Draw();
             PopupManager.Draw();
             AnimationManager.Tick();
-        }
-
-        public static unsafe void DrawMenu()
-        {
-            for (int i = 0; i < widgets.Count; i++)
-            {
-                widgets[i].DrawMenu();
-            }
         }
 
         public static void Dispose()

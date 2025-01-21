@@ -12,8 +12,6 @@
 
         void DrawContent();
 
-        void DrawMenu();
-
         void DrawWindow(ImGuiWindowFlags overwriteFlags);
 
         void Init();

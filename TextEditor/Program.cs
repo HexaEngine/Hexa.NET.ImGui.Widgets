@@ -110,7 +110,8 @@
         {
             imGuiManager = new(mainWindow, glcontext);
 
-            WidgetManager.Register<TextEditorWindow>(show: true);
+            TextEditorWindow window = new();
+            window.Show();
 
             WidgetManager.Init();
         }
