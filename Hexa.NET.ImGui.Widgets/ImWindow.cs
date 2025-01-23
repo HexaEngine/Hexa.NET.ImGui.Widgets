@@ -77,6 +77,8 @@
             if (!IsShown)
             {
                 OnClosedInternal();
+                ImGui.End();
+                return;
             }
 
             var currentSize = ImGui.GetWindowSize();
