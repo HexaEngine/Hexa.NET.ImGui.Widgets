@@ -1,6 +1,6 @@
 ﻿namespace Hexa.NET.ImGui.Widgets
 {
-    public interface IImGuiWindow
+    public interface IImGuiWindow : IUIElement
     {
         string Name { get; }
 

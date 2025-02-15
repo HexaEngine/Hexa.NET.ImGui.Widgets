@@ -13,7 +13,7 @@
         public override string Name { get; } = "Demo2";
 
         public override void DrawContent()
-        { 
+        {
         }
 
         public override void Dispose()
@@ -323,11 +323,10 @@
                 openFileDialog.OnlyAllowFilteredExtensions = true;
                 openFileDialog.Show();
             }
-            if (ImGui.Button("Open File Dialog (Folders Only)"))
+            if (ImGui.Button("Open Folder Dialog"))
             {
-                OpenFileDialog openFileDialog = new();
-                openFileDialog.OnlyAllowFolders = true;
-                openFileDialog.Show();
+                OpenFolderDialog openFolderDialog = new();
+                openFolderDialog.Show();
             }
             if (ImGui.Button("Save File Dialog"))
             {

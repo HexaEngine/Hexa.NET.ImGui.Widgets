@@ -33,14 +33,30 @@
 
         protected List<FileSystemItem> Entries => entries;
 
+        /// <summary>
+        /// Gets the list of file extensions allowed for filtering.<br/>
+        /// Extensions are used to determine which files are displayed in the dialog<br/>
+        /// when <see cref="OnlyAllowFilteredExtensions"/> is enabled.<br/>
+        /// </summary>
         public List<string> AllowedExtensions => allowedExtensions;
 
+        /// <summary>
+        /// Gets or sets the root folder of the dialog.<br/>
+        /// - This is the starting point of navigation.<br/>
+        /// - The dialog cannot navigate above this folder.<br/>
+        /// </summary>
         public string RootFolder
         {
             get => rootFolder;
             set => rootFolder = value;
         }
 
+        /// <summary>
+        /// Gets or sets the current folder displayed in the dialog.<br/>
+        /// - When set, the dialog updates to display the contents of the specified folder.<br/>
+        /// - If the provided path does not exist, the folder remains unchanged.<br/>
+        /// </summary>
+        /// <param name="value">The path to the folder to set as the current folder.</param>
         public string CurrentFolder
         {
             get => currentFolder;
@@ -51,6 +67,8 @@
                     return;
                 }
 
+                if (currentFolder == value) return;
+
                 var old = currentFolder;
                 currentFolder = value;
                 OnSetCurrentFolder(old, value);
@@ -58,8 +76,18 @@
             }
         }
 
+        /// <summary>
+        /// Gets a <see cref="DirectoryInfo"/> object representing the current folder.<br/>
+        /// Provides additional metadata about the current folder, such as attributes or creation time.<br/>
+        /// </summary>
         public DirectoryInfo CurrentDir => currentDir;
 
+        /// <summary>
+        /// Gets or sets whether hidden files are displayed in the dialog.<br/>
+        /// - When true: Hidden files are visible.<br/>
+        /// - When false: Hidden files are not displayed.<br/>
+        /// Changes to this property automatically call <see cref="Refresh()"/>
+        /// </summary>
         public bool ShowHiddenFiles
         {
             get => (refreshFlags & RefreshFlags.Hidden) == 0;
@@ -77,6 +105,12 @@
             }
         }
 
+        /// <summary>
+        /// Gets or sets whether files are displayed in the dialog.<br/>
+        /// - When true: Files are visible in the dialog.<br/>
+        /// - When false: Files are hidden.<br/>
+        /// Changes to this property automatically call <see cref="Refresh()"/>
+        /// </summary>
         public bool ShowFiles
         {
             get => (refreshFlags & RefreshFlags.Files) != 0;
@@ -94,6 +128,12 @@
             }
         }
 
+        /// <summary>
+        /// Gets or sets whether folders are displayed in the dialog.<br/>
+        /// - When true: Folders are visible in the dialog.<br/>
+        /// - When false: Folders are hidden.<br/>
+        /// Changes to this property automatically call <see cref="Refresh()"/>
+        /// </summary>
         public bool ShowFolders
         {
             get => (refreshFlags & RefreshFlags.Folders) != 0;
@@ -111,6 +151,12 @@
             }
         }
 
+        /// <summary>
+        /// Gets or sets whether only files with allowed extensions are displayed in the dialog.<br/>
+        /// - When true: Files with extensions listed in <see cref="AllowedExtensions"/> are displayed.<br/>
+        /// - When false: Files are not filtered by their extensions.<br/>
+        /// Changes to this property automatically call <see cref="Refresh()"/>
+        /// </summary>
         public bool OnlyAllowFilteredExtensions
         {
             get => (refreshFlags & RefreshFlags.OnlyAllowFilteredExtensions) != 0;
@@ -129,6 +175,17 @@
             }
         }
 
+        /// <summary>
+        /// Gets or sets whether the dialog allows selecting folders only.<br/>
+        /// - When true: Only folders are displayed and selectable.<br/>
+        /// - When false: Both files and folders can be displayed and selected.<br/>
+        /// Adjusts `ShowFiles` and `ShowFolders` properties accordingly.<br/>
+        /// Changes to this property automatically call <see cref="Refresh()"/>
+        /// </summary>
+        /// <remarks>
+        /// When true, it forces a dialog like <see cref="OpenFileDialog"/> to behave like <see cref="OpenFolderDialog"/>.<br/>
+        /// It is recommended to use <see cref="OpenFolderDialog"/> instead for better clarity and intent.<br/>
+        /// </remarks>
         public bool OnlyAllowFolders
         {
             get => !ShowFiles && ShowFolders;

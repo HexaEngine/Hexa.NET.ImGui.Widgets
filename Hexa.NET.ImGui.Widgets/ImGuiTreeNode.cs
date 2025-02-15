@@ -83,7 +83,7 @@
             ImRect frame_bb;
             frame_bb.Min.X = span_all_columns ? window->ParentWorkRect.Min.X : (flags & ImGuiTreeNodeFlags.SpanFullWidth) != 0 ? window->WorkRect.Min.X : pos.X;
             frame_bb.Min.Y = pos.Y;
-            frame_bb.Max.X = span_all_columns ? window->ParentWorkRect.Max.X : (flags & ImGuiTreeNodeFlags.SpanTextWidth) != 0 ? pos.X + text_width + padding.X : window->WorkRect.Max.X;
+            frame_bb.Max.X = span_all_columns ? window->ParentWorkRect.Max.X : (flags & ImGuiTreeNodeFlags.SpanLabelWidth) != 0 ? pos.X + text_width + padding.X : window->WorkRect.Max.X;
             frame_bb.Max.Y = pos.Y + frame_height;
 
             if (display_frame)
@@ -98,7 +98,7 @@
             ImGuiP.ItemSize(new Vector2(text_width, frame_height), padding.Y);
 
             ImRect interact_bb = frame_bb;
-            if ((flags & (ImGuiTreeNodeFlags.Framed | ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.SpanTextWidth | ImGuiTreeNodeFlags.SpanAllColumns)) == 0)
+            if ((flags & (ImGuiTreeNodeFlags.Framed | ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.SpanFullWidth | ImGuiTreeNodeFlags.SpanLabelWidth | ImGuiTreeNodeFlags.SpanAllColumns)) == 0)
                 interact_bb.Max.X = frame_bb.Min.X + text_width + (labelSize.X > 0.0f ? style.ItemSpacing.X * 2.0f : 0.0f);
 
             uint storage_id = (g.NextItemData.HasFlags & ImGuiNextItemDataFlags.HasStorageId) != 0 ? g.NextItemData.StorageId : id;

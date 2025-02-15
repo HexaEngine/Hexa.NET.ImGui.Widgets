@@ -1,13 +1,12 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     using Hexa.NET.ImGui;
-    using Hexa.NET.ImGui.Widgets.Extensions;
 
-    public class OpenFileDialog : FileDialogBase
+    public class OpenFolderDialog : FileDialogBase
     {
         private readonly MultiSelection selection = [];
 
-        public OpenFileDialog()
+        public OpenFolderDialog()
         {
             string startingPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             if (File.Exists(startingPath))
@@ -25,10 +24,10 @@
 
             RootFolder = startingPath;
             SetInternal(startingPath, refresh: false);
-            ShowFiles = ShowFolders = true;
+            OnlyAllowFolders = true;
         }
 
-        public OpenFileDialog(string startingPath)
+        public OpenFolderDialog(string startingPath)
         {
             if (File.Exists(startingPath))
             {
@@ -45,10 +44,10 @@
 
             RootFolder = startingPath;
             SetInternal(startingPath, refresh: false);
-            ShowFiles = ShowFolders = true;
+            OnlyAllowFolders = true;
         }
 
-        public OpenFileDialog(string startingPath, string? searchFilter = null)
+        public OpenFolderDialog(string startingPath, string? searchFilter = null)
         {
             if (File.Exists(startingPath))
             {
@@ -65,7 +64,7 @@
 
             RootFolder = startingPath;
             SetInternal(startingPath, refresh: false);
-            ShowFiles = ShowFolders = true;
+            OnlyAllowFolders = true;
 
             if (searchFilter != null)
             {
@@ -73,16 +72,11 @@
             }
         }
 
+        public override string Name { get; } = "Folder Picker";
+
         protected override ImGuiWindowFlags Flags { get; } = ImGuiWindowFlags.NoDocking;
 
-        public override string Name { get; } = "File Picker";
-
-        /// <summary>
-        /// Gets the selected path.<br/>
-        /// - When selecting files, this returns the selected file path.<br/>
-        /// - When `OnlyAllowFolders` is enabled, this returns the selected folder path.<br/>
-        /// </summary>
-        public string? SelectedFile
+        public string? SelectedFolder
         {
             get => selection.Count > 0 ? selection[0] : null;
         }
@@ -100,17 +94,13 @@
             DrawExplorer();
 
             var selectionString = selection.SelectionString;
-            if (ImGui.InputText("Selected"u8, ref selectionString, 2048, ImGuiInputTextFlags.EnterReturnsTrue))
+            if (ImGui.InputText("Selected"u8, ref selectionString, 1024, ImGuiInputTextFlags.EnterReturnsTrue))
             {
-                selectionString = selectionString.TrimText('\"');
-
-                if (selectionString.IsValidPath())
-                {
-                    CurrentFolder = Path.GetDirectoryName(selectionString)!;
-                    selectionString = selectionString.GetRelativePath(CurrentFolder);
-                }
-
                 selection.SetSelectionString(selectionString, GetValidationOptions());
+                if (ImGuiP.IsKeyPressed(ImGuiKey.Enter))
+                {
+                    selection.Validate(GetValidationOptions());
+                }
             }
 
             ImGui.SameLine();
@@ -127,19 +117,9 @@
             }
         }
 
-        private MultiSelection.ValidationOptions GetValidationOptions()
+        private static MultiSelection.ValidationOptions GetValidationOptions()
         {
-            MultiSelection.ValidationOptions options = MultiSelection.ValidationOptions.MustExist;
-            if (OnlyAllowFolders)
-            {
-                options |= MultiSelection.ValidationOptions.AllowFolders;
-            }
-            else
-            {
-                options |= MultiSelection.ValidationOptions.AllowFiles;
-            }
-
-            return options;
+            return MultiSelection.ValidationOptions.MustExist | MultiSelection.ValidationOptions.AllowFolders;
         }
 
         public override void Reset()
@@ -151,7 +131,7 @@
         protected override void OnCurrentFolderChanged(string old, string value)
         {
             selection.RootPath = value;
-            if (OnlyAllowFolders && !AllowMultipleSelection)
+            if (!AllowMultipleSelection)
             {
                 selection.Clear();
                 selection.Add(value);
@@ -160,7 +140,7 @@
 
         protected override bool IsSelected(FileSystemItem entry)
         {
-            if (entry.IsFile == OnlyAllowFolders)
+            if (entry.IsFile)
             {
                 return false;
             }
@@ -170,7 +150,7 @@
 
         protected override void OnClicked(FileSystemItem entry, bool shift, bool ctrl)
         {
-            if (entry.IsFile == OnlyAllowFolders)
+            if (entry.IsFile)
             {
                 return;
             }
@@ -203,19 +183,6 @@
                 selection.Clear();
                 selection.Add(entry.Path);
             }
-        }
-
-        protected override void OnDoubleClicked(FileSystemItem entry, bool shift, bool ctrl)
-        {
-            base.OnDoubleClicked(entry, shift, ctrl);
-            if (!entry.IsFile) return;
-            selection.Validate(GetValidationOptions());
-            if (selection.Count == 0)
-            {
-                return;
-            }
-
-            Close(DialogResult.Ok);
         }
 
         protected override void OnEnterPressed()

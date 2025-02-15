@@ -1,6 +1,4 @@
-﻿using System.Xml.Linq;
-
-namespace Hexa.NET.ImGui.Widgets.Dialogs
+﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     using Hexa.NET.ImGui;
     using System.Numerics;
@@ -21,9 +19,10 @@ namespace Hexa.NET.ImGui.Widgets.Dialogs
         private bool windowEnded;
         private bool shown;
         protected DialogCallback? callback;
-        private Vector2 windowPos;
-        private Vector2 windowSize;
-        private IDialog? parent;
+        private Vector2 position;
+        private Vector2 size;
+        private uint viewportId;
+        private IUIElement? parent;
         private DialogFlags flags;
         private bool firstFrame = true;
 
@@ -35,9 +34,17 @@ namespace Hexa.NET.ImGui.Widgets.Dialogs
 
         protected abstract ImGuiWindowFlags Flags { get; }
 
-        public Vector2 WindowPos => windowPos;
+        public Vector2 Position => position;
 
-        public Vector2 WindowSize => windowSize;
+        public Vector2 Size => size;
+
+        public uint ViewportId => viewportId;
+
+        public event SizeChangedEventHandler? SizeChanged;
+
+        public event PositionChangedEventHandler? PositionChanged;
+
+        public event ViewportChangedEventHandler? ViewportChanged;
 
         public bool Shown => shown;
 
@@ -48,6 +55,23 @@ namespace Hexa.NET.ImGui.Widgets.Dialogs
             if (!shown) return;
 
             var windowFlags = Flags | overwriteFlags;
+
+            var alwaysCenter = (flags & DialogFlags.AlwaysCenter) != 0;
+            var viewportsEnable = (ImGui.GetIO().ConfigFlags & ImGuiConfigFlags.ViewportsEnable) != 0;
+            if ((firstFrame || alwaysCenter) && (flags & DialogFlags.CenterOnParent) != 0)
+            {
+                Vector2 center = ImGui.GetIO().DisplaySize * 0.5f;
+                if (parent != null)
+                {
+                    center = parent.Position + parent.Size * 0.5f;
+                    if (viewportsEnable)
+                    {
+                        ImGui.SetNextWindowViewport(parent.ViewportId);
+                    }
+                }
+
+                ImGui.SetNextWindowPos(center, alwaysCenter ? ImGuiCond.Always : ImGuiCond.Appearing, new(0.5f));
+            }
 
             bool wasOpen = shown;
             if (!ImGui.Begin(Name, ref shown, windowFlags))
@@ -63,10 +87,39 @@ namespace Hexa.NET.ImGui.Widgets.Dialogs
             if (wasOpen && wasOpen != shown)
             {
                 Close();
+                ImGui.End();
+                return;
             }
 
-            windowPos = ImGui.GetWindowPos();
-            windowSize = ImGui.GetWindowSize();
+            if (viewportsEnable)
+            {
+                var currentViewport = ImGui.GetWindowViewport().ID;
+
+                if (viewportId != currentViewport)
+                {
+                    var oldViewportId = viewportId;
+                    viewportId = currentViewport;
+                    OnViewportChangedInternal(oldViewportId, viewportId);
+                }
+            }
+
+            var currentSize = ImGui.GetWindowSize();
+
+            if (size != currentSize)
+            {
+                var oldSize = size;
+                size = currentSize;
+                OnSizeChangedInternal(oldSize, size);
+            }
+
+            var currentPosition = ImGui.GetWindowPos();
+
+            if (position != currentPosition)
+            {
+                var oldPosition = position;
+                position = currentPosition;
+                OnPositionChangedInternal(oldPosition, position);
+            }
 
             DrawContent();
 
@@ -77,20 +130,11 @@ namespace Hexa.NET.ImGui.Widgets.Dialogs
                 ImGuiP.SetWindowSize(InitialSize);
                 firstFrame = false;
             }
-            else
-            {
-                if ((flags & DialogFlags.CenterOnParent) != 0 && parent != null)
-                {
-                    ImGuiP.SetWindowPos(parent.WindowPos + (parent.WindowSize - windowSize) / 2);
-                    if ((flags & DialogFlags.AlwaysCenter) == 0)
-                    {
-                        flags &= ~DialogFlags.CenterOnParent;
-                    }
-                }
-            }
 
             if (!windowEnded)
+            {
                 ImGui.End();
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -102,6 +146,36 @@ namespace Hexa.NET.ImGui.Widgets.Dialogs
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected abstract void DrawContent();
+
+        private void OnPositionChangedInternal(Vector2 oldPosition, Vector2 position)
+        {
+            OnPositionChanged(oldPosition, position);
+            PositionChanged?.Invoke(this, oldPosition, position);
+        }
+
+        protected virtual void OnPositionChanged(Vector2 oldPosition, Vector2 position)
+        {
+        }
+
+        private void OnSizeChangedInternal(Vector2 oldSize, Vector2 size)
+        {
+            OnSizeChanged(oldSize, size);
+            SizeChanged?.Invoke(this, oldSize, size);
+        }
+
+        protected virtual void OnSizeChanged(Vector2 oldSize, Vector2 size)
+        {
+        }
+
+        private void OnViewportChangedInternal(uint oldViewportId, uint viewportId)
+        {
+            OnViewportChanged(oldViewportId, viewportId);
+            ViewportChanged?.Invoke(this, oldViewportId, viewportId);
+        }
+
+        protected virtual void OnViewportChanged(uint oldViewportId, uint viewportId)
+        {
+        }
 
         public virtual void Close()
         {
@@ -134,7 +208,7 @@ namespace Hexa.NET.ImGui.Widgets.Dialogs
             Show();
         }
 
-        public virtual void Show(DialogCallback callback, IDialog parent, DialogFlags flags)
+        public virtual void Show(DialogCallback callback, IUIElement parent, DialogFlags flags)
         {
             this.flags = flags;
             this.parent = parent;

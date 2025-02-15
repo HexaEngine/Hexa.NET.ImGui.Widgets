@@ -15,18 +15,21 @@
                 return false;
             }
 
-            ReadOnlySpan<char> pathSpan = path.AsSpan();
+            return IsValidPath(path.AsSpan());
+        }
 
-            while (pathSpan.Length > 0)
+        public static bool IsValidPath(this ReadOnlySpan<char> path)
+        {
+            while (path.Length > 0)
             {
-                int index = pathSpan.LastIndexOfAny(dirSeparators);
+                int index = path.LastIndexOfAny(dirSeparators);
                 if (index <= 0)
                 {
                     break; // Just exit here and do the last check outside of the loop this prevents double checking the root part.
                 }
 
                 // exclude the separator
-                var part = pathSpan[(index + 1)..];
+                var part = path[(index + 1)..];
 
                 // Check the part of the path
                 if (part.IndexOfAny(invalidPathChars) != -1)
@@ -35,17 +38,17 @@
                 }
 
                 // exclude the part and separator
-                pathSpan = pathSpan[..index];
+                path = path[..index];
             }
 
             // Check the last remaining segment of the path
-            if (FileUtils.IsPathRooted(pathSpan))
+            if (FileUtils.IsPathRooted(path))
             {
-                return CheckRoot(pathSpan);
+                return CheckRoot(path);
             }
 
             // If its not rooted, check the last segment
-            if (pathSpan.IndexOfAny(invalidPathChars) != -1)
+            if (path.IndexOfAny(invalidPathChars) != -1)
             {
                 return false;
             }

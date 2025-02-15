@@ -2,6 +2,7 @@
 {
     using Hexa.NET.ImGui;
     using System;
+    using System.Numerics;
 
     /// <summary>
     /// Represents a message box that can be displayed to the user.
@@ -41,6 +42,11 @@
         public Action<MessageBox, object?>? Callback;
 
         /// <summary>
+        /// Gets or sets the parent UI Element. (Used for centering on parent)
+        /// </summary>
+        public IUIElement? Parent;
+
+        /// <summary>
         /// Initializes a new instance of the MessageBox struct with the provided parameters.
         /// </summary>
         /// <param name="title">The title of the message box.</param>
@@ -48,13 +54,15 @@
         /// <param name="type">The type of the message box.</param>
         /// <param name="userdata">Optional user data associated with the message box.</param>
         /// <param name="callback">Optional callback action to be invoked when the message box is closed.</param>
-        public MessageBox(string title, string message, MessageBoxType type, object? userdata = null, Action<MessageBox, object?>? callback = null)
+        /// <param name="parent">Optional parent element for centering.</param>
+        public MessageBox(string title, string message, MessageBoxType type, object? userdata = null, Action<MessageBox, object?>? callback = null, IUIElement? parent = null)
         {
             Title = title;
             Message = message;
             Type = type;
             Userdata = userdata;
             Callback = callback;
+            Parent = parent;
         }
 
         /// <summary>
@@ -63,10 +71,11 @@
         /// <param name="title">The title of the message box.</param>
         /// <param name="message">The message text to be displayed.</param>
         /// <param name="type">The type of the message box.</param>
+        /// <param name="parent">Optional parent element for centering.</param>
         /// <returns>The created message box instance.</returns>
-        public static MessageBox Show(string title, string message, MessageBoxType type = MessageBoxType.Ok)
+        public static MessageBox Show(string title, string message, MessageBoxType type = MessageBoxType.Ok, IUIElement? parent = null)
         {
-            MessageBox box = new(title, message, type);
+            MessageBox box = new(title, message, type, parent: parent);
             MessageBoxes.Show(box);
             return box;
         }
@@ -79,10 +88,11 @@
         /// <param name="userdata">Optional user data associated with the message box.</param>
         /// <param name="callback">Optional callback action to be invoked when the message box is closed.</param>
         /// <param name="type">The type of the message box.</param>
+        /// <param name="parent">Optional parent element for centering.</param>
         /// <returns>The created message box instance.</returns>
-        public static MessageBox Show(string title, string message, object? userdata, Action<MessageBox, object?> callback, MessageBoxType type = MessageBoxType.Ok)
+        public static MessageBox Show(string title, string message, object? userdata, Action<MessageBox, object?> callback, MessageBoxType type = MessageBoxType.Ok, IUIElement? parent = null)
         {
-            MessageBox box = new(title, message, type, userdata, callback);
+            MessageBox box = new(title, message, type, userdata, callback, parent);
             MessageBoxes.Show(box);
             return box;
         }
@@ -96,12 +106,17 @@
             if (!shown)
             {
                 ImGui.OpenPopup(Title);
-                ImGui.SetNextWindowPos(ImGui.GetIO().DisplaySize * 0.5f, ImGuiCond.Appearing, new(0.5f));
+                Vector2 center = ImGui.GetIO().DisplaySize * 0.5f;
+                if (Parent != null)
+                {
+                    center = Parent.Position + Parent.Size * 0.5f;
+                }
+                ImGui.SetNextWindowPos(center, ImGuiCond.Appearing, new(0.5f));
                 shown = true;
             }
 
             bool open = true;
-            if (!ImGui.BeginPopupModal(Title, ref open, ImGuiWindowFlags.AlwaysAutoResize))
+            if (!ImGui.BeginPopupModal(Title, ref open, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoSavedSettings))
             {
                 return shown;
             }

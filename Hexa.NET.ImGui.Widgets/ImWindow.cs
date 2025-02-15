@@ -7,6 +7,8 @@
 
     public delegate void PositionChangedEventHandler(object? sender, Vector2 oldPosition, Vector2 position);
 
+    public delegate void ViewportChangedEventHandler(object? sender, uint oldViewportId, uint viewportId);
+
     public abstract class ImWindow : IImGuiWindow
     {
         private bool isEmbedded;
@@ -15,6 +17,7 @@
         protected bool windowEnded;
         private Vector2 size;
         private Vector2 position;
+        private uint viewportId;
 
         public abstract string Name { get; }
 
@@ -44,9 +47,13 @@
             }
         }
 
+        public uint ViewportId => viewportId;
+
         public event SizeChangedEventHandler? SizeChanged;
 
         public event PositionChangedEventHandler? PositionChanged;
+
+        public event ViewportChangedEventHandler? ViewportChanged;
 
         public virtual void Init()
         {
@@ -79,6 +86,18 @@
                 OnClosedInternal();
                 ImGui.End();
                 return;
+            }
+
+            if ((ImGui.GetIO().ConfigFlags & ImGuiConfigFlags.ViewportsEnable) != 0)
+            {
+                var currentViewport = ImGui.GetWindowViewport().ID;
+
+                if (viewportId != currentViewport)
+                {
+                    var oldViewportId = viewportId;
+                    viewportId = currentViewport;
+                    OnViewportChangedInternal(oldViewportId, viewportId);
+                }
             }
 
             var currentSize = ImGui.GetWindowSize();
@@ -124,6 +143,16 @@
         }
 
         protected virtual void OnSizeChanged(Vector2 oldSize, Vector2 size)
+        {
+        }
+
+        private void OnViewportChangedInternal(uint oldViewportId, uint viewportId)
+        {
+            OnViewportChanged(oldViewportId, viewportId);
+            ViewportChanged?.Invoke(this, oldViewportId, viewportId);
+        }
+
+        protected virtual void OnViewportChanged(uint oldViewportId, uint viewportId)
         {
         }
 

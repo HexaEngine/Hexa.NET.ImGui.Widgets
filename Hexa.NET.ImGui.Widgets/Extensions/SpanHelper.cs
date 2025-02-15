@@ -1,11 +1,49 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Extensions
 {
     using System;
-    using System.Runtime.InteropServices;
     using System.Text;
 
     public static unsafe class SpanHelper
     {
+        public static ReadOnlySpan<char> TrimText(this ReadOnlySpan<char> text, char c)
+        {
+            int start = 0;
+            while (start < text.Length && text[start] == c) start++;
+
+            if (start == text.Length) return ReadOnlySpan<char>.Empty;
+
+            int end = 0;
+            while (end < text.Length && text[text.Length - 1 - end] == c) end++;
+
+            return text.Slice(start, text.Length - start - end);
+        }
+
+        public static string TrimText(this string text, char c)
+        {
+            var span = TrimText(text.AsSpan(), c);
+            return span.Length == text.Length ? text : span.ToString();
+        }
+
+        public static ReadOnlySpan<char> GetRelativePath(this ReadOnlySpan<char> path, ReadOnlySpan<char> relativeTo)
+        {
+            if (path.StartsWith(relativeTo))
+            {
+                path = path[relativeTo.Length..];
+                int i = 0;
+                // trim folder seperators out.
+                while (i < path.Length && path[i] == '/' || path[i] == '\\') i++;
+                path = path[i..];
+            }
+
+            return path;
+        }
+
+        public static string GetRelativePath(this string path, string relativeTo)
+        {
+            var relative = GetRelativePath(path.AsSpan(), relativeTo.AsSpan());
+            return relative.Length == path.Length ? path : relative.ToString();
+        }
+
         public static ReadOnlySpan<char> CreateReadOnlySpanFromNullTerminated(char* pointer)
         {
             int len = StrLen(pointer);
@@ -18,12 +56,12 @@
             return new ReadOnlySpan<byte>(pointer, len);
         }
 
-#if NETSTANDARD2_0
         public static bool StartsWith(this ReadOnlySpan<char> span, char c)
         {
             return span.Length > 0 && span[0] == c;
         }
 
+#if NETSTANDARD2_0
         public static bool StartsWith(this string span, char c)
         {
             return span.Length > 0 && span[0] == c;
