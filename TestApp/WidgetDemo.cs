@@ -333,6 +333,11 @@
                 SaveFileDialog saveFileDialog = new();
                 saveFileDialog.Show();
             }
+            if (ImGui.Button("Rename file"))
+            {
+                RenameDialog renameDialog = new("test.txt", RenameDialogFlags.Default | RenameDialogFlags.NoAutomaticMove);
+                renameDialog.Show();
+            }
         }
 
         private MessageBoxType messageBoxType;

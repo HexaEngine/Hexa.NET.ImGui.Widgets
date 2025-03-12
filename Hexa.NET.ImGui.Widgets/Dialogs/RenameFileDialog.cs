@@ -1,103 +1,198 @@
 ﻿namespace Hexa.NET.ImGui.Widgets.Dialogs
 {
     using Hexa.NET.ImGui;
-    using Hexa.NET.Utilities.IO;
+    using System.Numerics;
 
-    public class RenameFileDialog
+    [Flags]
+    public enum RenameDialogFlags
     {
-        private bool shown;
-        private string file = string.Empty;
+        None,
+        SourceMustExist = 1,
+        OverwriteDestination = 2,
+        NoAutomaticMove = 4,
+        Directory = 8,
+        Default = SourceMustExist | OverwriteDestination
+    }
+
+    public class RenameDialog : Dialog
+    {
+        private string sourcePath = string.Empty;
         private string filename = string.Empty;
-        private DialogResult renameFileResult;
-        private bool overwrite;
+        private string currentDirectory = string.Empty;
+        private string destinationPath = string.Empty;
 
-        public RenameFileDialog()
+        private RenameDialogFlags flags;
+
+        private string? warnMessage;
+        private bool isError;
+        private bool firstFrame = true;
+        private int maxPathLength = 255;
+        private Exception? exception;
+
+        public RenameDialog(RenameDialogFlags flags = RenameDialogFlags.Default) : this(string.Empty, flags)
         {
+            this.flags = flags;
         }
 
-        public RenameFileDialog(string file)
+        public RenameDialog(string sourcePath, RenameDialogFlags flags = RenameDialogFlags.Default)
         {
-            File = file;
+            this.flags = flags;
+            SourcePath = sourcePath;
         }
 
-        public RenameFileDialog(bool overwrite)
+        public string SourcePath
         {
-            Overwrite = overwrite;
-        }
-
-        public RenameFileDialog(string file, bool overwrite)
-        {
-            File = file;
-            Overwrite = overwrite;
-        }
-
-        public bool Shown => shown;
-
-        public string File
-        {
-            get => file; set
+            get => sourcePath;
+            set
             {
-                if (!System.IO.File.Exists(value))
+                value = Path.GetFullPath(value);
+                bool fileExists = File.Exists(value);
+                bool directoryExists = Directory.Exists(value);
+                if (!fileExists && !directoryExists)
+                {
                     return;
-                file = value;
-                filename = Path.GetFileName(file);
+                }
+
+                IsDirectory = directoryExists;
+                sourcePath = value;
+                filename = Path.GetFileName(sourcePath);
+                currentDirectory = Path.GetDirectoryName(sourcePath)!;
+                destinationPath = sourcePath;
             }
         }
 
-        public bool Overwrite { get => overwrite; set => overwrite = value; }
+        public string? DestinationPath => destinationPath;
 
-        public DialogResult Result => renameFileResult;
+        public string CurrentDirectory => currentDirectory;
 
-        public void Show()
+        public bool Overwrite { get => (flags & RenameDialogFlags.OverwriteDestination) != 0; set => SetFlag(RenameDialogFlags.OverwriteDestination, value); }
+
+        public bool NoAutomaticMove { get => (flags & RenameDialogFlags.NoAutomaticMove) != 0; set => SetFlag(RenameDialogFlags.NoAutomaticMove, value); }
+
+        public bool SourceMustExist { get => (flags & RenameDialogFlags.SourceMustExist) != 0; set => SetFlag(RenameDialogFlags.SourceMustExist, value); }
+
+        public bool IsDirectory { get => (flags & RenameDialogFlags.Directory) != 0; private set => SetFlag(RenameDialogFlags.Directory, value); }
+
+        public int MaxPathLength { get => maxPathLength; set => maxPathLength = value; }
+
+        public Exception? Exception => exception;
+
+        public override string Name { get; } = "Rename";
+
+        protected override ImGuiWindowFlags Flags { get; } = ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.AlwaysAutoResize;
+
+        public override void Reset()
         {
-            shown = true;
+            base.Reset();
+            firstFrame = true;
+            exception = null;
+            warnMessage = null;
+            isError = false;
         }
 
-        public void Hide()
+        private void SetFlag(RenameDialogFlags flag, bool value)
         {
-            shown = false;
-        }
-
-        public bool Draw()
-        {
-            if (!shown) return false;
-            bool result = false;
-            if (ImGui.Begin("Rename file", ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize))
+            if (value)
             {
-                ImGui.SetWindowFocus();
+                flags |= flag;
+            }
+            else
+            {
+                flags &= ~flag;
+            }
+        }
 
-                ImGui.InputText("New name", ref filename, 2048);
-
-                if (ImGui.Button("Cancel"))
+        protected override void DrawContent()
+        {
+            if (ImGui.InputText("New name", ref filename, (ulong)maxPathLength))
+            {
+                destinationPath = Path.Combine(currentDirectory, filename);
+                warnMessage = null;
+                isError = false;
+                if (destinationPath != sourcePath)
                 {
-                    renameFileResult = DialogResult.Cancel;
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("Ok"))
-                {
-                    string dir = FileUtils.GetDirectoryName(file.AsSpan()).ToString();
-                    string newPath = Path.Combine(dir, filename);
-#if NET5_0_OR_GREATER
-                    System.IO.File.Move(file, newPath, overwrite);
-#else
-                    if (System.IO.File.Exists(newPath))
+                    if (IsDirectory && Directory.Exists(destinationPath))
                     {
-                        System.IO.File.Delete(newPath);
+                        warnMessage = "A directory with the name already exists!";
                     }
-                    System.IO.File.Move(file, newPath);
-#endif
-                    renameFileResult = DialogResult.Ok;
-                    result = true;
+                    else if (File.Exists(destinationPath))
+                    {
+                        warnMessage = "A file with the name already exists!";
+                    }
                 }
-                ImGui.End();
+
+                if (string.IsNullOrWhiteSpace(filename))
+                {
+                    warnMessage = "Name cannot be empty or whitespace";
+                    isError = true;
+                }
             }
 
-            if (result)
+            if (firstFrame)
             {
-                shown = false;
+                ImGui.SetKeyboardFocusHere(-1);
+                firstFrame = false;
             }
 
-            return result;
+            if (warnMessage != null) ImGui.TextColored(isError ? new Vector4(1, 0, 0, 1) : new Vector4(1, 1, 0, 1), warnMessage);
+
+            if (ImGui.Button("Cancel"))
+            {
+                Close(DialogResult.Cancel);
+            }
+            ImGui.SameLine();
+            ImGui.BeginDisabled((!Overwrite && warnMessage != null) || isError);
+            if (ImGui.Button("Ok"))
+            {
+                ImGui.EndDisabled();
+                if (NoAutomaticMove || destinationPath == sourcePath)
+                {
+                    Close(DialogResult.Ok);
+                    return;
+                }
+
+                try
+                {
+                    if (IsDirectory)
+                    {
+                        if (Directory.Exists(destinationPath))
+                        {
+                            if (!Overwrite)
+                            {
+                                Close(DialogResult.Failed);
+                                return;
+                            }
+                            Directory.Delete(destinationPath, true);
+                        }
+
+                        Directory.Move(sourcePath, destinationPath);
+                    }
+                    else
+                    {
+                        if (File.Exists(destinationPath))
+                        {
+                            if (!Overwrite)
+                            {
+                                Close(DialogResult.Failed);
+                                return;
+                            }
+                            File.Delete(destinationPath);
+                        }
+
+                        File.Move(sourcePath, destinationPath);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                }
+
+                Close(DialogResult.Ok);
+            }
+            else
+            {
+                ImGui.EndDisabled();
+            }
         }
     }
 }

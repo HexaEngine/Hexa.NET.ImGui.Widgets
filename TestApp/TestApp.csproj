@@ -16,9 +16,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="Hexa.NET.OpenGL3" Version="1.1.0" />
-		<PackageReference Include="Hexa.NET.SDL2" Version="1.2.8" />
-		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.10" />
-		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.10" />
+		<PackageReference Include="Hexa.NET.SDL2" Version="1.2.13" />
+		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.14" />
+		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.14" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -31,6 +31,9 @@
 		</None>
 		<None Update="assets\fonts\MaterialSymbolsRounded.ttf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="test.txt">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 
