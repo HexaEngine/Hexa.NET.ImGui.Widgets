@@ -3,6 +3,7 @@
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.Utilities;
+    using Hexa.NET.Utilities.Text;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -517,7 +518,7 @@
 
             DrawBreakpoints(style, draw, breakpointsWidth, ref textAreaSize, ref cursor, lineHeight, mousePos, scroll);
 
-            DrawLineNumbers(ref textAreaSize, style, draw, ref cursor, lineHeight, digits, lineNumberWidth);
+            DrawLineNumbers(ref textAreaSize, style, draw, ref cursor, lineHeight, digits, lineNumberWidth, textAreaSize, scroll);
             cursor.X += 50;
             DrawCursorLine(draw, source, isFocused, lineHeight, cursor, textAreaSize, cursorState);
             DrawText(draw, cursor, lineHeight, textAreaSize.Y, scroll, pText);
@@ -551,8 +552,7 @@
 
             bool hovered = mousePos.Y >= min.Y && mousePos.X >= min.X && mousePos.Y <= max.Y && mousePos.X <= max.X;
 
-            int scrollOffset = (int)(scroll / lineHeight);
-            int hoveredLine = (int)((mousePos.Y - cursor.Y) / lineHeight) + scrollOffset;
+            int hoveredLine = (int)((mousePos.Y - cursor.Y) / lineHeight);
 
             int start = (int)Math.Floor(scroll / lineHeight);
             int end = (int)Math.Ceiling(textAreaSize.Y / lineHeight) + start;
@@ -561,51 +561,53 @@
             const float padding = 4;
             float radius = (lineHeight - padding) * 0.5f;
 
+            int currentBreakpoint = breakpoints.BinarySearch(new Breakpoint(start, false), BreakpointComparer.Instance);
+            if (currentBreakpoint < 0) currentBreakpoint = ~currentBreakpoint;
+            Vector2 current = min;
             for (int i = start; i <= end; i++)
             {
-                // Calculate the Y position of the line, adjusting for scroll
-                float lineOffset = (i - scrollOffset) * lineHeight;
+                float lineOffset = i * lineHeight;
 
-                // Position of the breakpoint circle
                 var center = min + new Vector2(padding + radius, lineOffset + radius);
 
-                // Get breakpoint for the current line (if it exists)
-                var breakpoint = breakpoints.FirstOrDefault(b => b.Line == i);
-                if (breakpoint != default)
+                var breakpoint = currentBreakpoint < breakpoints.Count ? breakpoints[currentBreakpoint] : Breakpoint.Invalid;
+                if (breakpoint.Line == i)
                 {
-                    uint color = breakpoint.Enabled ? 0xff0000d0 : 0xffaaaaaa; // ABGR for Enabled and Disabled
+                    uint color = breakpoint.Enabled ? 0xff0000d0 : 0xffaaaaaa;
                     draw->AddCircleFilled(center, radius, color);
+                    currentBreakpoint++;
                 }
 
                 // Highlight hovered line
                 if (hovered && hoveredLine == i)
                 {
-                    draw->AddCircleFilled(center, radius, 0xffff0000); // ABGR for Hovered (Blue)
+                    draw->AddCircleFilled(center, radius, 0xffff0000);
                 }
             }
 
             // Handle mouse click to toggle or add breakpoints
-            if (hovered && false)
+            if (hovered && ImGuiP.IsMouseClicked(ImGuiMouseButton.Left))
             {
-                var existingBreakpoint = breakpoints.FirstOrDefault(b => b.Line == hoveredLine);
-                if (existingBreakpoint != default)
-                {
-                    // Toggle the breakpoint
-                    existingBreakpoint.Enabled = !existingBreakpoint.Enabled;
-                }
-                else
-                {
-                    // Add a new breakpoint
-                    breakpoints.Add(new Breakpoint { Line = hoveredLine, Enabled = true });
-                }
+                InsertBreakpoint(hoveredLine);
             }
-            /*
-            if (hovered)
+        }
+
+        public bool InsertBreakpoint(int line, bool removeIfPresent = true)
+        {
+            if (line < 0 || line >= source.LineCount) return false;
+            Breakpoint breakpoint = new(line, true);
+            int existingBreakpointIndex = breakpoints.BinarySearch(breakpoint, BreakpointComparer.Instance);
+            if (existingBreakpointIndex >= 0)
             {
-                var bMin = min + new Vector2(padding, relativeHovered * lineHeight + padding);
-                var center = bMin + new Vector2(radius);
-                draw->AddCircleFilled(center, radius, 0xff0000ff);
-            }*/
+                if (!removeIfPresent) return true;
+                breakpoints.RemoveAt(existingBreakpointIndex);
+                return false;
+            }
+            else
+            {
+                breakpoints.Insert(~existingBreakpointIndex, breakpoint);
+            }
+            return true;
         }
 
         private (int digits, float lineNumbersWidth) ComputeLineNumbersWidth()
@@ -650,37 +652,18 @@
             drawList->AddQuadFilled(topLeft, topRight, bottomRight, bottomLeft, highlightColor);
         }
 
-        private static void FormatIntUTF8(int value, byte* buffer)
+        private void DrawLineNumbers(ref Vector2 size, ImGuiStyle* style, ImDrawList* draw, ref Vector2 cursor, float lineHeight, int digits, float width, Vector2 textAreaSize, float scroll)
         {
-            int i = 0;
-            if (value == 0)
-            {
-                buffer[i++] = (byte)'0';
-            }
-            else
-            {
-                while (value > 0)
-                {
-                    buffer[i++] = (byte)('0' + value % 10);
-                    value /= 10;
-                }
-            }
-            buffer[i] = 0; // Null-terminate
-
-            // Reverse the digits for correct order
-            for (int j = 0, k = i - 1; j < k; j++, k--)
-            {
-                (buffer[k], buffer[j]) = (buffer[j], buffer[k]);
-            }
-        }
-
-        private void DrawLineNumbers(ref Vector2 size, ImGuiStyle* style, ImDrawList* draw, ref Vector2 cursor, float lineHeight, int digits, float width)
-        {
-            byte* buf = stackalloc byte[digits + 1]; // no need to set last byte to \0 since stacks are naturally zeroed.
+            int bufferSize = digits + 1;
+            byte* buf = stackalloc byte[bufferSize];
             Vector2 current = cursor;
-            for (int line = 1; line <= source.LineCount; line++)
+
+            int start = Math.Max((int)Math.Floor(scroll / lineHeight), 0);
+            int end = Math.Min((int)Math.Ceiling(textAreaSize.Y / lineHeight) + start, source.LineCount);
+            current.Y += start * lineHeight;
+            for (uint line = (uint)start + 1; line <= end; line++)
             {
-                FormatIntUTF8(line, buf);
+                Utf8Formatter.Format(line, buf, bufferSize);
                 draw->AddText(current, 0xff4c4c4c, buf);
                 current.Y += lineHeight;
             }

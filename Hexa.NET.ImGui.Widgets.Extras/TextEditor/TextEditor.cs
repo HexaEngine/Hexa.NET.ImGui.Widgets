@@ -567,7 +567,7 @@
             }
 
             // Handle mouse click to toggle or add breakpoints
-            if (hovered && false)
+            if (hovered && ImGuiP.IsMouseClicked(ImGuiMouseButton.Left))
             {
                 var existingBreakpoint = breakpoints.FirstOrDefault(b => b.Line == hoveredLine);
                 if (existingBreakpoint != default)
