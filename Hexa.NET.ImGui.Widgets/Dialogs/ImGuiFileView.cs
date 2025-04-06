@@ -107,7 +107,7 @@
                         ImGui.EndPopup();
                     }
 
-                    if (ImGui.IsItemHovered() && ImGuiP.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                    if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                     {
                         if (entry.IsFolder)
                         {
@@ -284,7 +284,7 @@
                         ImGui.EndPopup();
                     }
 
-                    if (ImGui.IsItemHovered() && ImGuiP.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                    if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                     {
                         onDoubleClickedDelegate(entry, shift, ctrl);
                     }
@@ -444,7 +444,7 @@
                         ImGui.EndPopup();
                     }
 
-                    if (ImGui.IsItemHovered() && ImGuiP.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                    if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                     {
                         onDoubleClickedDelegate(entry, shift, ctrl);
                     }

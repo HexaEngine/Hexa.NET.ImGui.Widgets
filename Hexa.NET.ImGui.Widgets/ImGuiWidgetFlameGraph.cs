@@ -167,7 +167,7 @@ namespace Hexa.NET.ImGui.Widgets
                     bool v_hovered = false;
                     if (ImGui.IsMouseHoveringRect(pos0, pos1))
                     {
-                        if (ImGuiP.IsMouseClicked(ImGuiMouseButton.Left))
+                        if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                         {
                             if (selected == i)
                                 selected = -1;

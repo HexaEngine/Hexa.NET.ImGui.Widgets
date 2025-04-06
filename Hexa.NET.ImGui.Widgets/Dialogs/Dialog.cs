@@ -127,7 +127,7 @@
 
             if (firstFrame)
             {
-                ImGuiP.SetWindowSize(InitialSize);
+                ImGui.SetWindowSize(InitialSize);
                 firstFrame = false;
             }
 

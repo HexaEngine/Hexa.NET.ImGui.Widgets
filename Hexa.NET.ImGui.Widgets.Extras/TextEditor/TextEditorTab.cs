@@ -409,7 +409,7 @@
 
             bool isHovered = false;
             bool isClicked = ImGuiP.ButtonBehavior(bbFull, id, &isHovered, null, 0);
-            bool isActive = isHovered && ImGuiP.IsMouseDown(0);
+            bool isActive = isHovered && ImGui.IsMouseDown(0);
 
             uint color = isActive ? activeColor : isHovered ? hoverColor : selected ? selectedBgColor : default;
 
@@ -586,7 +586,7 @@
             }
 
             // Handle mouse click to toggle or add breakpoints
-            if (hovered && ImGuiP.IsMouseClicked(ImGuiMouseButton.Left))
+            if (hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
             {
                 InsertBreakpoint(hoveredLine);
             }
@@ -673,9 +673,9 @@
 
         private void HandleMouseInput(uint id, ImGuiWindow* window, float lineHeight, StdWString* text, bool isHovered, bool isFocused, Vector2 mousePos, Vector2 origin, char* pText)
         {
-            bool isMouseDown = isHovered && ImGuiP.IsMouseDown(ImGuiMouseButton.Left);
-            bool isClick = ImGuiP.IsMouseClicked(ImGuiMouseButton.Left);
-            bool isDoubleClick = ImGuiP.IsMouseDoubleClicked(ImGuiMouseButton.Left);
+            bool isMouseDown = isHovered && ImGui.IsMouseDown(ImGuiMouseButton.Left);
+            bool isClick = ImGui.IsMouseClicked(ImGuiMouseButton.Left);
+            bool isDoubleClick = ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left);
 
             if (isHovered)
             {
@@ -866,7 +866,7 @@
                     PostEdit();
                 }
 
-                if (ImGuiP.IsKeyPressed(ImGuiKey.Backspace) && cursorState > 0) // Handle backspace
+                if (ImGui.IsKeyPressed(ImGuiKey.Backspace) && cursorState > 0) // Handle backspace
                 {
                     PreEdit(TextEditOp.Erase);
                     if (!selection.IsValid() && text->Size > 0)
@@ -900,7 +900,7 @@
                     PostEdit();
                 }
 
-                if (ImGuiP.IsKeyPressed(ImGuiKey.Enter) || ImGuiP.IsKeyPressed(ImGuiKey.KeypadEnter)) // Handle enter
+                if (ImGui.IsKeyPressed(ImGuiKey.Enter) || ImGui.IsKeyPressed(ImGuiKey.KeypadEnter)) // Handle enter
                 {
                     PreEdit(TextEditOp.Insert);
                     switch (source.NewLineType)
@@ -932,7 +932,7 @@
                     PostEdit();
                 }
 
-                if (ImGuiP.IsKeyPressed(ImGuiKey.Tab))
+                if (ImGui.IsKeyPressed(ImGuiKey.Tab))
                 {
                     PreEdit(TextEditOp.Insert);
                     text->Insert(cursorState, '\t');
@@ -941,26 +941,26 @@
                     PostEdit();
                 }
 
-                if (ImGuiP.IsKeyPressed(ImGuiKey.LeftArrow) && cursorState > 0)
+                if (ImGui.IsKeyPressed(ImGuiKey.LeftArrow) && cursorState > 0)
                 {
                     MoveCursorHorizontally(-1);
                 }
-                if (ImGuiP.IsKeyPressed(ImGuiKey.RightArrow) && cursorState < text->Size)
+                if (ImGui.IsKeyPressed(ImGuiKey.RightArrow) && cursorState < text->Size)
                 {
                     MoveCursorHorizontally(1);
                 }
 
-                if (ImGuiP.IsKeyPressed(ImGuiKey.UpArrow) && cursorState.Line > 0)
+                if (ImGui.IsKeyPressed(ImGuiKey.UpArrow) && cursorState.Line > 0)
                 {
                     MoveCursorVertically(-1);
                 }
 
-                if (ImGuiP.IsKeyPressed(ImGuiKey.DownArrow) && cursorState.Line < source.Lines.Count - 1)
+                if (ImGui.IsKeyPressed(ImGuiKey.DownArrow) && cursorState.Line < source.Lines.Count - 1)
                 {
                     MoveCursorVertically(1);
                 }
 
-                if (io.KeyCtrl && ImGuiP.IsKeyDown(ImGuiKey.V))
+                if (io.KeyCtrl && ImGui.IsKeyDown(ImGuiKey.V))
                 {
                     if (!pasted)
                     {
@@ -986,12 +986,12 @@
                     pasteRepeatTimer = 0.0f;
                 }
 
-                if (io.KeyCtrl && ImGuiP.IsKeyDown(ImGuiKey.C) && selection.IsValid())
+                if (io.KeyCtrl && ImGui.IsKeyDown(ImGuiKey.C) && selection.IsValid())
                 {
                     CopySelectionToClipboard();
                 }
 
-                if (io.KeyCtrl && ImGuiP.IsKeyDown(ImGuiKey.X) && selection.IsValid())
+                if (io.KeyCtrl && ImGui.IsKeyDown(ImGuiKey.X) && selection.IsValid())
                 {
                     CopySelectionToClipboard();
                     PreEdit(TextEditOp.Cut);

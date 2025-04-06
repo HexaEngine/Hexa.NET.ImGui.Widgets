@@ -136,7 +136,7 @@ namespace Hexa.NET.ImGui.Widgets.Extras
                 {
                     ImGui.SetTooltip($"({P[selected].X}, {P[selected].Y})");
 
-                    if (/*hovered &&*/ ImGuiP.IsMouseClicked(0) || ImGui.IsMouseDragging(0))
+                    if (/*hovered &&*/ ImGui.IsMouseClicked(0) || ImGui.IsMouseDragging(0))
                     {
                         float canvasScale = 1.0f / ImGui.GetFontSize();
                         float px = P[selected].X += ImGui.GetIO().MouseDelta.X / Canvas.X;

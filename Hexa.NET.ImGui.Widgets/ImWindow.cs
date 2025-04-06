@@ -33,7 +33,7 @@
             set
             {
                 size = value;
-                ImGuiP.SetWindowSize(Name, size);
+                ImGui.SetWindowSize(Name, size);
             }
         }
 
@@ -43,7 +43,7 @@
             set
             {
                 position = value;
-                ImGuiP.SetWindowPos(Name, position);
+                ImGui.SetWindowPos(Name, position);
             }
         }
 
