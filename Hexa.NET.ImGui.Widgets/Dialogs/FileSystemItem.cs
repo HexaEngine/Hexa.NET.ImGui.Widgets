@@ -77,7 +77,7 @@
             }
         }
 
-#if NET5_0_OR_GREATER
+#if NET7_0_OR_GREATER
 
         private static CommonFilePermissions ConvertUnixPermissions(UnixFileMode permissions)
         {

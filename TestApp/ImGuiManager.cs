@@ -4,6 +4,7 @@
     using Hexa.NET.ImGui.Backends.OpenGL3;
     using Hexa.NET.ImGui.Backends.SDL2;
     using Hexa.NET.ImGui.Utilities;
+    using Hexa.NET.ImPlot;
     using Hexa.NET.SDL2;
     using Hexa.NET.Utilities;
     using System;
@@ -12,6 +13,7 @@
     public class ImGuiManager
     {
         private ImGuiContextPtr guiContext;
+        private ImPlotContextPtr plotContext;
 
         private enum ImGuiFreeTypeBuilderFlags
         {
@@ -76,6 +78,11 @@
             // Setup Renderer
             ImGuiImplOpenGL3.SetCurrentContext(guiContext);
             ImGuiImplOpenGL3.Init((byte*)null);
+
+            ImPlot.SetImGuiContext(guiContext);
+            plotContext = ImPlot.CreateContext();
+            ImPlot.SetCurrentContext(plotContext);
+            ImPlot.StyleColorsDark(ImPlot.GetStyle());
         }
 
         private static unsafe bool HookCallback(Hexa.NET.SDL2.SDLEvent @event)

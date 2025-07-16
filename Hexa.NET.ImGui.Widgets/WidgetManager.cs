@@ -13,6 +13,8 @@
         {
         }
 
+        public static bool FirstWindowIsMainWindow { get; set; }
+
         public static bool BlockInput { get; set; }
 
         public static uint DockSpaceId { get; private set; }
@@ -60,7 +62,7 @@
 
         internal static bool Register(IImGuiWindow widget, bool mainWindow = false)
         {
-            if (widgets.Count == 0)
+            if (widgets.Count == 0 && FirstWindowIsMainWindow)
             {
                 widget.IsEmbedded = true;
             }

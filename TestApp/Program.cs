@@ -2,8 +2,10 @@
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
+    using Hexa.NET.ImPlot;
     using Hexa.NET.OpenGL;
     using Hexa.NET.SDL2;
+    using System.Numerics;
 
     public unsafe class Program
     {

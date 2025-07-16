@@ -3,6 +3,7 @@
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.ImGui.Widgets.Dialogs;
+    using Hexa.NET.ImGui.Widgets.Extras.TextEditor.Highlight.CSharp;
     using Hexa.NET.ImGui.Widgets.Extras.TextEditor.Panels;
     using Hexa.NET.ImGui.Widgets.Text;
     using Hexa.NET.Utilities.Text;
@@ -126,6 +127,7 @@
             try
             {
                 TextEditorTab tab = new(new(File.ReadAllText(path)), path);
+                tab.SyntaxHighlight = new CSharpSyntaxHighlight();
                 tabs.Add(tab);
             }
             catch (Exception ex)
@@ -139,6 +141,7 @@
         public void New()
         {
             TextEditorTab tab = new("New File", new(string.Empty));
+            tab.SyntaxHighlight = new CSharpSyntaxHighlight();
             tabs.Add(tab);
         }
 

@@ -5,6 +5,7 @@
     using Hexa.NET.ImGui.Widgets.Extras.TextEditor;
     using Hexa.NET.OpenGL;
     using Hexa.NET.SDL2;
+    using System.Runtime.InteropServices;
 
     public unsafe class Program
     {
