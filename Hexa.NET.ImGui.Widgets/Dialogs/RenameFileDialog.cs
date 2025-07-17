@@ -104,7 +104,7 @@
 
         protected override void DrawContent()
         {
-            if (ImGui.InputText("New name", ref filename, (ulong)maxPathLength))
+            if (ImGui.InputText("New name", ref filename, (nuint)maxPathLength))
             {
                 destinationPath = Path.Combine(currentDirectory, filename);
                 warnMessage = null;

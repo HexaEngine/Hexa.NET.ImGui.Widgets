@@ -15,11 +15,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hexa.NET.ImPlot" Version="2.2.7" />
+		<PackageReference Include="Hexa.NET.ImPlot" Version="2.2.8" />
 		<PackageReference Include="Hexa.NET.OpenGL3" Version="1.1.0" />
 		<PackageReference Include="Hexa.NET.SDL2" Version="1.2.14" />
-		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.15" />
-		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.15" />
+		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.17" />
+		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.17" />
 	</ItemGroup>
 
 	<ItemGroup>

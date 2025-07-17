@@ -34,7 +34,7 @@
     {
         public char IconText;
         public uint IconUTF8Bytes;
-        public ImTextureID IconImage;
+        public ImTextureRef IconImage;
         public IconType Type;
 
         public WidgetIcon(char iconText)
@@ -43,11 +43,11 @@
             uint utf8Bytes = 0;
             Utf8Formatter.ConvertUtf16ToUtf8(&iconText, 1, (byte*)&utf8Bytes, 4);
             IconUTF8Bytes = utf8Bytes;
-            IconImage = 0;
+            IconImage = new(null, new ImTextureID(0));
             Type = IconType.Text;
         }
 
-        public WidgetIcon(ImTextureID iconImage)
+        public WidgetIcon(ImTextureRef iconImage)
         {
             IconText = '\0';
             IconUTF8Bytes = '\0';
@@ -61,11 +61,11 @@
 
         public static implicit operator WidgetIcon(char iconText) => new(iconText);
 
-        public static implicit operator WidgetIcon(ImTextureID iconImage) => new(iconImage);
+        public static implicit operator WidgetIcon(ImTextureRef iconImage) => new(iconImage);
 
         public static implicit operator char(WidgetIcon icon) => icon.IconText;
 
-        public static implicit operator ImTextureID(WidgetIcon icon) => icon.IconImage;
+        public static implicit operator ImTextureRef(WidgetIcon icon) => icon.IconImage;
 
         public readonly unsafe void Text()
         {

@@ -13,7 +13,7 @@
         /// </summary>
         /// <param name="image">The identifier of the image to display.</param>
         /// <param name="size">The size of the image.</param>
-        public static void ImageCenteredV(ImTextureID image, Vector2 size)
+        public static void ImageCenteredV(ImTextureRef image, Vector2 size)
         {
             var windowHeight = ImGui.GetWindowSize().Y;
             var imageHeight = size.Y;
@@ -27,7 +27,7 @@
         /// </summary>
         /// <param name="image">The identifier of the image to display.</param>
         /// <param name="size">The size of the image.</param>
-        public static void ImageCenteredH(ImTextureID image, Vector2 size)
+        public static void ImageCenteredH(ImTextureRef image, Vector2 size)
         {
             var windowWidth = ImGui.GetWindowSize().X;
             var imageWidth = size.X;
@@ -41,7 +41,7 @@
         /// </summary>
         /// <param name="image">The identifier of the image to display.</param>
         /// <param name="size">The size of the image.</param>
-        public static void ImageCenteredVH(ImTextureID image, Vector2 size)
+        public static void ImageCenteredVH(ImTextureRef image, Vector2 size)
         {
             var windowSize = ImGui.GetWindowSize();
 
@@ -50,11 +50,12 @@
         }
 
         /// <summary>
-        /// Displays an image centered both vertically and horizontally in the window with the specified size.
+        /// Displays an image scaled to fit within the specified destination size, preserving aspect ratio.
         /// </summary>
         /// <param name="image">The identifier of the image to display.</param>
-        /// <param name="size">The size of the image.</param>
-        public static void ImageScaleTo(ImTextureID image, Vector2 imgSize, Vector2 destSize)
+        /// <param name="imgSize">The original size of the image.</param>
+        /// <param name="destSize">The maximum size to scale the image to fit within.</param>
+        public static void ImageScaleTo(ImTextureRef image, Vector2 imgSize, Vector2 destSize)
         {
             Vector2 ratio = destSize / imgSize;
             var scale = Math.Min(ratio.X, ratio.Y);

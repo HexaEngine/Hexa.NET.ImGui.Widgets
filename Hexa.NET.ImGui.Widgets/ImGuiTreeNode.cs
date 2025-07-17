@@ -130,7 +130,7 @@
             bool store_tree_node_stack_data = false;
             if ((flags & ImGuiTreeNodeFlags.NoTreePushOnOpen) == 0)
             {
-                if ((flags & ImGuiTreeNodeFlags.NavLeftJumpsBackHere) != 0 && is_open && !g.NavIdIsAlive)
+                if ((flags & ImGuiTreeNodeFlags.NavLeftJumpsToParent) != 0 && is_open && !g.NavIdIsAlive)
                     if (g.NavMoveDir == ImGuiDir.Left && g.NavWindow == window && ImGuiP.NavMoveRequestButNoResultYet())
                         store_tree_node_stack_data = true;
             }

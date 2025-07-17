@@ -46,7 +46,9 @@
             io.ConfigViewportsNoAutoMerge = false;
             io.ConfigViewportsNoTaskBarIcon = false;
             io.ConfigDebugIsDebuggerPresent = Debugger.IsAttached;
-            io.ConfigErrorRecoveryEnableAssert = true;
+            io.ConfigErrorRecoveryEnableAssert = false;
+            io.ConfigErrorRecoveryEnableTooltip = true;
+            io.ConfigErrorRecoveryEnableDebugLog = true;
 
             // Setup Platform
             ImGuiImplSDL2.SetCurrentContext(guiContext);
