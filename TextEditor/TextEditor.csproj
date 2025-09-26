@@ -13,8 +13,8 @@
 	<ItemGroup>
 		<PackageReference Include="Hexa.NET.OpenGL3" Version="1.1.0" />
 		<PackageReference Include="Hexa.NET.SDL2" Version="1.2.14" />
-		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.15" />
-		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.15" />
+		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.17.4" />
+		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.17.4" />
 	</ItemGroup>
 
 	<ItemGroup>

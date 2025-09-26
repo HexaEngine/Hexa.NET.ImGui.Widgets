@@ -47,8 +47,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Hexa.NET.ImGui" Version="2.2.8" />
-		<PackageReference Include="Hexa.NET.Utilities" Version="2.2.2" />
+		<PackageReference Include="Hexa.NET.ImGui" Version="2.2.8.4" />
+		<PackageReference Include="Hexa.NET.ImGuizmo" Version="2.2.8.4" />
+		<PackageReference Include="Hexa.NET.Utilities" Version="2.2.3" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">

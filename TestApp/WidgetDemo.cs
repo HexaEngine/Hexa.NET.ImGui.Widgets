@@ -1,12 +1,22 @@
-﻿namespace TestApp
+﻿using System.Numerics;
+
+namespace TestApp
 {
     using Hexa.NET.ImGui;
     using Hexa.NET.ImGui.Widgets;
     using Hexa.NET.ImGui.Widgets.Dialogs;
+    using Hexa.NET.ImGui.Widgets.Extensions;
+    using Hexa.NET.ImGui.Widgets.ImCurveEdit;
+    using Hexa.NET.ImGui.Widgets.ImSequencer;
+    using Hexa.NET.Mathematics;
+    using Hexa.NET.Utilities;
     using Hexa.NET.Utilities.Text;
     using System;
     using System.Globalization;
     using System.Numerics;
+    using System.Reflection;
+    using System.Runtime.CompilerServices;
+    using CurveType = Hexa.NET.ImGui.Widgets.ImCurveEdit.CurveType;
 
     public unsafe class WidgetDemo2 : ImWindow
     {
@@ -21,26 +31,304 @@
         }
     }
 
+    public unsafe class RampEdit : CurveContext
+    {
+        public RampEdit()
+        {
+            mPts[0][0] = new Vector2(0, 0);
+            mPts[0][1] = new Vector2(0.25f, 0.25f);
+            mPointCount[0] = 2;
+
+            mbVisible[0] = true;
+            Max = new Vector2(1.0f, 1.0f);
+            Min = new Vector2(0.0f, 0.0f);
+        }
+
+        public override int GetCurveCount()
+        {
+            return 1;
+        }
+
+        public override bool IsVisible(int curveIndex)
+        {
+            return mbVisible[curveIndex];
+        }
+
+        public override int GetPointCount(int curveIndex)
+        {
+            return mPointCount[curveIndex];
+        }
+
+        public override uint GetCurveColor(int curveIndex)
+        {
+            uint[] cols = { 0xFF0000FF, 0xFF00FF00, 0xFFFF0000 };
+            return cols[curveIndex];
+        }
+
+        public override Span<Vector2> GetPoints(int curveIndex)
+        {
+            return mPts[curveIndex];
+        }
+
+        public override CurveType GetCurveType(int curveIndex)
+        {
+            return CurveType.CurveSmooth;
+        }
+
+        private int InsertPoint(int curveIndex, Vector2 value)
+        {
+            var points = mPts[curveIndex];
+            var count = mPointCount[curveIndex]++;
+
+            int insertIndex = Array.BinarySearch(points, 0, count, value, Comparer.Instance);
+            if (insertIndex < 0) insertIndex = ~insertIndex;
+
+            Array.Copy(points, insertIndex, points, insertIndex + 1, count - insertIndex);
+
+            points[insertIndex] = value;
+            return insertIndex;
+        }
+
+        public override int EditPoint(int curveIndex, int pointIndex, Vector2 value)
+        {
+            var points = mPts[curveIndex];
+            var count = mPointCount[curveIndex];
+
+            bool canStay = (pointIndex == 0 || value.X >= points[pointIndex - 1].X) &&
+                (pointIndex == count - 1 || value.X <= points[pointIndex + 1].X);
+
+            if (canStay)
+            {
+                points[pointIndex] = value;
+                return pointIndex;
+            }
+
+            int insertIndex = Array.BinarySearch(points, 0, mPointCount[curveIndex], value, Comparer.Instance);
+            if (insertIndex < 0) insertIndex = ~insertIndex;
+
+            if (insertIndex < pointIndex)
+            {
+                Array.Copy(points, insertIndex, points, insertIndex + 1, pointIndex - insertIndex);
+            }
+            else
+            {
+                Array.Copy(points, pointIndex + 1, points, pointIndex, insertIndex - pointIndex - 1);
+                insertIndex--;
+            }
+
+            points[insertIndex] = value;
+            return insertIndex;
+        }
+
+        public override void AddPoint(int curveIndex, Vector2 value)
+        {
+            if (mPointCount[curveIndex] >= 8)
+                return;
+            InsertPoint(curveIndex, value);
+        }
+
+        public override uint GetBackgroundColor()
+        { return 0; }
+
+        public Vector2[][] mPts = [new Vector2[8]];
+        public int[] mPointCount = new int[3];
+        public bool[] mbVisible = new bool[3];
+
+        private class Comparer : IComparer<Vector2>
+        {
+            public static readonly Comparer Instance = new();
+
+            public int Compare(Vector2 a, Vector2 b)
+            {
+                return a.X.CompareTo(b.X);
+            }
+        }
+
+        private void SortValues(int curveIndex)
+        {
+            Array.Sort(mPts[curveIndex], Comparer.Instance);
+        }
+    };
+
+    public unsafe class MySequence : SequenceInterface
+    {
+        public struct Item
+        {
+            public int Start;
+            public int End;
+            public int Type;
+            public bool Expanded;
+
+            public Item(int type, int start, int end, bool expanded)
+            {
+                Start = start;
+                End = end;
+                Type = type;
+                Expanded = expanded;
+            }
+        }
+
+        RampEdit rampEdit = new();
+
+        public UnsafeList<Item> items = [];
+
+        public override int GetFrameMin() => frameMin;
+
+        public override int GetFrameMax() => frameMax;
+
+        public override int GetItemCount() => items.Count;
+
+        public override int GetItemTypeCount() => 5;
+
+        public override ReadOnlySpan<byte> GetItemTypeName(int typeIndex)
+        {
+            return typeIndex switch
+            {
+                0 => "Camera"u8,
+                1 => "Music"u8,
+                2 => "ScreenEffect"u8,
+                3 => "FadeIn"u8,
+                4 => "Animation"u8,
+                _ => base.GetItemTypeName(typeIndex),
+            };
+        }
+
+        public byte* Buffer = (byte*)Utils.Alloc(4096);
+
+        public override ReadOnlySpan<byte> GetItemLabel(int index)
+        {
+            StrBuilder builder = new(Buffer, 4096);
+            builder.Reset();
+            builder.Append("[");
+            builder.Append(index);
+            builder.Append("] ");
+            builder.Append(GetItemTypeName(items[index].Type));
+            builder.End();
+            return new(builder.Buffer, builder.Index);
+        }
+
+        public override nuint GetCustomHeight(int index)
+        {
+            return items[index].Expanded ? 300u : 0;
+        }
+
+        public override void Get(int index, int** start, int** end, int* type, uint* color)
+        {
+            if (start != null) *start = &items.Data[index].Start;
+            if (end != null) *end = &items.Data[index].End;
+            if (type != null) *type = items[index].Type;
+            if (color != null) *color = 0xFFAA8080;
+        }
+
+        public override void Add(int type)
+        {
+            items.Add(new Item { Start = 0, End = 10, Type = type });
+        }
+
+        public override void Del(int index)
+        {
+            if (index >= 0 && index < items.Count)
+                items.RemoveAt(index);
+        }
+
+        private int lastExpanded = -1;
+
+        public override void DoubleClick(int index)
+        {
+            var state = items.Data[index].Expanded = !items.Data[index].Expanded;
+            if (lastExpanded != -1)
+            {
+                items.Data[lastExpanded].Expanded = false;
+                lastExpanded = state ? index : -1;
+            }
+        }
+
+        static string[] labels = { "Translation", "Rotation", "Scale" };
+        internal int frameMin;
+        internal int frameMax;
+
+        public override void CustomDraw(int index, ImDrawList* draw, ref ImRect rc, ref ImRect legendRect, ref ImRect clippingRect, ref ImRect legendClippingRect)
+        {
+            rampEdit.Max = new Vector2((float)(frameMax), 1.0f);
+            rampEdit.Min = new Vector2((float)(frameMin), 0.0f);
+            draw->PushClipRect(legendClippingRect.Min, legendClippingRect.Max, true);
+            for (int i = 0; i < 3; i++)
+            {
+                Vector2 pta = new(legendRect.Min.X + 30, legendRect.Min.Y + i * 14.0f);
+                Vector2 ptb = new(legendRect.Max.X, legendRect.Min.Y + (i + 1) * 14.0f);
+                draw->AddText(pta, rampEdit.mbVisible[i] ? 0xFFFFFFFF : 0x80FFFFFF, labels[i]);
+                if (new ImRect(pta, ptb).Contains(ImGui.GetMousePos()) && ImGui.IsMouseClicked(0))
+                    rampEdit.mbVisible[i] = !rampEdit.mbVisible[i];
+            }
+
+            draw->PopClipRect();
+
+            ImGui.SetCursorScreenPos(rc.Min);
+            draw->PushClipRect(clippingRect.Min, clippingRect.Max, true);
+            ImCurveEdit.Edit(rampEdit, rc.Max - rc.Min, (uint)(137 + index));
+            draw->PopClipRect();
+        }
+
+        public override unsafe void CustomDrawCompact(int index, ImDrawList* draw_list, ref ImRect rc, ref ImRect clippingRect)
+        {
+            rampEdit.Max = new Vector2(frameMax, 1.0f);
+            rampEdit.Min = new Vector2(frameMin, 0.0f);
+            draw_list->PushClipRect(clippingRect.Min, clippingRect.Max, true);
+            for (int i = 0; i < 3; i++)
+            {
+                for (uint j = 0; j < rampEdit.mPointCount[i]; j++)
+                {
+                    float p = rampEdit.mPts[i][j].X;
+                    if (p < items[index].Start || p > items[index].End)
+                        continue;
+
+                    float r = (p - frameMin) / (float)(frameMax - frameMin);
+                    float x = MathUtil.Lerp(rc.Min.X, rc.Max.X, r);
+                    draw_list->AddLine(new Vector2(x, rc.Min.Y + 6), new Vector2(x, rc.Max.Y - 4), 0xAA000000, 4.0f);
+                }
+            }
+            draw_list->PopClipRect();
+        }
+    }
+
     public unsafe class WidgetDemo : ImWindow
     {
         public WidgetDemo()
         {
+            sequence.frameMin = -100;
+            sequence.frameMax = 1000;
+            sequence.items.Add(new MySequence.Item(0, 10, 30, false));
+            sequence.items.Add(new MySequence.Item(1, 20, 30, false));
+            sequence.items.Add(new MySequence.Item(3, 12, 60, false));
+            sequence.items.Add(new MySequence.Item(2, 61, 90, false));
+            sequence.items.Add(new MySequence.Item(4, 90, 99, false));
         }
 
         public override string Name { get; } = "Demo";
 
+        private MySequence sequence = new();
+        int currentFrame = 100;
+        bool expanded = true;
+        int selectedEntry = -1;
+        int firstFrame = 0;
+
+        RampEdit edit = new();
+
         public override void DrawContent()
         {
-            DrawBreadcrumb();
-            DrawSpinner();
-            DrawProgressBar();
-            DrawButtons();
-            DrawSplitters();
-            DrawMessageBox();
-            DrawDialogs();
-            DrawDateTimes();
-            DrawFormats();
-            DrawTimeSpans();
+            ImCurveEdit.Edit(edit, ImGui.GetContentRegionAvail(), 10312);
+            //ImSequencer.Sequencer(sequence, ref currentFrame, ref expanded, ref selectedEntry, ref firstFrame, SequencerOptions.EditAll);
+            /*
+             DrawBreadcrumb();
+             DrawSpinner();
+             DrawProgressBar();
+             DrawButtons();
+             DrawSplitters();
+             DrawMessageBox();
+             DrawDialogs();
+             DrawDateTimes();
+             DrawFormats();
+             DrawTimeSpans();*/
         }
 
         private void DrawFormats()

@@ -44,6 +44,8 @@
 
         public ImFontPtr Font { get => font; set => font = value; }
 
+        public float FontSize { get => fontSize; set => fontSize = value; }
+
         public SyntaxHighlight? SyntaxHighlight
         {
             get => syntaxHighlight;
@@ -68,7 +70,7 @@
 
             StdWString* text = source.Text;
 
-            ImGui.PushFont(font);
+            ImGui.PushFont(font, fontSize);
 
             ImGui.BeginChild("##TextEditorChild", size, ImGuiWindowFlags.HorizontalScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
 
@@ -1273,6 +1275,7 @@
         private float cursorBlinkTimer = 0.0f;
         private SyntaxHighlight? syntaxHighlight;
         private ImFontPtr font;
+        private float fontSize = 14;
 
         private void DrawCursorLine(ImDrawList* drawList, TextSource source, bool isFocused, float lineHeight, Vector2 origin, Vector2 avail, CursorState cursorState)
         {

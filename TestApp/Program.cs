@@ -89,7 +89,6 @@
             imGuiManager.NewFrame();
 
             WidgetManager.Draw();
-            ImGui.ShowDemoWindow();
 
             SDL.GLMakeCurrent(mainWindow, glcontext);
             GL.BindFramebuffer(GLFramebufferTarget.Framebuffer, 0);
@@ -113,9 +112,6 @@
             imGuiManager = new(mainWindow, glcontext);
             WidgetDemo demo = new();
             demo.Show();
-
-            WidgetDemo2 demo2 = new();
-            demo2.Show();
 
             WidgetManager.Init();
         }

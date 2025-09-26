@@ -19,12 +19,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// Modified and ported by Juna Meinhold :3.
+// https://github.com/HexaEngine/Hexa.NET.ImGui.Widgets/
+//
+// Copyright(c) 2025 Juna Meinhold
+//
+// This file includes modifications to the original MIT-licensed code.
+// The original code copyright is retained above.
+//
+// Modified and ported by Juna, have fun!
+// And be careful not to shoot yourself in the foot with it!
+// :3
+//
 
 namespace Hexa.NET.ImGui.Widgets
 {
     using Hexa.NET.ImGui;
+    using Hexa.NET.Utilities.Text;
     using System.Numerics;
+    using System.Text;
 
     /// <summary>
     /// A utility class for rendering flame graph-style visualizations using ImGui.
@@ -125,6 +137,8 @@ namespace Hexa.NET.ImGui.Widgets
                 uint col_outline_base = ImGui.GetColorU32(ImGuiCol.PlotHistogram) & 0x7FFFFFFF;
                 uint col_outline_hovered = ImGui.GetColorU32(ImGuiCol.PlotHistogramHovered) & 0x7FFFFFFF;
 
+                byte* tmp = stackalloc byte[512];
+                StrBuilder builder = new(tmp, 512);
                 for (int i = valuesOffset; i < valuesCount; ++i)
                 {
                     float stageStart = 0, stageEnd = 1;
@@ -174,12 +188,15 @@ namespace Hexa.NET.ImGui.Widgets
                             else
                                 selected = i;
                         }
-#pragma warning disable CA2014 // note it's not needed to move you out of the loop the if above only allows one item
-                        var args = stackalloc byte[sizeof(float*) * sizeof(byte*)];
-#pragma warning restore CA2014
-                        *(byte**)args = caption;
-                        *(float*)((byte**)args + 1) = stageEnd - stageStart;
-                        ImGui.SetTooltipV($"%s: {stageEnd - stageStart}ms", (nuint)args);
+
+                        builder.Reset();
+                        builder.Append(caption);
+                        builder.Append(": "u8);
+                        builder.Append(stageEnd - stageStart);
+                        builder.Append("ms"u8);
+                        builder.End();
+
+                        ImGui.SetTooltip(builder);
 
                         v_hovered = true;
                         any_hovered = v_hovered;
