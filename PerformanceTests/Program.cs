@@ -2,6 +2,7 @@
 using BenchmarkDotNet.Running;
 using Hexa.NET.ImGui.Widgets.Text;
 using System.Text;
+using Hexa.NET.Utilities.Text;
 
 public class Program
 {
