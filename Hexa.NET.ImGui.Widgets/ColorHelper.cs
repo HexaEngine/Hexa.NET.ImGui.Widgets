@@ -6,13 +6,20 @@ using System.Numerics;
 
 public static class ColorHelper
 {
+    public static float DefaultThreshold = 0.5f;
+
     public static float Luma(Vector4 color)
     {
         var prep = color * new Vector4(0.299f, 0.587f, 0.114f, 1.0f);
         return prep.X + prep.Y + prep.Z;
     }
 
-    public static Vector4 FixContrast(Vector4 background, Vector4 foreground, float threshold = 0.35f)
+    public static Vector4 FixContrast(Vector4 background, Vector4 foreground)
+    {
+        return FixContrast(background, foreground, DefaultThreshold);
+    }
+
+    public static Vector4 FixContrast(Vector4 background, Vector4 foreground, float threshold)
     {
         var fgPremult = foreground * foreground.W;
         var bgPremult = background * background.W;
@@ -29,8 +36,12 @@ public static class ColorHelper
         return foreground;
     }
 
+    public static uint FixContrast(uint bg, uint fg)
+    {
+        return FixContrastABGR(bg, fg, DefaultThreshold);
+    }
 
-    public static uint FixContrastABGR(uint bg, uint fg, float threshold = 0.35f)
+    public static uint FixContrastABGR(uint bg, uint fg, float threshold)
     {
         var bgColor = ImGui.ColorConvertU32ToFloat4(bg);
         var fgColor = ImGui.ColorConvertU32ToFloat4(fg);
