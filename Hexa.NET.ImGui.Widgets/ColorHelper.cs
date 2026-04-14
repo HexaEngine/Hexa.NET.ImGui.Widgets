@@ -36,7 +36,7 @@ public static class ColorHelper
         return foreground;
     }
 
-    public static uint FixContrast(uint bg, uint fg)
+    public static uint FixContrastABGR(uint bg, uint fg)
     {
         return FixContrastABGR(bg, fg, DefaultThreshold);
     }
