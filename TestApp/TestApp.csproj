@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFrameworks>net9.0;net472</TargetFrameworks>
+		<TargetFrameworks>net9.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -21,7 +21,7 @@
 		<PackageReference Include="Hexa.NET.ImGui.Backends" Version="1.0.17.4" />
 		<PackageReference Include="Hexa.NET.ImGui.Backends.SDL2" Version="1.0.17.4" />
 		<PackageReference Include="Hexa.NET.Math" Version="2.0.6" />
-		<PackageReference Include="HexaGen.Runtime" Version="1.1.21" />
+		<PackageReference Include="HexaGen.Runtime" Version="1.1.24" />
 	</ItemGroup>
 
 	<ItemGroup>

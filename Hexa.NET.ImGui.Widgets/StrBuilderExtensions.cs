@@ -22,5 +22,13 @@
             builder.End();
             return builder;
         }
+
+        public static StrBuilder BuildLabel(this ref StrBuilder builder, char icon)
+        {
+            builder.Reset();
+            builder.Append(icon);
+            builder.End();
+            return builder;
+        }
     }
 }

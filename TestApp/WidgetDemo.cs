@@ -314,9 +314,13 @@ namespace TestApp
 
         RampEdit edit = new();
 
+        DateTime DateTime;
+
         public override void DrawContent()
         {
-            ImCurveEdit.Edit(edit, ImGui.GetContentRegionAvail(), 10312);
+
+            DatePicker.Draw("Test"u8, ref DateTime);
+            //ImCurveEdit.Edit(edit, ImGui.GetContentRegionAvail(), 10312);
             //ImSequencer.Sequencer(sequence, ref currentFrame, ref expanded, ref selectedEntry, ref firstFrame, SequencerOptions.EditAll);
             /*
              DrawBreadcrumb();

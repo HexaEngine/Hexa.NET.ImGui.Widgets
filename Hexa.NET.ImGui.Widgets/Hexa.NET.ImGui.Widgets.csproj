@@ -12,8 +12,8 @@
 		<EnableAotAnalyzer>true</EnableAotAnalyzer>
 		<IsAotCompatible>true</IsAotCompatible>
 
-		<AssemblyVersion>1.2.15</AssemblyVersion>
-		<PackageVersion>1.2.15</PackageVersion>
+		<AssemblyVersion>1.2.16</AssemblyVersion>
+		<PackageVersion>1.2.16</PackageVersion>
 		<Description>
 			Hexa.NET.ImGui.Widgets is a comprehensive library of custom widgets for the ImGui graphical user interface library. This package includes a variety of pre-built widgets that enhance the functionality and usability of ImGui in your .NET applications. Each widget is designed to be easy to integrate, with consistent styling and behavior. This library is an extension of the Hexa.NET.ImGui wrapper, providing additional UI components for a seamless user experience.
 		</Description>
@@ -49,7 +49,7 @@
 	<ItemGroup>
 		<PackageReference Include="Hexa.NET.ImGui" Version="2.2.8.4" />
 		<PackageReference Include="Hexa.NET.ImGuizmo" Version="2.2.8.4" />
-		<PackageReference Include="Hexa.NET.Utilities" Version="2.2.3" />
+		<PackageReference Include="Hexa.NET.Utilities" Version="2.2.12" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
@@ -65,6 +65,10 @@
 		<PackageReference Include="Microsoft.Bcl.Numerics" Version="9.0.7" />
 		<PackageReference Include="Microsoft.Bcl.HashCode" Version="6.0.0" />
 		<PackageReference Include="IndexRange" Version="1.0.3" />		
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Text\" />
 	</ItemGroup>
 
 </Project>

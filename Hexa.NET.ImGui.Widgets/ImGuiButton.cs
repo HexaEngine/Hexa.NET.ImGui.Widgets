@@ -6,6 +6,14 @@
     using System;
     using System.Numerics;
 
+    [Flags]
+    public enum InlineButtonFlags
+    {
+        None = 0,
+        NoRounding = 1 << 0,
+        FillSpace = 1 << 1,
+    }
+
     public unsafe class ImGuiButton
     {
         public static bool ToggleSwitch(string label, ref bool selected)
@@ -216,6 +224,116 @@
             ImGuiP.RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, (byte*)null, &labelSize, style.ButtonTextAlign, &bb);
 
             return pressed;
+        }
+
+
+        public static Vector2 CalcInlineButtonSize(ReadOnlySpan<byte> label)
+        {
+            fixed (byte* ptr = label)
+            {
+                return CalcInlineButtonSize(ptr);
+            }
+        }
+
+        public static bool InlineButton(ReadOnlySpan<byte> label, in ImRect bounds, in Vector2 anchor, InlineButtonFlags flags = InlineButtonFlags.None)
+        {
+            fixed (byte* ptr = label)
+            {
+                return InlineButton(ptr, in bounds, in anchor, flags);
+            }
+        }
+
+        public static Vector2 InlineButtonPadding = new(4, 2);
+
+        public static Vector2 CalcInlineButtonSize(byte* label, byte* end = null)
+        {
+            if (end == null)
+            {
+                end = ImGuiP.FindRenderedTextEnd(label);
+            }
+            var size = ImGui.CalcTextSize(label, end) + InlineButtonPadding * 2;
+            return size;
+        }
+
+        public static bool InlineButton(byte* label, in ImRect bounds, in Vector2 anchor, InlineButtonFlags flags = InlineButtonFlags.None)
+        {
+            var draw = ImGui.GetWindowDrawList();
+
+            var end = ImGuiP.FindRenderedTextEnd(label);
+            var size = CalcInlineButtonSize(label, end);
+            var sizeHalf = size * 0.5f;
+
+            Vector2 center = bounds.Min + anchor * (bounds.Max - bounds.Min);
+            Vector2 min = center - sizeHalf;
+            Vector2 max = center + sizeHalf;
+            if (anchor.X > 0.5f)
+            {
+                float maxX = Math.Min(max.X, bounds.Max.X);
+                max.X = maxX;
+                min.X = maxX - size.X;
+            }
+            else if (anchor.X < 0.5f)
+            {
+                float minX = Math.Max(min.X, bounds.Min.X);
+                min.X = minX;
+                max.X = minX + size.X;
+            }
+
+            if (anchor.Y > 0.5f)
+            {
+                float maxY = Math.Min(max.Y, bounds.Max.Y);
+                max.Y = maxY;
+                min.Y = maxY - size.Y;
+            }
+            else if (anchor.Y < 0.5f)
+            {
+                float minY = Math.Max(min.Y, bounds.Min.Y);
+                min.Y = minY;
+                max.Y = minY + size.Y;
+            }
+            var id = ImGui.GetID(label);
+            var contentMin = min;
+
+            if ((flags & InlineButtonFlags.FillSpace) != 0)
+            {
+                min = bounds.Min;
+                max = bounds.Max;
+            }
+
+            ImRect bb = new(min, max);
+            if (!ImGuiP.ItemAdd(bb, id, &bb))
+            {
+                return false;
+            }
+
+            bool hovered = false;
+            bool held = false;
+            var clicked = ImGuiP.ButtonBehavior(bb, id, &hovered, &held);
+
+            var minInner = contentMin + InlineButtonPadding;
+
+            var fg = ImGui.GetColorU32(ImGuiCol.Text);
+            var btnCol = ImGui.GetColorU32(ImGuiCol.Button);
+            var btnHoverCol = ImGui.GetColorU32(ImGuiCol.ButtonHovered);
+            var btnActiveCol = ImGui.GetColorU32(ImGuiCol.ButtonActive);
+            var frameRounding = ImGui.GetStyle().FrameRounding;
+
+            if (held)
+            {
+                btnCol = btnActiveCol;
+            }
+            else if (hovered)
+            {
+                btnCol = btnHoverCol;
+            }
+            if ((flags & InlineButtonFlags.NoRounding) != 0)
+            {
+                frameRounding = 0;
+            }
+
+            draw.AddRectFilled(min, max, btnCol, frameRounding);
+            draw.AddText(minInner, ColorHelper.FixContrastABGR(btnCol, fg), label, end);
+            return clicked;
         }
     }
 }
