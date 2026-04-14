@@ -9,6 +9,7 @@
     using Hexa.NET.Utilities;
     using System;
     using System.Diagnostics;
+    using System.Numerics;
 
     public class ImGuiManager
     {
@@ -76,6 +77,11 @@
             });
             builder.AddFontFromFileTTF("assets/fonts/MaterialSymbolsRounded.ttf", 16.0f, [0xe003, 0xF8FF])
             .Build();
+
+            var style = ImGui.GetStyle();
+            style.Colors[(int)ImGuiCol.WindowBg] = Vector4.One;
+            style.Colors[(int)ImGuiCol.PopupBg] = Vector4.One;
+            style.Colors[(int)ImGuiCol.Text] = Vector4.UnitW;
 
             // Setup Renderer
             ImGuiImplOpenGL3.SetCurrentContext(guiContext);

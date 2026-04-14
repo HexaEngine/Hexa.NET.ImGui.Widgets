@@ -117,4 +117,12 @@ public static class ColorHelper
 
         return new Vector4(r, g, b, a);
     }
+
+    public static uint GetCurrentWindowBg()
+    {
+        var window = ImGuiP.GetCurrentWindow();
+        var isPopup = (window.Flags & ImGuiWindowFlags.Popup) != 0;
+        var winBg = isPopup ? ImGui.GetColorU32(ImGuiCol.PopupBg) : ImGui.GetColorU32(ImGuiCol.WindowBg);
+        return winBg;
+    }
 }

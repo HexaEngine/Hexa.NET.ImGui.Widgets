@@ -109,6 +109,8 @@ public unsafe static class YearPicker
         bb.Max -= style.FramePadding;
         var draw = ImGui.GetWindowDrawList();
         var col = ImGui.GetColorU32(ImGuiCol.Text);
+        var winBg = ColorHelper.GetCurrentWindowBg();
+        col = ColorHelper.FixContrastABGR(winBg, col);
 
         const int yearsPerPage = cols * rows;
         var pageOffset = (int)Math.Floor((state.EditYear - 1) / (float)yearsPerPage);

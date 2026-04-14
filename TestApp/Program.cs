@@ -29,6 +29,7 @@
 
         private static void Main(string[] args)
         {
+            
             SDL.SetHint(SDL.SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
             SDL.SetHint(SDL.SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
             SDL.SetHint(SDL.SDL_HINT_AUTO_UPDATE_JOYSTICKS, "1");

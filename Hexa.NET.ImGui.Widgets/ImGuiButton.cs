@@ -317,6 +317,7 @@
             var btnHoverCol = ImGui.GetColorU32(ImGuiCol.ButtonHovered);
             var btnActiveCol = ImGui.GetColorU32(ImGuiCol.ButtonActive);
             var frameRounding = ImGui.GetStyle().FrameRounding;
+            var winBg = ColorHelper.GetCurrentWindowBg();
 
             if (held)
             {
@@ -330,9 +331,11 @@
             {
                 frameRounding = 0;
             }
+            var alphaBlend = ImGuiP.ImAlphaBlendColors(winBg, btnCol);
+            fg = ColorHelper.FixContrastABGR(alphaBlend, fg);
 
             draw.AddRectFilled(min, max, btnCol, frameRounding);
-            draw.AddText(minInner, ColorHelper.FixContrastABGR(btnCol, fg), label, end);
+            draw.AddText(minInner, fg, label, end);
             return clicked;
         }
     }
